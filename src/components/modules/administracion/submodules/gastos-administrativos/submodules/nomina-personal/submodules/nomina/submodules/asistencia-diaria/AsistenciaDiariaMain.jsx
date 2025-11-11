@@ -102,7 +102,7 @@ const AsistenciaDiariaMain = () => {
       />
 
       <div className="asistencia-controls">
-        <div className="date-selector">
+        <div className="date-selector-asistencia">
           <label>Fecha de Asistencia:</label>
           <input
             type="date"
@@ -137,22 +137,22 @@ const AsistenciaDiariaMain = () => {
         </div>
       ) : employees.length > 0 ? (
         <>
-          <div className="stats-cards">
-            <div className="stat-card total">
-              <div className="stat-number">{stats.total}</div>
-              <div className="stat-label">Total Empleados</div>
+          <div className="stats-cards-asistencia">
+            <div className="stat-card total-asistencia">
+              <div className="stat-number-asistencia">{stats.total}</div>
+              <div className="stat-label-asistencia">Total Empleados</div>
             </div>
-            <div className="stat-card present">
-              <div className="stat-number">{stats.presentes}</div>
-              <div className="stat-label">Presentes</div>
+            <div className="stat-card present-asistencia">
+              <div className="stat-number-asistencia">{stats.presentes}</div>
+              <div className="stat-label-asistencia">Presentes</div>
             </div>
-            <div className="stat-card absent">
-              <div className="stat-number">{stats.ausentes}</div>
-              <div className="stat-label">Ausentes</div>
+            <div className="stat-card absent-asistencia">
+              <div className="stat-number-asistencia">{stats.ausentes}</div>
+              <div className="stat-label-asistencia">Ausentes</div>
             </div>
-            <div className="stat-card percentage">
-              <div className="stat-number">{stats.porcentaje}%</div>
-              <div className="stat-label">Asistencia</div>
+            <div className="stat-card percentage-asistencia">
+              <div className="stat-number-asistencia">{stats.porcentaje}%</div>
+              <div className="stat-label-asistencia">Asistencia</div>
             </div>
           </div>
 

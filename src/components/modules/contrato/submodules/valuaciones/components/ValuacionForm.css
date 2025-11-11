@@ -14,7 +14,9 @@
 
 .form-header h3 {
   margin: 0;
-  color: #495057;
+  color: #fff;
+  font-size: clamp(1.1rem, 4vw, 1.5rem); /* Tamaño de fuente adaptable */
+  word-break: break-word;
 }
 
 .basic-info-section {

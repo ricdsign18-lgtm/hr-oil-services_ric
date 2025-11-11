@@ -295,6 +295,11 @@
 import React, { useState, useEffect } from "react";
 import { formatDate } from "../../../../../../../../../../../../utils/formatters";
 import "./AsistenciaForm.css";
+import {
+  CheckIcon,
+  RepeatIcon,
+  XIcon,
+} from "../../../../../../../../../../../../assets/icons/Icons";
 
 const AsistenciaForm = ({
   employees,
@@ -447,7 +452,6 @@ const AsistenciaForm = ({
     ),
   };
 
-
   // Verificar si es una fecha futura
   const isFutureDate = new Date(selectedDate) > new Date();
 
@@ -463,32 +467,35 @@ const AsistenciaForm = ({
     <div className="asistencia-form">
       <div className="form-header">
         <div className="header-title">
-          <h3>Registro de Asistencia - {formatDate(selectedDate)}</h3>
+          <h3>Registro de Asistencia</h3>
+          <h3>{formatDate(selectedDate)}</h3>
           {isEditing && (
             <span className="edit-badge">📝 Editando registro existente</span>
           )}
         </div>
         <div className="quick-actions">
           <button
-            className="btn-outline"
+            className="btn-asistencia-form-check"
             onClick={() => handleToggleAll(true)}
             disabled={isFutureDate}
           >
-            ✅ Marcar Todos Presentes
+            <CheckIcon />
+            Marcar Todos Presentes
           </button>
           <button
-            className="btn-outline"
+            className="btn-asistencia-form-x"
             onClick={() => handleToggleAll(false)}
             disabled={isFutureDate}
           >
-            ❌ Marcar Todos Ausentes
+            <XIcon />
+            Marcar Todos Ausentes
           </button>
           <button
-            className="btn-outline"
+            className="btn-asistencia-form-repeat"
             onClick={handleReset}
             disabled={isFutureDate}
           >
-            🔄 Reiniciar
+            <RepeatIcon /> Reiniciar
           </button>
         </div>
       </div>
@@ -500,21 +507,29 @@ const AsistenciaForm = ({
       )}
 
       <div className="stats-summary">
-        <div className="stat-card present">
-          <div className="stat-number">{estadisticas.presentes}</div>
-          <div className="stat-label">Presentes</div>
+        <div className="stat-card present-form-asistencia">
+          <div className="stat-number-form-asistencia">
+            {estadisticas.presentes}
+          </div>
+          <div className="stat-label-form-asistencia">Presentes</div>
         </div>
-        <div className="stat-card absent">
-          <div className="stat-number">{estadisticas.ausentes}</div>
-          <div className="stat-label">Ausentes</div>
+        <div className="stat-card absent-form-asistencia">
+          <div className="stat-number-form-asistencia">
+            {estadisticas.ausentes}
+          </div>
+          <div className="stat-label-form-asistencia">Ausentes</div>
         </div>
-        <div className="stat-card total">
-          <div className="stat-number">{estadisticas.total}</div>
-          <div className="stat-label">Total</div>
+        <div className="stat-card total-form-asistencia">
+          <div className="stat-number-form-asistencia">
+            {estadisticas.total}
+          </div>
+          <div className="stat-label-form-asistencia">Total</div>
         </div>
-        <div className="stat-card hours">
-          <div className="stat-number">{estadisticas.horasTotales}h</div>
-          <div className="stat-label">Horas Totales</div>
+        <div className="stat-card hours-form-asistencia">
+          <div className="stat-number-form-asistencia">
+            {estadisticas.horasTotales}h
+          </div>
+          <div className="stat-label-form-asistencia">Horas Totales</div>
         </div>
       </div>
 

@@ -6,33 +6,35 @@
 
 .asistencia-controls {
   display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   justify-content: space-between;
+  color: #fff;
   align-items: center;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: #2d3748;
   border-radius: 0.5rem;
   box-shadow: var(--shadow);
 }
 
-.date-selector {
+.date-selector-asistencia {
   display: flex;
+
   align-items: center;
   gap: 1rem;
 }
 
-.date-selector label {
+.date-selector-asistencia label {
   font-weight: 500;
-  color: #e2e8f0;
+  color: #ffffff;
 }
 
-.date-selector input {
+.date-selector-asistencia input {
   padding: 0.5rem;
   border: 1px solid #4a5568;
   border-radius: 0.375rem;
   font-size: 0.9rem;
-  background-color: #4a5568;
-  color: #e2e8f0;
+  background-color: #394bd3;
 }
 
 .view-toggle {
@@ -57,72 +59,55 @@
   border-color: var(--primary-color);
 }
 
-.stats-cards {
+.stats-cards-asistencia {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
-.stat-card {
+.stat-card-asistencia {
   padding: 1.5rem;
   border-radius: 0.5rem;
   text-align: center;
-  border: 1px solid var(--border-color);
+  border: none;
 }
 
-.stat-card.total {
-  background: #e0f2fe;
-  border-color: #0ea5e9;
+.stat-card.total-asistencia {
+  background: #7cc0ee;
+  border: none;
 }
 
-.stat-card.present {
-  background: #dcfce7;
-  border-color: #10b981;
+.stat-card.present-asistencia {
+  background: #99fdbc;
+  border: none;
 }
 
-.stat-card.absent {
-  background: #fef2f2;
-  border-color: #ef4444;
+.stat-card.absent-asistencia {
+  background: #f5a0a0;
+  border: none;
 }
 
-.stat-card.percentage {
-  background: #fefce8;
-  border-color: #eab308;
+.stat-card.percentage-asistencia {
+  background: #fff678;
+  border: none;
 }
 
-.stat-number {
+.stat-number-asistencia {
+  color: #394bd3;
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
+  border: none;
 }
 
-.stat-card.total .stat-number {
-  color: #0ea5e9;
-}
-.stat-card.present .stat-number {
-  color: #10b981;
-}
-.stat-card.absent .stat-number {
-  color: #ef4444;
-}
-.stat-card.percentage .stat-number {
-  color: #eab308;
-}
-
-.stat-label {
-  color: var(--text-secondary);
+.stat-label-asistencia {
+  color: #394bd3;
+  margin-left: 20px;
   font-size: 0.9rem;
   font-weight: 500;
+  border: none;
 }
-
-/* .module-content {
-  background: var(--surface-color);
-  border-radius: 0.5rem;
-  padding: 2rem;
-  box-shadow: var(--shadow);
-} */
-
 .back-button {
   background: none;
   border: none;
@@ -144,7 +129,6 @@
 
 @media (max-width: 768px) {
   .asistencia-controls {
-    flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }

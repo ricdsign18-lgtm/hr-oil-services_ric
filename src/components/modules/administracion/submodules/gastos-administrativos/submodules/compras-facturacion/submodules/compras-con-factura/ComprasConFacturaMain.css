@@ -26,8 +26,10 @@
   --border-radius-sm: 4px;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --transition: all 0.2s ease-in-out;
 }
 
@@ -95,7 +97,7 @@
 
 .form-header h3 {
   margin: 0;
-  color: var(--gray-800);
+  color: #fff;
   font-size: 1.5rem;
   font-weight: 600;
 }
@@ -741,7 +743,7 @@
   .proveedores-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .retenciones-detalle-grid {
     grid-template-columns: 1fr;
   }
@@ -751,50 +753,50 @@
   .compras-con-factura-main {
     padding: 16px;
   }
-  
+
   .factura-tabs {
     flex-direction: column;
     padding: 0;
   }
-  
+
   .tab-button {
     width: 100%;
     text-align: left;
     border-bottom: 1px solid var(--gray-200);
     border-left: 3px solid transparent;
   }
-  
+
   .tab-button.active {
     border-bottom: 1px solid var(--gray-200);
     border-left: 3px solid var(--primary-color);
   }
-  
+
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .section-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .filtros {
     width: 100%;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .proveedor-header {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .proveedor-actions {
     align-self: flex-start;
   }
-  
+
   .resumen-grid {
     grid-template-columns: 1fr;
   }
@@ -804,15 +806,15 @@
   .form-section {
     padding: 16px;
   }
-  
+
   .modal-content {
     padding: 24px;
   }
-  
+
   .rif-input {
     flex-direction: column;
   }
-  
+
   .rif-input select {
     flex: 1;
   }
