@@ -4,6 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useProjects } from "../../../../../../../contexts/ProjectContext";
 import ModuleDescription from "../../../../../_core/ModuleDescription/ModuleDescription";
 import "./NominaPersonalMain.css";
+import {
+  CalendarIcon,
+  MultiUsersIcon,
+  CashIcon,
+} from "../../../../../../../assets/icons/Icons";
 
 const NominaPersonalMain = () => {
   const navigate = useNavigate();
@@ -14,21 +19,21 @@ const NominaPersonalMain = () => {
       id: "registro-personal",
       title: "Registro de Personal",
       description: "Administra altas, bajas y modificaciones de los empleados.",
-      icon: "👥",
+      icon: <MultiUsersIcon />,
       path: "registro-personal",
     },
     {
       id: "asistencia-diaria",
       title: "Asistencia Diaria",
       description: "Registra y controla la asistencia diaria del personal.",
-      icon: "📅",
+      icon: <CalendarIcon />,
       path: "asistencia-diaria",
     },
     {
       id: "pagos-nomina",
       title: "Pagos de Nómina",
       description: "Genera y gestiona los pagos de nómina.",
-      icon: "💸",
+      icon: <CashIcon />,
       path: "pagos-nomina",
     },
   ];
@@ -46,14 +51,13 @@ const NominaPersonalMain = () => {
       <button className="back-button" onClick={handleBack}>
         ← Volver a Gastos Administrativos
       </button>
-
       <ModuleDescription
         title="Nómina & Personal"
         description={`Gestión integral de recursos humanos, nómina y bienestar del personal - ${
           selectedProject?.name || ""
         }`}
       />
-
+      e
       <div className="nomina-personal-grid">
         {submodules.map((submodule) => (
           <div

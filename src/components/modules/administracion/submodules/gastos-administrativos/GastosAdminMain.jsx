@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import ModuleDescription from "../../../_core/ModuleDescription/ModuleDescription";
 import "./GastosAdminMain.css";
 import { useProjects } from "../../../../../contexts/ProjectContext";
-import { UserIcon } from "../../../../../assets/icons/Icons";
+import { ScrollIcon, UserIcon } from "../../../../../assets/icons/Icons";
 const GastosAdminMain = ({ projectId }) => {
   const navigate = useNavigate();
   const { selectedProject } = useProjects();
@@ -23,7 +23,7 @@ const GastosAdminMain = ({ projectId }) => {
       title: "Compra & Facturación",
       description:
         "Gestión de compras con y sin factura, control de proveedores y retenciones",
-      icon: "🧾",
+      icon: <ScrollIcon />,
       path: "compra-facturacion",
     },
   ];
