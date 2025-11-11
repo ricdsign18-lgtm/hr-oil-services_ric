@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import "./UserRegister.css";
 import { UserIcon, OutIcon, ArrowDown } from "../../../assets/icons/Icons";
 import { UserRegisterPanel } from "./UserRegisterPanel";
+import bcrypt from "bcryptjs";
 
 export const UserRegister = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,7 +36,6 @@ export const UserRegister = () => {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    // Limpiar formulario al cerrar
     setUserData({ username: "", password: "", role: "viewer" });
   };
 
@@ -46,18 +46,20 @@ export const UserRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const passwordHashed = await bcrypt.hash(userData.password, 12);
     if (!userData.username || !userData.password) {
       alert("Por favor, completa el nombre de usuario y la contraseña.");
       return;
     }
+    const { error } = await supabase.from("users").insert({
+      username: userData.username,
+      password_hash: passwordHashed,
+      email: userData.email,
+    });
 
-    const result = await registerUser(userData);
-
-    if (result.success) {
-      alert(`✅ Usuario "${userData.username}" creado exitosamente.`);
-      handleCloseModal();
-    } else {
-      alert(`❌ Error al crear el usuario: ${result.error}`);
+    if (error) {
+      alert("Error");
+      return;
     }
   };
 
