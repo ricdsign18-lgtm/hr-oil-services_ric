@@ -8,14 +8,18 @@ import { ConfigIcon } from "/src/assets/icons/Icons.jsx";
 import { ContractIcon } from "/src/assets/icons/Icons.jsx";
 import Sidebar from "../../common/Sidebar/Sidebar";
 // import AppHeader from "../AppHeader/AppHeader";
+import { Header } from "../AppHeader/Header";
 
 import "./MainLayout.css";
 
 const MainLayout = ({ children }) => {
   const { user } = useAuth();
   const { selectedProject } = useProjects();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+
+  const handleToggleSidebar = (newState) =>
+    setSidebarOpen(typeof newState === "boolean" ? newState : !isSidebarOpen);
 
   // Efecto para detectar si es móvil
   useEffect(() => {
@@ -66,18 +70,22 @@ const MainLayout = ({ children }) => {
   return (
     <div
       className={`main-layout ${
-        sidebarOpen ? "sidebar-open" : "sidebar-closed"
+        isSidebarOpen ? "sidebar-open" : "sidebar-closed"
       }`}
     >
       <Sidebar
         items={sidebarItems}
-        isOpen={sidebarOpen}
-        onToggle={setSidebarOpen}
+        isOpen={isSidebarOpen}
+        onToggle={handleToggleSidebar}
         isMobile={isMobile}
       />
 
       <div className="main-content">
-        {/* <AppHeader user={user} project={selectedProject} /> */}
+        <Header
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={handleToggleSidebar}
+          isMobile={isMobile}
+        />
 
         <main className="content-area">{children}</main>
       </div>

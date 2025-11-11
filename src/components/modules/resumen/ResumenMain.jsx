@@ -10,7 +10,6 @@ import { usePersonal } from "../../../contexts/PersonalContext";
 import { getMainCurrency } from "../../../utils/mainCurrency";
 import { ResumeCard } from "../../resume/ResumeCard";
 import ValuacionResumenCard from "./components/ValuacionResumenCard";
-import { Header } from "../../layout/AppHeader/Header";
 
 import { DashboarddIcon, SackDollarIcon } from "../../../assets/icons/Icons";
 import "./ResumenMain.css";
@@ -312,7 +311,6 @@ const ResumenMain = () => {
   if (isLoading) {
     return (
       <>
-        <Header />
         <div className="resumen-main__container">
           <div className="loading-skeleton">
             {[...Array(2)].map((_, i) => (
@@ -331,8 +329,6 @@ const ResumenMain = () => {
 
   return (
     <>
-      <Header />
-
       <main className="resumen-main__container">
         {/* Columna de Resumen (izquierda) */}
         <aside className="resume-cards-container">
