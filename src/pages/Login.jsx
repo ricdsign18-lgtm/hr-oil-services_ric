@@ -25,7 +25,7 @@ const Login = () => {
       <div className="login-container">
         <div className="login-header">
           <img
-            src="src/assets/logo-hyr.png"
+            src="/logo-hyr.png"
             alt="HR Oil Services"
             className="login-logo"
           />
