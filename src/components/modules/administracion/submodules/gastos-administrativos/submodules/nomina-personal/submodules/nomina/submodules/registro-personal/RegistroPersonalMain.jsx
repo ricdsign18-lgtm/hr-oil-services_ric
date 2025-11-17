@@ -230,7 +230,8 @@ const RegistroPersonalMain = () => {
               <div className="header-actions">
                 <h3>Lista de Personal Registrado</h3>
                 <button
-                  className="btn-primary"
+                // modificar al poner mejor los botones
+                  className="btn-personal"
                   onClick={() => setShowForm(true)}
                   disabled={loading}
                 >

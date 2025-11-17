@@ -154,17 +154,16 @@
 .list-header-asistencia-form {
   display: grid;
   grid-template-columns: 2fr 1fr 0.8fr 1.5fr;
+  background-color: #fff;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  border: 3px solid #394bd3;
+  
   font-weight: 600;
-  color: #fff;
+  color: #000000;
   font-size: 0.9rem;
-  min-width: 800px; /* Añadido para forzar el scroll horizontal */
+  min-width: 800px; 
 }
-.list-header-asistencia-form span {
-  border-right: 3px solid #394bd3;
-}
+
 
 .employees-scroll-container-asistencia-form {
   max-height: 60vh;
@@ -188,11 +187,11 @@
 }
 
 .employee-row.present {
-  background: #b8ffce;
+  background: #fdfffe;
 }
 
 .employee-row.absent {
-  background: #f8b1b1;
+  background: #fffefe;
 }
 
 .employee-info {
@@ -217,7 +216,6 @@
 
 .cedula {
   font-family: monospace;
-  background: var(--background-color);
   padding: 0.1rem 0.4rem;
   border-radius: 0.25rem;
 }
