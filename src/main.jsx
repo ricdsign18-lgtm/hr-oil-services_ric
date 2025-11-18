@@ -7,11 +7,14 @@ import { ProjectProvider } from "./contexts/ProjectContext.jsx";
 import { CurrencyProvider } from "./contexts/CurrencyContext.jsx";
 import { BudgetProvider } from "./contexts/BudgetContext.jsx";
 import { ValuationProvider } from "./contexts/ValuationContext.jsx";
-import { PlanificacionProvider } from "./contexts/PlanificacionContext.jsx";
+//import { PlanificacionProvider } from "./contexts/PlanningContext.jsx";
 import { OperacionesProvider } from "./contexts/OperacionesContext.jsx";
 import { PersonalProvider } from "./contexts/PersonalContext.jsx";
 import { UiProvider } from "./contexts/UiContext.jsx";
 import { IncomeProvider } from "./contexts/IncomeContext.jsx";
+import { PlanningProvider } from "./contexts/PlanningContext.jsx";
+import { ExecutionProvider } from "./contexts/ExecutionContext";
+
 import App from "./App.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -24,13 +27,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <BudgetProvider>
                 <IncomeProvider>
                   <ValuationProvider>
-                    <PlanificacionProvider>
-                      <PersonalProvider>
-                        <OperacionesProvider>
-                        <App />
-                      </OperacionesProvider>
-                      </PersonalProvider>
-                    </PlanificacionProvider>
+                    <PlanningProvider>
+                      <ExecutionProvider>
+                        <PersonalProvider>
+                          <OperacionesProvider>
+                            <App />
+                          </OperacionesProvider>
+                        </PersonalProvider>
+                      </ExecutionProvider>
+                    </PlanningProvider>
                   </ValuationProvider>
                 </IncomeProvider>
               </BudgetProvider>

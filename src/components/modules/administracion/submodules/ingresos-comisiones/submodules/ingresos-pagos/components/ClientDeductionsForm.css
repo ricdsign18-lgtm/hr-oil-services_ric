@@ -30,6 +30,7 @@
   border-radius: 8px;
   margin-bottom: 25px;
   border-left: 4px solid #17a2b8;
+  overflow: auto;
 }
 
 .invoice-summary h3 {
@@ -106,6 +107,13 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+  
+}
+
+.deduction-inputs label {
+  font-weight: 600;
   flex: 1;
 }
 
@@ -114,6 +122,7 @@
   padding: 10px;
   border: 1px solid #ced4da;
   border-radius: 4px;
+  max-width: 100%;
 }
 
 .deduction-inputs input[type="number"] {
@@ -193,6 +202,8 @@
   padding-top: 20px;
   border-top: 2px solid #e9ecef;
   text-align: center;
+  align-items: center;
+  justify-content: center;
 }
 
 .save-button {
@@ -205,7 +216,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 250px;
+  min-width: 180px;
 }
 
 .save-button:hover:not(:disabled) {

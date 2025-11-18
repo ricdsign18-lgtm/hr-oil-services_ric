@@ -4,7 +4,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useBudget } from "../../../contexts/BudgetContext";
 import { useCurrency } from "../../../contexts/CurrencyContext";
 import { useValuation } from "../../../contexts/ValuationContext";
-import { usePlanificacion } from "../../../contexts/PlanificacionContext";
+//import { usePlanificacion } from "../../../contexts/PlanificacionContext";
 import { useOperaciones } from "../../../contexts/OperacionesContext";
 import { usePersonal } from "../../../contexts/PersonalContext";
 import { getMainCurrency } from "../../../utils/mainCurrency";
@@ -20,11 +20,11 @@ const ResumenMain = () => {
   const { budget, loading: budgetLoading } = useBudget();
   const { valuations, loading: valuationsLoading } = useValuation();
   const { formatCurrency, convertToUSD, customRates } = useCurrency();
-  const {
-    totalTareas,
-    tareasCompletadas,
-    loading: planificacionLoading,
-  } = usePlanificacion();
+  // const {
+  //   totalTareas,
+  //   tareasCompletadas,
+  //   loading: planificacionLoading,
+  // } = usePlanificacion();
 
   const { compras } = useOperaciones();
   const { getPagosByProject } = usePersonal();
@@ -305,7 +305,7 @@ const ResumenMain = () => {
   const isLoading =
     budgetLoading ||
     valuationsLoading ||
-    planificacionLoading ||
+    //planificacionLoading ||
     loadingAllPagos;
 
   if (isLoading) {

@@ -12,7 +12,7 @@
 }
 
 .resumen-header h3 {
-  color: var(--text-primary);
+  color: #ffffff;
   margin-bottom: 1rem;
 }
 
@@ -20,7 +20,7 @@
   display: flex;
   gap: 2rem;
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: #ffffff;
   flex-wrap: wrap;
 }
 
@@ -163,7 +163,7 @@
   padding: 1rem 0.75rem;
   text-align: left;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #ffffff;
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
 }

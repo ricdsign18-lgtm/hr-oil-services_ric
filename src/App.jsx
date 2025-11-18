@@ -4,7 +4,7 @@ import ProjectSelection from "./pages/ProjectSelection";
 import ProjectLobby from "./pages/ProjectLobby";
 import LoginPage from "./pages/LoginPage";
 import "./index.css";
-
+import "./planificacion.css"
 function App() {
   return (
     <Routes>

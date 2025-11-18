@@ -5,13 +5,19 @@
   text-align: center;
 }
 
-.daily-summary-card {
+/* .daily-summary-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 25px;
   border-radius: 12px;
   margin-bottom: 25px;
-}
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+
+} */
 
 .daily-summary-card h3 {
   margin-bottom: 20px;
@@ -23,6 +29,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
+  justify-content: center;
+  margin-bottom: 25px;
+  text-align: center;
+  
 }
 
 .summary-card {
