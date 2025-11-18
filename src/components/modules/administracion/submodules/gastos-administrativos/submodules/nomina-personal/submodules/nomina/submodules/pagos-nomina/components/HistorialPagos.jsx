@@ -31,6 +31,7 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles }) => {
       Cargo: pagoEmp.empleado.cargo,
       "Tipo Nómina": pagoEmp.empleado.tipoNomina,
       "Días Trabajados": pagoEmp.diasTrabajados,
+      "Monto Diario (USD$)": pagoEmp.montoDiarioCalculado.toFixed(2),
       "Salario Base (USD$)": pagoEmp.salarioBase.toFixed(2),
       "Horas Extra Diurna": pagoEmp.horasExtras.diurna,
       "Horas Extra Nocturna": pagoEmp.horasExtras.nocturna,
@@ -153,6 +154,9 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles }) => {
                       </span>
                       <span className="amount">
                         Bs {pagoEmp.totalPagarBs.toFixed(2)}
+                      </span>
+                      <span className="amount">
+                        $ {(pagoEmp.subtotalUSD).toFixed(2)}
                       </span>
                     </div>
                   ))}

@@ -46,6 +46,7 @@
   border-radius: 0.5rem;
   padding: 1.5rem;
   background: var(--surface-color);
+  
 }
 
 .pago-header {
@@ -65,14 +66,17 @@
 .pago-details {
   display: flex;
   gap: 1.5rem;
+  text-align: left;
   font-size: 0.85rem;
   color: var(--text-secondary);
+  
 }
 
 .pago-totales {
   display: flex;
   gap: 1.5rem;
-  text-align: right;
+  text-align: left;
+  
 }
 
 .pago-total .label {
@@ -108,7 +112,7 @@
 
 .preview-header {
   font-weight: 500;
-  color: var(--text-primary);
+  color: #ffffff;
   margin-bottom: 0.75rem;
   font-size: 0.9rem;
 }
@@ -196,6 +200,7 @@
   .pago-totales {
     justify-content: space-between;
     width: 100%;
+    overflow: scroll;
   }
   
   .pago-actions {

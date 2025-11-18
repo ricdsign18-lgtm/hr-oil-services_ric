@@ -431,6 +431,7 @@ export const PersonalProvider = ({ children }) => {
         employee_id: pago.empleado.id,
         dias_trabajados: pago.diasTrabajados,
         cargo: pago.empleado.cargo, // Añadido el cargo del empleado
+        monto_diario_calculado: parseFloat(pago.montoDiarioCalculado || 0),
         salario_base: parseFloat(pago.salarioBase || 0),
         horas_extras_diurna: parseFloat(pago.horasExtras.diurna || 0),
         horas_extras_nocturna: parseFloat(pago.horasExtras.nocturna || 0),
@@ -494,6 +495,7 @@ export const PersonalProvider = ({ children }) => {
             frecuenciaPago: detail.employees.frecuencia_pago,
           },
           diasTrabajados: detail.dias_trabajados,
+          montoDiarioCalculado: parseFloat(detail.monto_diario_calculado),
           salarioBase: parseFloat(detail.salario_base),
           horasExtras: {
             diurna: parseFloat(detail.horas_extras_diurna),

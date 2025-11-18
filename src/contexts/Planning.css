@@ -1,0 +1,243 @@
+/* === Planning Module Styles === */
+
+/* --- Variables --- */
+:root {
+  --planning-bg: #f8f9fa;
+  --planning-card-bg: #ffffff;
+  --planning-border-color: #e9ecef;
+  --planning-primary-color: #007bff;
+  --planning-primary-hover: #0056b3;
+  --planning-secondary-color: #6c757d;
+  --planning-text-primary: #212529;
+  --planning-text-secondary: #6c757d;
+  --planning-text-light: #f8f9fa;
+  --planning-error-color: #dc3545;
+  --planning-success-color: #28a745;
+  --planning-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --planning-radius: 8px;
+}
+
+/* --- Base Container --- */
+.planning-container {
+  padding: 20px;
+  background-color: var(--planning-bg);
+  border-radius: var(--planning-radius);
+  height: 100%;
+}
+
+/* --- Header --- */
+.planning-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--planning-border-color);
+}
+
+.planning-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--planning-text-primary);
+  margin: 0;
+}
+
+.planning-semana-dates {
+  font-size: 0.9rem;
+  color: var(--planning-text-secondary);
+}
+
+.planning-semana-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 0;
+  cursor: default;
+}
+
+/* --- List Containers (Semanas & Días) --- */
+.planning-semanas-container,
+.planning-dias-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* --- Card Items (Semana & Día) --- */
+.planning-semana-item,
+.planning-dia-item {
+  background-color: var(--planning-card-bg);
+  border: 1px solid var(--planning-border-color);
+  border-radius: var(--planning-radius);
+  padding: 20px;
+  box-shadow: var(--planning-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.planning-semana-item:hover,
+.planning-dia-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.planning-semana-item .planning-semana-header h3,
+.planning-dia-item .planning-dia-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--planning-text-primary);
+}
+
+.planning-semana-item .planning-semana-header {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+/* --- Actividades List --- */
+.planning-actividades-container {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.planning-actividad-item {
+  background-color: var(--planning-card-bg);
+  border: 1px solid var(--planning-border-color);
+  border-radius: var(--planning-radius);
+  padding: 15px;
+}
+
+.planning-actividad-item p {
+  margin: 0 0 5px 0;
+  color: var(--planning-text-secondary);
+}
+
+.planning-actividad-item p:first-child {
+  color: var(--planning-text-primary);
+}
+
+/* --- Placeholder / No Content --- */
+.planning-no-content {
+  border: 2px dashed var(--planning-border-color);
+  border-radius: var(--planning-radius);
+  padding: 40px;
+  text-align: center;
+  color: var(--planning-text-secondary);
+  margin-top: 20px;
+}
+
+/* --- Formularios --- */
+.form-container {
+  background-color: var(--planning-card-bg);
+  border: 1px solid var(--planning-border-color);
+  border-radius: var(--planning-radius);
+  padding: 25px;
+  margin-top: 20px;
+}
+
+.form-container h3 {
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.form-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.form-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--planning-text-primary);
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--planning-border-color);
+  border-radius: 6px;
+  background-color: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--planning-primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+.form-control[disabled] {
+  background-color: var(--planning-bg);
+  cursor: not-allowed;
+}
+
+.form-control-static {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background-color: var(--planning-bg);
+  color: var(--planning-text-secondary);
+  font-weight: 500;
+}
+
+.form-error {
+  color: var(--planning-error-color);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--planning-border-color);
+}
+
+/* --- Botones (Asumiendo que son globales, pero se pueden prefijar con .planning-) --- */
+.btn-primary {
+  background-color: var(--planning-primary-color);
+  color: var(--planning-text-light);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.btn-primary:hover { background-color: var(--planning-primary-hover); }
+.btn-primary:disabled { background-color: #a0c7ff; cursor: not-allowed; }
+
+.btn-secondary {
+  background-color: var(--planning-card-bg);
+  color: var(--planning-text-secondary);
+  border: 1px solid var(--planning-border-color);
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+.btn-secondary:hover { background-color: #e9ecef; }
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .planning-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  .form-grid.cols-2, .form-grid.cols-3 {
+    grid-template-columns: 1fr;
+  }
+}

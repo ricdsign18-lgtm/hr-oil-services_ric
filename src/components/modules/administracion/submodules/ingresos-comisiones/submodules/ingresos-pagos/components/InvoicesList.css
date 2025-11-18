@@ -8,6 +8,7 @@
 .filters {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
   margin-bottom: 30px;
   padding: 20px;
@@ -19,7 +20,9 @@
 .date-filter {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 25px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .date-filter label {
@@ -73,15 +76,18 @@
 }
 
 .invoices-grid {
-  display: grid;
+  
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 25px;
 }
 
 .invoice-card {
+  display: flex;
+  flex-direction: column;
   background: white;
+  gap: 0px;
   border-radius: 12px;
-  padding: 25px;
+  padding: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   border: 1px solid #e9ecef;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -158,6 +164,7 @@
   padding: 6px 0;
   font-size: 0.9em;
   border-bottom: 1px solid rgba(133, 100, 4, 0.1);
+  text-align: left;
 }
 
 .deduction-item:last-child {

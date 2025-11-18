@@ -1,0 +1,194 @@
+/* Estilos específicos para módulos de Planificación y Ejecución */
+.planificacion-module {
+  background-color: #0f172a;
+  color: #f9fafb;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+}
+
+/* Sobrescribir clases de Tailwind solo dentro del módulo */
+.planificacion-module .bg-white {
+  background-color: #374151 !important;
+  color: #f9fafb;
+}
+
+.planificacion-module .bg-gray-50 {
+  background-color: #4b5563 !important;
+}
+
+.planificacion-module .bg-gray-100 {
+  background-color: #4b5563 !important;
+}
+
+.planificacion-module .bg-gray-200 {
+  background-color: #6b7280 !important;
+}
+
+.planificacion-module .bg-green-100 {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+.planificacion-module .bg-yellow-100 {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+.planificacion-module .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+.planificacion-module .bg-orange-50 {
+  background-color: rgba(249, 115, 22, 0.1) !important;
+}
+
+.planificacion-module .bg-green-50 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Text colors */
+.planificacion-module .text-gray-700,
+.planificacion-module .text-gray-800 {
+  color: #f9fafb !important;
+}
+
+.planificacion-module .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+.planificacion-module .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+.planificacion-module .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+.planificacion-module .text-green-800 {
+  color: #10b981 !important;
+}
+
+.planificacion-module .text-yellow-800 {
+  color: #f59e0b !important;
+}
+
+.planificacion-module .text-blue-600 {
+  color: #3b82f6 !important;
+}
+
+.planificacion-module .text-green-600 {
+  color: #10b981 !important;
+}
+
+.planificacion-module .text-orange-600 {
+  color: #f97316 !important;
+}
+
+.planificacion-module .text-yellow-600 {
+  color: #f59e0b !important;
+}
+
+.planificacion-module .text-red-500 {
+  color: #ef4444 !important;
+}
+
+/* Borders */
+.planificacion-module .border {
+  border-color: #4b5563 !important;
+}
+
+.planificacion-module .border-t {
+  border-top-color: #4b5563 !important;
+}
+
+/* Buttons */
+.planificacion-module .bg-blue-600 {
+  background-color: #3b82f6 !important;
+}
+
+.planificacion-module .bg-green-600 {
+  background-color: #10b981 !important;
+}
+
+.planificacion-module .bg-yellow-600 {
+  background-color: #f59e0b !important;
+}
+
+.planificacion-module .bg-gray-400 {
+  background-color: #9ca3af !important;
+}
+
+.planificacion-module .hover\:bg-blue-700:hover {
+  background-color: #1d4ed8 !important;
+}
+
+.planificacion-module .hover\:bg-green-700:hover {
+  background-color: #047857 !important;
+}
+
+.planificacion-module .hover\:bg-gray-50:hover {
+  background-color: #4b5563 !important;
+}
+
+.planificacion-module .hover\:text-blue-800:hover {
+  color: #1e40af !important;
+}
+
+/* Form inputs */
+.planificacion-module input,
+.planificacion-module select,
+.planificacion-module textarea {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+.planificacion-module input:focus,
+.planificacion-module select:focus,
+.planificacion-module textarea:focus {
+  outline: none;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+.planificacion-module input::placeholder,
+.planificacion-module textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Progress bars */
+.planificacion-module .bg-gray-200 {
+  background-color: #4b5563 !important;
+}
+
+.planificacion-module .bg-green-600 {
+  background-color: #10b981 !important;
+}
+
+.planificacion-module .bg-blue-600 {
+  background-color: #3b82f6 !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .planificacion-module .grid-cols-2,
+  .planificacion-module .grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .planificacion-module .md\:grid-cols-2,
+  .planificacion-module .lg\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .planificacion-module .space-x-2 > * + *,
+  .planificacion-module .space-x-3 > * + *,
+  .planificacion-module .space-x-4 > * + * {
+    margin-left: 0 !important;
+    margin-top: 0.5rem !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .planificacion-module .lg\:grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}

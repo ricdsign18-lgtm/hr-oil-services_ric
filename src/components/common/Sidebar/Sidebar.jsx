@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
-import { AdminIcon, ArrowIcon } from "/src/assets/icons/Icons.jsx";
+import { ConfigIcon, ArrowIcon } from "../../../assets/icons/Icons.jsx";
 import { OutIcon } from "/src/assets/icons/Icons.jsx";
 import SidebarItem from "./SidebarItem";
 import { useSidebar } from "../../../hooks/useSidebar";

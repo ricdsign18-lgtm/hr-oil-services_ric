@@ -150,18 +150,18 @@ const CalculadoraPagos = ({
     const fechaPagoDate = new Date(fechaPago);
 
     if (empleado.frecuenciaPago === "Semanal") {
-      // Calcular semana laboral (lunes a viernes)
+      // Calcular semana laboral (sábado a viernes)
       const inicioSemana = new Date(fechaPagoDate);
       const diaSemana = fechaPagoDate.getDay();
 
-      // Ajustar al lunes de la semana del pago
+      // Ajustar al lunes de la semana del pago y luego retroceder al sábado anterior
       const diffLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
-      inicioSemana.setDate(fechaPagoDate.getDate() + diffLunes);
+      inicioSemana.setDate(fechaPagoDate.getDate() + diffLunes - 2); // -2 para ir de lunes a sábado
 
-      // Buscar asistencias de esta semana (lunes a viernes)
+      // Buscar asistencias de esta semana (sábado a viernes)
       let diasAsistidos = 0;
-      for (let i = 0; i < 5; i++) {
-        // Solo lunes a viernes
+      for (let i = 0; i < 7; i++) {
+        // 7 días desde el sábado
         const fechaDia = new Date(inicioSemana);
         fechaDia.setDate(inicioSemana.getDate() + i);
         const fechaStr = formatDateSafe(fechaDia);
@@ -395,6 +395,7 @@ const CalculadoraPagos = ({
   const calcularPagoEmpleado = (empleado) => {
     const diasTrabajados = calcularDiasTrabajados(empleado, fechaPago);
     const montoDiario = calcularMontoDiario(empleado);
+    console.log(`Calculando para ${empleado.nombre}: montoDiario = ${montoDiario}`);
     const valorHora = calcularValorHora(empleado);
     const mitadPago =
       empleado.frecuenciaPago === "Quincenal"
