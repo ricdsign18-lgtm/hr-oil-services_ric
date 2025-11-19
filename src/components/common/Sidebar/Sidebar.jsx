@@ -1,9 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
-import { ConfigIcon, ArrowIcon } from "../../../assets/icons/Icons.jsx";
-import { OutIcon } from "/src/assets/icons/Icons.jsx";
+import { ArrowIcon } from "../../../assets/icons/Icons.jsx";
+import { OutIcon } from "../../../assets/icons/Icons.jsx";
 import SidebarItem from "./SidebarItem";
-import { useSidebar } from "../../../hooks/useSidebar";
 import "./Sidebar.css";
 
 const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
@@ -13,19 +12,18 @@ const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
 
   // Lógica de filtrado ajustada según el rol del usuario
   const getMenuItems = () => {
-    if (currentUser && currentUser.role === "editor") {
-      // Si es editor, solo mostrar el módulo de administración
-      const adminItem = items.find((item) => item.id === "admin");
-      return adminItem ? [{ ...adminItem, path: "/admin" }] : [];
-    }
-    // Para otros roles, mostrar los módulos permitidos, excluyendo administración
-    return items.filter((item) => {
-      if (item.id === "admin") return false; // Excluir admin para no-editores
-      return hasPermissionSync(item.id, "read");
-    }).map((item) => ({
-      ...item,
-      path: `/project/${projectId}${item.path}`,
-    }));
+    // Si no hay items o usuario, no mostrar nada.
+    if (!items || !currentUser) return [];
+
+    // Filtramos los módulos del proyecto según los permisos de lectura del usuario.
+    return items
+      ? items
+          .filter((item) => hasPermissionSync(item.id, "read"))
+          .map((item) => ({
+            ...item,
+            path: `/project/${projectId}${item.path}`,
+          }))
+      : [];
   };
   const filteredItems = getMenuItems();
 

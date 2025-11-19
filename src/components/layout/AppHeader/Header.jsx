@@ -3,8 +3,8 @@ import { Notification } from "./Notification";
 import { UserRegister } from "./UserRegister";
 import { useAuth } from "../../../contexts/AuthContext";
 
-import "./Header.css";
 import { MenuIcon } from "../../../assets/icons/Icons";
+import "./Header.css";
 
 export const Header = ({ isSidebarOpen, onToggleSidebar, isMobile }) => {
   const { selectedProject } = useProjects();

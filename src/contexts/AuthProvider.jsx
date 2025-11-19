@@ -44,11 +44,6 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // if (data.password !== credentials.password) {
-      //   alert("Contraseña incorrecta");
-      //   return;
-      // }
-
       localStorage.setItem("hr_oil_user", JSON.stringify(data)); // Guardar usuario en localStorage
       setUserData(data);
       setIsAuthenticated(true);
@@ -60,46 +55,6 @@ export const AuthProvider = ({ children }) => {
       alert("Error al iniciar sesión");
     }
   };
-
-  // const registerUser = async (newUserData) => {
-  //   try {
-  //     // 1. Verificar si el usuario ya existe
-  //     const { data: existingUser, error: fetchError } = await supabase
-  //       .from("users")
-  //       .select("username")
-  //       .eq("username", newUserData.username)
-  //       .single();
-
-  //     if (fetchError && fetchError.code !== "PGRST116") {
-  //       // PGRST116: 'exact-one' rows expected, but 0 were found
-  //       throw fetchError;
-  //     }
-
-  //     if (existingUser) {
-  //       return {
-  //         success: false,
-  //         error: "El nombre de usuario ya está en uso.",
-  //       };
-  //     }
-
-  //     // 2. Si no existe, insertar el nuevo usuario
-  //     const { error: insertError } = await supabase
-  //       .from("users")
-  //       .insert([newUserData]);
-
-  //     if (insertError) {
-  //       throw insertError;
-  //     }
-
-  //     return { success: true };
-  //   } catch (error) {
-  //     console.error("Error al registrar usuario:", error);
-  //     return {
-  //       success: false,
-  //       error: error.message || "Ocurrió un error inesperado.",
-  //     };
-  //   }
-  // };
 
   // Función ASÍNCRONA para verificar permisos desde la base de datos
   const hasPermission = async (module, action = "read") => {
@@ -123,7 +78,6 @@ export const AuthProvider = ({ children }) => {
 
       if (error) {
         console.error("Error al cargar permisos:", error);
-        // Fallback a permisos básicos por rol
         return hasPermissionSync(module, action);
       }
 
@@ -146,7 +100,6 @@ export const AuthProvider = ({ children }) => {
         return false;
       }
 
-      // Verificar si la acción está permitida
       return permissions[column] || false;
     } catch (error) {
       console.error("Error verificando permisos:", error);
@@ -169,27 +122,15 @@ export const AuthProvider = ({ children }) => {
       editor: {
         resumen: ["read", "write"],
         administracion: ["read", "write"],
-        operaciones: ["read", "write"],
-        contrato: ["read", "write"],
-        coordinaciones: ["read", "write"],
       },
       viewer: {
         resumen: ["read"],
         administracion: ["read"],
-        operaciones: ["read"],
-        contrato: ["read"],
-        coordinaciones: ["read"],
       },
     };
 
     // Para roles que no están en el mapeo, permitir lectura básica
-    const defaultPermissions = [
-      "resumen",
-      "administracion",
-      "operaciones",
-      "contrato",
-      "coordinaciones",
-    ];
+    const defaultPermissions = ["resumen", "administracion"];
 
     if (userData.role === "editor" || userData.role === "viewer") {
       const permissions = rolePermissions[userData.role];

@@ -6,6 +6,7 @@ import "./UserRegister.css";
 import { UserIcon, OutIcon, ArrowDown } from "../../../assets/icons/Icons";
 import { UserRegisterPanel } from "./UserRegisterPanel";
 import bcrypt from "bcryptjs";
+import supabase from "../../../api/supaBase";
 
 export const UserRegister = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,8 +54,8 @@ export const UserRegister = () => {
     }
     const { error } = await supabase.from("users").insert({
       username: userData.username,
-      password_hash: passwordHashed,
-      email: userData.email,
+      password: passwordHashed,
+      role: userData.role,
     });
 
     if (error) {
