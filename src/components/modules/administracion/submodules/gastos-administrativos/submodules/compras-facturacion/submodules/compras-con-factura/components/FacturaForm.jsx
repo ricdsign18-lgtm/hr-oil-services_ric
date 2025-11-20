@@ -39,6 +39,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
 
   const [categorias, setCategorias] = useState([])
   const [modosPago, setModosPago] = useState([])
+  const [proveedores, setProveedores] = useState([])
 
   const [nuevaCategoria, setNuevaCategoria] = useState('')
   const [nuevoModoPago, setNuevoModoPago] = useState('')
@@ -51,8 +52,8 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
       // Ensure subcategorias is an array when loading for edit
       setFormData({
         ...facturaEdit,
-        subcategorias: Array.isArray(facturaEdit.subcategorias) 
-          ? facturaEdit.subcategorias 
+        subcategorias: Array.isArray(facturaEdit.subcategorias)
+          ? facturaEdit.subcategorias
           : (facturaEdit.subcategoria ? [facturaEdit.subcategoria] : [''])
       })
     } else {
@@ -107,7 +108,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
     }))
   }, [formData.baseImponible, formData.excento, formData.tasaPago])
 
-  // Cargar categorías y modos de pago desde la BD
+  // Cargar categorías, modos de pago y proveedores desde la BD
   useEffect(() => {
     const fetchData = async () => {
       // Cargar Categorías
@@ -119,9 +120,20 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
       const { data: modoData, error: modoError } = await supabase.from('modos_pago').select('nombre')
       if (modoError) console.error('Error cargando modos de pago:', modoError)
       else setModosPago(modoData.map(m => m.nombre))
+
+      // Cargar Proveedores
+      if (projectId) {
+        const { data: provData, error: provError } = await supabase
+          .from('proveedores')
+          .select('*')
+          .eq('projectid', projectId)
+
+        if (provError) console.error('Error cargando proveedores:', provError)
+        else setProveedores(provData)
+      }
     }
     fetchData()
-  }, [])
+  }, [projectId])
 
   // Cargar datos de edición si existe
   useEffect(() => {
@@ -139,6 +151,26 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
     }))
+  }
+
+  const handleProveedorChange = (e) => {
+    const nombre = e.target.value
+    const proveedorExistente = proveedores.find(p => p.nombre.toLowerCase() === nombre.toLowerCase())
+
+    if (proveedorExistente) {
+      setFormData(prev => ({
+        ...prev,
+        proveedor: proveedorExistente.nombre,
+        tipoRif: proveedorExistente.tiporif,
+        rif: proveedorExistente.rif,
+        direccion: proveedorExistente.direccion || ''
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        proveedor: nombre
+      }))
+    }
   }
 
   const handleSubcategoriaChange = (index, value) => {
@@ -197,10 +229,62 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!projectId) {
-       alert('Error: No se ha seleccionado un proyecto. Por favor, regrese y seleccione un proyecto.')
-       return
+      alert('Error: No se ha seleccionado un proyecto. Por favor, regrese y seleccione un proyecto.')
+      return
     }
     try {
+      // Calcular nuevos totales para el proveedor
+      let newTotalFacturas = 0
+      let newTotalGastado = 0
+
+      // Obtener datos actuales del proveedor si existe
+      const { data: existingProv } = await supabase
+        .from('proveedores')
+        .select('total_facturas, total_gastado_dolares')
+        .eq('projectid', projectId)
+        .eq('tiporif', formData.tipoRif)
+        .eq('rif', formData.rif)
+        .single()
+
+      if (existingProv) {
+        newTotalFacturas = existingProv.total_facturas || 0
+        newTotalGastado = existingProv.total_gastado_dolares || 0
+      }
+
+      // Si es una nueva factura (no edición), incrementar contadores
+      if (!facturaEdit) {
+        newTotalFacturas += 1
+        newTotalGastado += (formData.subTotalDolares || 0)
+      }
+
+      // Guardar o actualizar proveedor
+      const proveedorData = {
+        projectid: projectId,
+        nombre: formData.proveedor,
+        tiporif: formData.tipoRif,
+        rif: formData.rif,
+        direccion: formData.direccion,
+        total_facturas: newTotalFacturas,
+        total_gastado_dolares: newTotalGastado,
+        updatedat: new Date().toISOString()
+      }
+
+      // Upsert proveedor (inserta si no existe conflicto con projectid, tiporif, rif)
+      const { error: provError } = await supabase
+        .from('proveedores')
+        .upsert(proveedorData, { onConflict: 'projectid, tiporif, rif' })
+
+      if (provError) {
+        console.error('Error al guardar proveedor:', provError)
+      } else {
+        // Recargar proveedores
+        const { data: newProvs } = await supabase
+          .from('proveedores')
+          .select('*')
+          .eq('projectid', projectId)
+        if (newProvs) setProveedores(newProvs)
+      }
+
       const cleanedFormData = { ...formData }
       // Remove id, createdAt, updatedAt, status if they are not part of the insert/update payload
       delete cleanedFormData.id
@@ -222,16 +306,16 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
           .from('facturas')
           .insert({
             ...cleanedFormData,
-            projectId:projectId,
+            projectId: projectId,
             createdAt: new Date().toISOString(),
             status: 'active'
           }))
       }
 
       if (error) throw error
-      
+
       onFacturaSaved()
-      
+
       // Reset form solo si no estamos editando
       if (!facturaEdit) {
         setFormData({
@@ -267,7 +351,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
           observaciones: ''
         })
       }
-      
+
       alert(facturaEdit ? 'Factura actualizada exitosamente' : 'Factura guardada exitosamente')
     } catch (error) {
       console.error('Error al guardar factura:', error)
@@ -293,8 +377,8 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
             <div className="form-group">
               <label>CATEGORÍA *</label>
               <div className="select-with-add">
-                <select 
-                  name="categoria" 
+                <select
+                  name="categoria"
                   value={formData.categoria}
                   onChange={handleInputChange}
                   required
@@ -339,18 +423,25 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               <label>PROVEEDOR *</label>
               <input
                 type="text"
+                list="proveedores-list"
                 name="proveedor"
                 value={formData.proveedor}
-                onChange={handleInputChange}
+                onChange={handleProveedorChange}
                 required
                 placeholder="Nombre del proveedor"
+                autoComplete="off"
               />
+              <datalist id="proveedores-list">
+                {proveedores.map((prov, index) => (
+                  <option key={index} value={prov.nombre} />
+                ))}
+              </datalist>
             </div>
 
             <div className="form-group">
               <label>RIF *</label>
               <div className="rif-input">
-                <select 
+                <select
                   name="tipoRif"
                   value={formData.tipoRif}
                   onChange={handleInputChange}
@@ -507,7 +598,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
         </div>
 
         {/* Componente RetencionesCalculator */}
-        <RetencionesCalculator 
+        <RetencionesCalculator
           formData={formData}
           onRetencionesChange={handleRetencionesChange}
         />
@@ -518,7 +609,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
             <div className="form-group">
               <label>MODO DE PAGO</label>
               <div className="select-with-add">
-                <select 
+                <select
                   name="modoPago"
                   value={formData.modoPago}
                   onChange={handleInputChange}
