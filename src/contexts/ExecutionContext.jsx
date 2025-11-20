@@ -13,12 +13,10 @@ export const useExecution = () => {
 };
 
 export const ExecutionProvider = ({ children }) => {
-  const [subactividades, setSubactividades] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Cargar subactividades
   const getSubactividades = useCallback(async (ejecucionActividadId) => {
-    setLoading(true);
     const { data, error } = await supabase
       .from('ejecucion_subactividades')
       .select('*')
@@ -27,10 +25,9 @@ export const ExecutionProvider = ({ children }) => {
 
     if (error) {
       console.error('Error fetching subactividades:', error);
-    } else {
-      setSubactividades(data || []);
+      return []; // Devolver siempre un array
     }
-    setLoading(false);
+    return data || [];
   }, []);
 
   // Completar subactividad
@@ -52,44 +49,132 @@ export const ExecutionProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Iniciar ejecución de actividad
-  const iniciarEjecucionActividad = useCallback(async (actividadPlanificadaId) => {
+  // Finalizar actividad
+  const finalizarActividad = useCallback(async (ejecucionId, actividadPlanificadaId) => {
     setLoading(true);
-    
-    const { data, error } = await supabase
-      .from('ejecucion_actividades')
-      .insert([{
-        actividad_planificada_id: actividadPlanificadaId,
-        fecha_inicio_real: new Date(),
-        estado: 'en_proceso'
-      }])
-      .select()
-      .single();
+    try {
+      // 1. Actualizar el estado de la ejecución
+      const { error: execError } = await supabase
+        .from('ejecucion_actividades')
+        .update({ estado: 'completada', fecha_fin_real: new Date().toISOString() })
+        .eq('id', ejecucionId);
+      if (execError) throw execError;
 
-    if (error) {
+      // 2. Actualizar el estado de la planificación
+      await supabase
+        .from('planificacion_actividades')
+        .update({ estado: 'completada' })
+        .eq('id', actividadPlanificadaId);
+
+    } catch (error) {
+      console.error("Error al finalizar la actividad:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Iniciar ejecución de actividad
+  const iniciarEjecucionActividad = useCallback(async (actividadPlanificada) => {
+    setLoading(true);
+    try {
+      // 1. Crear (o encontrar) el registro principal de ejecución
+      const { data: ejecucionData, error: ejecucionError } = await supabase
+        .from('ejecucion_actividades')
+        .upsert(
+          {
+            actividad_planificada_id: actividadPlanificada.id,
+            estado: 'en_proceso',
+            fecha_inicio_real: new Date().toISOString(),
+          },
+          { onConflict: 'actividad_planificada_id' }
+        )
+        .select()
+        .single();
+
+      if (ejecucionError) throw ejecucionError;
+
+      // 2. Crear las subactividades de ejecución basadas en la planificación
+      if (actividadPlanificada.subactividades && actividadPlanificada.subactividades.length > 0) {
+        const subactividadesParaCrear = actividadPlanificada.subactividades.map(desc => ({
+          ejecucion_actividad_id: ejecucionData.id,
+          descripcion: desc,
+        }));
+
+        // Usar upsert para no duplicar si ya existen
+        const { error: subError } = await supabase
+          .from('ejecucion_subactividades')
+          .upsert(subactividadesParaCrear, { onConflict: 'ejecucion_actividad_id, descripcion' });
+
+        if (subError) console.error("Error al crear subactividades:", subError);
+      }
+
+      // 3. Actualizar el estado en la tabla de planificación
+      await supabase
+        .from('planificacion_actividades')
+        .update({ estado: 'en_proceso' })
+        .eq('id', actividadPlanificada.id);
+
+      return ejecucionData;
+    } catch (error) {
       console.error('Error iniciando ejecución:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
-    // Actualizar estado de la actividad planificada
-    await supabase
-      .from('planificacion_actividades')
-      .update({ estado: 'en_proceso' })
-      .eq('id', actividadPlanificadaId);
+  const getTiemposPorActividad = useCallback(async (ejecucionActividadId) => {
+    const { data, error } = await supabase
+      .from('ejecucion_tiempos')
+      .select('*')
+      .eq('ejecucion_actividad_id', ejecucionActividadId)
+      .order('fecha', { ascending: false })
+      .order('hora_inicio', { ascending: false });
 
-    setLoading(false);
+    if (error) {
+      console.error("Error al obtener tiempos:", error);
+      return [];
+    }
     return data;
   }, []);
 
+  const registrarTiempo = useCallback(async (tiempoData) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('ejecucion_tiempos')
+        .insert(tiempoData)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error al registrar tiempo:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const value = useMemo(() => ({
-    subactividades,
     loading,
     getSubactividades,
+    iniciarEjecucionActividad,
+    finalizarActividad,
+    getTiemposPorActividad,
+    registrarTiempo,
+    // La función que faltaba:
     completarSubactividad,
-    iniciarEjecucionActividad
   }), [
-    subactividades, loading, 
-    getSubactividades, completarSubactividad, iniciarEjecucionActividad
+    loading, 
+    getSubactividades, 
+    iniciarEjecucionActividad, 
+    finalizarActividad,
+    getTiemposPorActividad,
+    registrarTiempo,
+    completarSubactividad,
   ]);
 
   return (

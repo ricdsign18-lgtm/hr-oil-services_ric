@@ -1,60 +1,55 @@
-// components/ejecucion/SubactividadesList.jsx
-import { useState, useEffect } from 'react';
+// components/modules/operaciones/submodules/ejecucion/components/SubactividadesList.jsx
+import { useState, useEffect, useCallback } from 'react';
 import { useExecution } from '../../../../../../contexts/ExecutionContext';
 
-export const SubactividadesList = ({ actividadId }) => {
-  const { subactividades, getSubactividades, completarSubactividad } = useExecution();
-  const [cargando, setCargando] = useState(false);
+export const SubactividadesList = ({ ejecucionActividadId }) => {
+  const { getSubactividades, toggleSubactividad, loading } = useExecution();
+  const [subactividades, setSubactividades] = useState([]);
+
+  const fetchSubactividades = useCallback(async () => {
+    const data = await getSubactividades(ejecucionActividadId);
+    setSubactividades(data);
+  }, [ejecucionActividadId, getSubactividades]);
 
   useEffect(() => {
-    if (actividadId) {
-      getSubactividades(actividadId);
-    }
-  }, [actividadId, getSubactividades]);
+    fetchSubactividades();
+  }, [fetchSubactividades]);
 
-  const handleCompletar = async (subactividadId) => {
-    setCargando(true);
-    await completarSubactividad(subactividadId, 'Completada desde interfaz');
-    setCargando(false);
+  const handleToggle = async (subactividad) => {
+    try {
+      await toggleSubactividad(subactividad.id, !subactividad.completada);
+      // Refrescar la lista para mostrar el cambio
+      fetchSubactividades();
+    } catch (error) {
+      console.error("Error al actualizar subactividad:", error);
+    }
   };
 
-  if (subactividades.length === 0) {
-    return (
-      <div className="text-sm text-gray-500">
-        No hay subactividades definidas
-      </div>
-    );
+  if (loading && subactividades.length === 0) {
+    return <p>Cargando subactividades...</p>;
   }
 
   return (
-    <div className="space-y-2">
-      {subactividades.map((subact) => (
-        <div key={subact.id} className="flex items-center space-x-3">
-          <button
-            onClick={() => !subact.completada && handleCompletar(subact.id)}
-            disabled={cargando || subact.completada}
-            className={`w-5 h-5 rounded border flex items-center justify-center ${
-              subact.completada 
-                ? 'bg-green-500 border-green-500 text-white' 
-                : 'border-gray-300 hover:border-green-500'
-            }`}
-          >
-            {subact.completada && '✓'}
-          </button>
-          
-          <span className={`text-sm flex-1 ${
-            subact.completada ? 'text-gray-500 line-through' : 'text-gray-800'
-          }`}>
-            {subact.descripcion}
-          </span>
-
-          {subact.fecha_completada && (
-            <span className="text-xs text-gray-400">
-              {new Date(subact.fecha_completada).toLocaleTimeString()}
-            </span>
-          )}
-        </div>
-      ))}
+    <div className="subactividades-container">
+      {subactividades.length === 0 ? (
+        <p>No hay subactividades definidas.</p>
+      ) : (
+        <ul>
+          {subactividades.map(sub => (
+            <li key={sub.id} className={`subactividad-item ${sub.completada ? 'completada' : ''}`}>
+              <label>
+                <input 
+                  type="checkbox" 
+                  checked={sub.completada}
+                  onChange={() => handleToggle(sub)}
+                  disabled={loading}
+                />
+                <span>{sub.descripcion}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

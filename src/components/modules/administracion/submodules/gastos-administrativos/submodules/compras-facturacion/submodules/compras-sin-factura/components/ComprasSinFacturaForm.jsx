@@ -24,6 +24,7 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
 
   const [categorias, setCategorias] = useState([])
   const [modosPago, setModosPago] = useState([])
+  const [proveedores, setProveedores] = useState([])
   const [nuevaCategoria, setNuevaCategoria] = useState('')
   const [nuevoModoPago, setNuevoModoPago] = useState('')
   const tiposRif = ['J-', 'V-', 'E-', 'P-', 'G-']
@@ -34,8 +35,8 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
       console.log('Cargando datos de edición:', compraEdit)
       setFormData({
         ...compraEdit,
-        subcategorias: Array.isArray(compraEdit.subcategorias) 
-          ? compraEdit.subcategorias 
+        subcategorias: Array.isArray(compraEdit.subcategorias)
+          ? compraEdit.subcategorias
           : (compraEdit.subcategoria ? [compraEdit.subcategoria] : [''])
       })
     } else {
@@ -61,7 +62,7 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
     }
   }, [compraEdit])
 
-  // Cargar categorías y modos de pago desde la BD
+  // Cargar categorías, modos de pago y proveedores desde la BD
   useEffect(() => {
     const fetchData = async () => {
       // Cargar Categorías
@@ -73,9 +74,20 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
       const { data: modoData, error: modoError } = await supabase.from('modos_pago').select('nombre')
       if (modoError) console.error('Error cargando modos de pago:', modoError)
       else setModosPago(modoData.map(m => m.nombre))
+
+      // Cargar Proveedores
+      if (projectId) {
+        const { data: provData, error: provError } = await supabase
+          .from('proveedores')
+          .select('*')
+          .eq('projectid', projectId)
+
+        if (provError) console.error('Error cargando proveedores:', provError)
+        else setProveedores(provData)
+      }
     }
     fetchData()
-  }, [])
+  }, [projectId])
 
   // Calcular total en dólares automáticamente
   useEffect(() => {
@@ -94,6 +106,26 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
     }))
+  }
+
+  const handleProveedorChange = (e) => {
+    const nombre = e.target.value
+    const proveedorExistente = proveedores.find(p => p.nombre.toLowerCase() === nombre.toLowerCase())
+
+    if (proveedorExistente) {
+      setFormData(prev => ({
+        ...prev,
+        proveedor: proveedorExistente.nombre,
+        tipoRif: proveedorExistente.tiporif,
+        rif: proveedorExistente.rif,
+        direccion: proveedorExistente.direccion || ''
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        proveedor: nombre
+      }))
+    }
   }
 
   const handleSubcategoriaChange = (index, value) => {
@@ -143,8 +175,60 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     try {
+      // Calcular nuevos totales para el proveedor
+      let newTotalFacturas = 0
+      let newTotalGastado = 0
+
+      // Obtener datos actuales del proveedor si existe
+      const { data: existingProv } = await supabase
+        .from('proveedores')
+        .select('total_facturas, total_gastado_dolares')
+        .eq('projectid', projectId)
+        .eq('tiporif', formData.tipoRif)
+        .eq('rif', formData.rif)
+        .single()
+
+      if (existingProv) {
+        newTotalFacturas = existingProv.total_facturas || 0
+        newTotalGastado = existingProv.total_gastado_dolares || 0
+      }
+
+      // Si es una nueva compra (no edición), incrementar contadores
+      if (!compraEdit) {
+        newTotalFacturas += 1
+        newTotalGastado += (formData.totalDolares || 0)
+      }
+
+      // Guardar o actualizar proveedor
+      const proveedorData = {
+        projectid: projectId,
+        nombre: formData.proveedor,
+        tiporif: formData.tipoRif,
+        rif: formData.rif,
+        direccion: formData.direccion,
+        total_facturas: newTotalFacturas,
+        total_gastado_dolares: newTotalGastado,
+        updatedat: new Date().toISOString()
+      }
+
+      // Upsert proveedor (inserta si no existe conflicto con projectid, tiporif, rif)
+      const { error: provError } = await supabase
+        .from('proveedores')
+        .upsert(proveedorData, { onConflict: 'projectid, tiporif, rif' })
+
+      if (provError) {
+        console.error('Error al guardar proveedor:', provError)
+      } else {
+        // Recargar proveedores
+        const { data: newProvs } = await supabase
+          .from('proveedores')
+          .select('*')
+          .eq('projectid', projectId)
+        if (newProvs) setProveedores(newProvs)
+      }
+
       const cleanedFormData = { ...formData }
      
       delete cleanedFormData.id
@@ -176,7 +260,7 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
       if (error) throw error
 
       onCompraSaved()
-      
+
       // Reset form solo si no estamos editando
       if (!compraEdit) {
         setFormData({
@@ -198,7 +282,7 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
           contrato: ''
         })
       }
-      
+
       alert(compraEdit ? 'Compra actualizada exitosamente' : 'Compra guardada exitosamente')
     } catch (error) {
       console.error('Error al guardar compra:', error)
@@ -224,8 +308,8 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
             <div className="form-group">
               <label>CATEGORÍA *</label>
               <div className="select-with-add">
-                <select 
-                  name="categoria" 
+                <select
+                  name="categoria"
                   value={formData.categoria}
                   onChange={handleInputChange}
                   required
@@ -259,9 +343,9 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
                     placeholder={`Subcategoría ${index + 1}`}
                   />
                   {formData.subcategorias.length > 1 && (
-                    <button 
-                      type="button" 
-                      onClick={() => removeSubcategoria(index)} 
+                    <button
+                      type="button"
+                      onClick={() => removeSubcategoria(index)}
                       className="btn-remove-subcategory"
                     >
                       -
@@ -269,9 +353,9 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
                   )}
                 </div>
               ))}
-              <button 
-                type="button" 
-                onClick={addSubcategoria} 
+              <button
+                type="button"
+                onClick={addSubcategoria}
                 className="btn-add-subcategory"
               >
                 + Añadir Subcategoría
@@ -282,18 +366,25 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
               <label>PROVEEDOR *</label>
               <input
                 type="text"
+                list="proveedores-list"
                 name="proveedor"
                 value={formData.proveedor}
-                onChange={handleInputChange}
+                onChange={handleProveedorChange}
                 required
                 placeholder="Nombre del proveedor"
+                autoComplete="off"
               />
+              <datalist id="proveedores-list">
+                {proveedores.map((prov, index) => (
+                  <option key={index} value={prov.nombre} />
+                ))}
+              </datalist>
             </div>
 
             <div className="form-group">
               <label>RIF</label>
               <div className="rif-input">
-                <select 
+                <select
                   name="tipoRif"
                   value={formData.tipoRif}
                   onChange={handleInputChange}
@@ -387,7 +478,7 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
         <div className="form-section">
           <h3>Valores de la Compra</h3>
           <div className="form-grid">
-             <div className="form-group">
+            <div className="form-group">
               <label>TASA DE PAGO (Bs/$)</label>
               <input
                 type="number"
@@ -424,7 +515,7 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
             <div className="form-group">
               <label>MODO DE PAGO</label>
               <div className="select-with-add">
-                <select 
+                <select
                   name="modoPago"
                   value={formData.modoPago}
                   onChange={handleInputChange}

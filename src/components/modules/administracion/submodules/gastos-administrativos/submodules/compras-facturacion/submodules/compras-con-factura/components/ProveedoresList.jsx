@@ -51,6 +51,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
           totalRetencionIslr: 0,
           totalPagar: 0,
           totalMontoPagado: 0,
+          totalPagarDolares: 0, // Nuevo campo para el total a pagar en USD
           totalPagadoDolares: 0,
           totalRetencionPorCobrar: 0,
           totalRetencionCobrada: 0,
@@ -85,6 +86,10 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
       // Totales de pago
       proveedoresMap[key].totalPagar += factura.totalPagar || 0
       proveedoresMap[key].totalMontoPagado += factura.montoPagado || 0
+      // Calcular y sumar el total a pagar en dólares por factura
+      if (factura.tasaPago > 0) {
+        proveedoresMap[key].totalPagarDolares += (factura.totalPagar || 0) / factura.tasaPago
+      }
       proveedoresMap[key].totalPagadoDolares += factura.pagadoDolares || 0
       proveedoresMap[key].totalRetencionPorCobrar += factura.retencionPorCobrar || 0
       proveedoresMap[key].totalRetencionCobrada += factura.retencionCobrada || 0
@@ -277,27 +282,27 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
               
               <div className="total-item">
                 <span>Base Imponible:</span>
-                <span>Bs {proveedor.totalBaseImponible.toFixed(2)}</span>
+                <span>Bs {(Number(proveedor.totalBaseImponible) || 0).toFixed(2)}</span>
               </div>
               
               <div className="total-item">
                 <span>Excento:</span>
-                <span>Bs {proveedor.totalExcento.toFixed(2)}</span>
+                <span>Bs {(Number(proveedor.totalExcento) || 0).toFixed(2)}</span>
               </div>
               
               <div className="total-item">
                 <span>IVA:</span>
-                <span>Bs {proveedor.totalIva.toFixed(2)}</span>
+                <span>Bs {(Number(proveedor.totalIva) || 0).toFixed(2)}</span>
               </div>
               
               <div className="total-item">
                 <span>Total a Pagar:</span>
-                <span>Bs {proveedor.totalPagar.toFixed(2)}</span>
+                <span>Bs {(Number(proveedor.totalPagar) || 0).toFixed(2)}</span>
               </div>
               
               <div className="total-item">
                 <span>Pagado:</span>
-                <span>Bs {proveedor.totalMontoPagado.toFixed(2)}</span>
+                <span>Bs {(Number(proveedor.totalMontoPagado) || 0).toFixed(2)}</span>
               </div>
             </div>
 
@@ -306,7 +311,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
               
               <div className="total-item">
                 <span>Total a Pagar:</span>
-                <span>$ {proveedor.totalPagadoDolares.toFixed(2)}</span>
+                <span>$ {(Number(proveedor.totalPagarDolares) || 0).toFixed(2)}</span>
               </div>
               
               <div className="total-item">
@@ -322,14 +327,14 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
                 <h6>IVA</h6>
                 <div className="retencion-item">
                   <span>Por Cobrar:</span>
-                  <span className="estado-pendiente">
-                    Bs {proveedor.retencionIvaPendiente.toFixed(2)}
+                  <span className="estado-pendiente"> 
+                    Bs {(Number(proveedor.retencionIvaPendiente) || 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="retencion-item">
                   <span>Cobrado:</span>
-                  <span className="estado-bueno">
-                    Bs {proveedor.retencionIvaCobrada.toFixed(2)}
+                  <span className="estado-bueno"> 
+                    Bs {(Number(proveedor.retencionIvaCobrada) || 0).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -338,14 +343,14 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
                 <h6>ISLR</h6>
                 <div className="retencion-item">
                   <span>Por Cobrar:</span>
-                  <span className="estado-pendiente">
-                    Bs {proveedor.retencionIslrPendiente.toFixed(2)}
+                  <span className="estado-pendiente"> 
+                    Bs {(Number(proveedor.retencionIslrPendiente) || 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="retencion-item">
                   <span>Cobrado:</span>
-                  <span className="estado-bueno">
-                    Bs {proveedor.retencionIslrCobrada.toFixed(2)}
+                  <span className="estado-bueno"> 
+                    Bs {(Number(proveedor.retencionIslrCobrada) || 0).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -353,14 +358,14 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
               <div className="retencion-total">
                 <div className="total-item">
                   <strong>Total por Cobrar:</strong>
-                  <strong className="estado-pendiente">
-                    Bs {proveedor.totalRetencionPorCobrar.toFixed(2)}
+                  <strong className="estado-pendiente"> 
+                    Bs {(Number(proveedor.totalRetencionPorCobrar) || 0).toFixed(2)}
                   </strong>
                 </div>
                 <div className="total-item">
                   <strong>Total Cobrado:</strong>
-                  <strong className="estado-bueno">
-                    Bs {proveedor.totalRetencionCobrada.toFixed(2)}
+                  <strong className="estado-bueno"> 
+                    Bs {(Number(proveedor.totalRetencionCobrada) || 0).toFixed(2)}
                   </strong>
                 </div>
               </div>

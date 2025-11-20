@@ -7,6 +7,7 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
     conceptoIslr: '',
     retencionIslr: 0,
     totalPagar: 0,
+    totalPagarDolares: 0,
     pagado: '',
     montoPagado: 0,
     pagadoDolares: 0,
@@ -99,6 +100,7 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
     }
     
     const totalPagar = subTotalPagar - retencionIvaMonto - retencionIslrMonto
+    const totalPagarDolares = tasaPago > 0 ? totalPagar / tasaPago : 0
 
     // Calcular montos según opción de pago seleccionada
     let montoPagado = 0
@@ -152,6 +154,7 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
       ...currentRetenciones,
       retencionIslr: retencionIslrMonto,
       totalPagar,
+      totalPagarDolares,
       montoPagado,
       pagadoDolares,
       retencionPorCobrar,

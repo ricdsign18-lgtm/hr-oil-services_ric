@@ -27,7 +27,7 @@ const Login = () => {
             alt="HR Oil Services"
             className="login-logo"
           />
-          <h1>HR Oil Services</h1>
+          <h1>H&R Oil Services C.A.</h1>
           <p>Sistema de Gestión de Proyectos</p>
         </div>
 

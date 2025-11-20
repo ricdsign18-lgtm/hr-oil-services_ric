@@ -69,7 +69,7 @@ const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
                 className="sidebar-logo"
               />
               <div className="sidebar-title-container">
-                <h3 className="sidebar-title">H&R Oil</h3>
+                <h3 className="sidebar-title">H&R OS C.A.</h3>
                 <p className="sidebar-subtitle">Sistema de Gestión</p>
               </div>
             </div>

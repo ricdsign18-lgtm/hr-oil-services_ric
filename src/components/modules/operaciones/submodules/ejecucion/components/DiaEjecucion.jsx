@@ -1,76 +1,80 @@
-// components/ejecucion/DiaEjecucion.jsx
-import { useState, useEffect } from 'react';
-import { usePlanning } from '../../../../../../contexts/PlanningContext';
-import { useExecution } from '../../../../../../contexts/ExecutionContext';
+// components/modules/operaciones/submodules/ejecucion/components/DiaEjecucion.jsx
+import { useState, useEffect, useCallback } from 'react';
+import supabase from '../../../../../../api/supaBase';
 import { ActividadEjecucion } from './ActividadEjecucion';
 
 export const DiaEjecucion = ({ dia, onBack }) => {
-  const { getActividadesPorDia, actividades } = usePlanning();
-  const { getSubactividades } = useExecution();
-  const [actividadesExpandidas, setActividadesExpandidas] = useState({});
+  const [actividades, setActividades] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const getActividadesPorDia = useCallback(async (diaId) => {
+    if (!diaId) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('planificacion_actividades')
+      .select(`
+        *,
+        equipos (nombre, tag_serial),
+        budget_items (description, unit),
+        ejecucion_actividades ( id, estado, avance_fisico )
+      `)
+      .eq('dia_id', diaId)
+      .order('created_at');
+
+    if (error) {
+      console.error('Error fetching actividades para ejecución:', error);
+    } else {
+      setActividades(data || []);
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     if (dia?.id) {
       getActividadesPorDia(dia.id);
     }
-  }, [dia?.id, getActividadesPorDia]);
-
-  const toggleActividad = async (actividadId) => {
-    if (actividadesExpandidas[actividadId]) {
-      setActividadesExpandidas(prev => ({ ...prev, [actividadId]: false }));
-    } else {
-      await getSubactividades(actividadId);
-      setActividadesExpandidas(prev => ({ ...prev, [actividadId]: true }));
-    }
-  };
-
-  const actividadesCompletadas = actividades.filter(a => a.estado === 'completada').length;
-  const avanceGeneral = actividades.length > 0 ? (actividadesCompletadas / actividades.length) * 100 : 0;
+  }, [dia, getActividadesPorDia]);
 
   return (
-    <div className="space-y-6">
+    <>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded"
-          >
+      <div className="planning-header">
+        <div className="planning-semana-header" style={{ marginBottom: 0, cursor: 'default' }}>
+          <button onClick={onBack} className="btn-secondary">
             ← Volver
           </button>
           <div>
-            <h1 className="text-2xl font-bold">
+            <h2>
               {new Date(dia.fecha).toLocaleDateString('es-ES', { 
                 weekday: 'long', 
-                year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
               })}
-            </h1>
-            <p className="text-gray-600">
-              {actividadesCompletadas}/{actividades.length} actividades completadas ({avanceGeneral.toFixed(1)}%)
+            </h2>
+            <p className="planning-semana-dates" style={{ marginTop: '5px' }}>
+              Ejecución de {actividades.length} actividades
             </p>
           </div>
         </div>
       </div>
 
-      {/* Lista de Actividades */}
-      <div className="space-y-4">
-        {actividades.map((actividad) => (
-          <ActividadEjecucion
-            key={actividad.id}
-            actividad={actividad}
-            expandida={!!actividadesExpandidas[actividad.id]}
-            onToggle={() => toggleActividad(actividad.id)}
-          />
-        ))}
+      {/* Lista de Actividades a Ejecutar */}
+      <div className="execution-list-container">
+        {loading ? (
+          <div className="planning-no-content">Cargando actividades...</div>
+        ) : actividades.length > 0 ? (
+          actividades.map(actividad => (
+            <ActividadEjecucion 
+              key={actividad.id} 
+              actividadPlanificada={actividad} 
+              onFinalizar={() => getActividadesPorDia(dia.id)}
+              onUpdate={() => getActividadesPorDia(dia.id)}
+            />
+          ))
+        ) : (
+          <div className="planning-no-content">No hay actividades planificadas para este día.</div>
+        )}
       </div>
-
-      {actividades.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No hay actividades para este día
-        </div>
-      )}
-    </div>
+    </>
   );
 };

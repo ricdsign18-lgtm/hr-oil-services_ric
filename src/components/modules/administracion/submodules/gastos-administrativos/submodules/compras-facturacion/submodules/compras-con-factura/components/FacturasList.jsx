@@ -230,6 +230,7 @@ const FacturasList = ({ projectId, onEditFactura }) => {
               <th>N° Factura</th>
               <th>N° Control</th>
               <th>Categoría</th>
+              <th>Tasa de Pago (Bs/$)</th>
               <th>Subcategorías</th>
               <th>Total a Pagar (Bs)</th>
               <th>Total a Pagar ($)</th>
@@ -254,9 +255,10 @@ const FacturasList = ({ projectId, onEditFactura }) => {
                 <td>{factura.numeroFactura}</td>
                 <td>{factura.numeroControl || "-"}</td>
                 <td>{factura.categoria}</td>
+                <td>{factura.tasaPago?.toFixed(2) || "0.00"}</td>
                 <td>{formatSubcategorias(factura)}</td>
                 <td>Bs {factura.totalPagar?.toFixed(2) || "0.00"}</td>
-                <td>$ {factura.pagadoDolares?.toFixed(2) || "0.00"}</td>
+                <td>$ {factura.totalPagarDolares?.toFixed(2) || "0.00"}</td>
                 <td>Bs {factura.montoPagado?.toFixed(2) || "0.00"}</td>
                 <td>$ {factura.pagadoDolares?.toFixed(2) || "0.00"}</td>
                 <td>{factura.modoPago || "-"}</td>
