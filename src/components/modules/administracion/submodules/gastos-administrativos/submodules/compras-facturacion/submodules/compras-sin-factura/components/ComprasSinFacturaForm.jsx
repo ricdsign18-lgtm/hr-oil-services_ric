@@ -25,6 +25,8 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
   const [categorias, setCategorias] = useState([])
   const [modosPago, setModosPago] = useState([])
   const [proveedores, setProveedores] = useState([])
+  const [availableSubcategorias, setAvailableSubcategorias] = useState([])
+
   const [nuevaCategoria, setNuevaCategoria] = useState('')
   const [nuevoModoPago, setNuevoModoPago] = useState('')
   const tiposRif = ['J-', 'V-', 'E-', 'P-', 'G-']
@@ -84,6 +86,19 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
 
         if (provError) console.error('Error cargando proveedores:', provError)
         else setProveedores(provData)
+      }
+
+      // Cargar Subcategorías existentes
+      const { data: subData, error: subError } = await supabase
+        .from('compras_sin_factura')
+        .select('subcategorias')
+
+      if (subError) {
+        console.error('Error cargando subcategorías:', subError)
+      } else if (subData) {
+        const allSubs = subData.flatMap(f => f.subcategorias || [])
+        const uniqueSubs = [...new Set(allSubs)].filter(Boolean).sort()
+        setAvailableSubcategorias(uniqueSubs)
       }
     }
     fetchData()
@@ -259,6 +274,12 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
 
       if (error) throw error
 
+      // Actualizar lista de subcategorías disponibles
+      const nuevasSubcategorias = formData.subcategorias.filter(s => s && !availableSubcategorias.includes(s))
+      if (nuevasSubcategorias.length > 0) {
+        setAvailableSubcategorias(prev => [...prev, ...nuevasSubcategorias].sort())
+      }
+
       onCompraSaved()
 
       // Reset form solo si no estamos editando
@@ -341,6 +362,8 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
                     value={sub}
                     onChange={(e) => handleSubcategoriaChange(index, e.target.value)}
                     placeholder={`Subcategoría ${index + 1}`}
+                    list="subcategorias-list-sin-factura"
+                    autoComplete="off"
                   />
                   {formData.subcategorias.length > 1 && (
                     <button
@@ -353,6 +376,11 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
                   )}
                 </div>
               ))}
+              <datalist id="subcategorias-list-sin-factura">
+                {availableSubcategorias.map((sub, index) => (
+                  <option key={index} value={sub} />
+                ))}
+              </datalist>
               <button
                 type="button"
                 onClick={addSubcategoria}

@@ -21,7 +21,7 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
         .select('*')
         .eq('projectId', projectId)
         .neq('status', 'deleted')
-      
+
       if (error) throw error
       setCompras(data || [])
     } catch (error) {
@@ -30,7 +30,7 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
   }
 
   const comprasFiltradas = compras.filter(compra => {
-    const cumpleProveedor = !filtroProveedor || 
+    const cumpleProveedor = !filtroProveedor ||
       compra.proveedor.toLowerCase().includes(filtroProveedor.toLowerCase()) ||
       compra.rif.includes(filtroProveedor)
     const cumpleCategoria = !filtroCategoria || compra.categoria === filtroCategoria
@@ -72,9 +72,9 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
     <div className="compras-sin-factura-list">
       <div className="section-header">
         <h3>Lista de Compras Sin Factura</h3>
-        
+
         <div className="filtros">
-          <select 
+          <select
             value={filtroCategoria}
             onChange={(e) => setFiltroCategoria(e.target.value)}
             className="filter-select"
@@ -92,7 +92,7 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
             onChange={(e) => setFiltroProveedor(e.target.value)}
             className="search-input"
           />
-
+          <label htmlFor="fechaInicio" style={{ color: 'red' }}>Desde</label>
           <input
             type="date"
             placeholder="Fecha inicio"
@@ -100,7 +100,7 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
             onChange={(e) => setFechaInicio(e.target.value)}
             className="date-input"
           />
-
+          <label htmlFor="fechaFin" style={{ color: 'red' }}>Hasta</label>
           <input
             type="date"
             placeholder="Fecha fin"
@@ -157,13 +157,13 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
                   ) : '-'}
                 </td>
                 <td>
-                  <button 
+                  <button
                     className="btn-edit"
                     onClick={() => onEditCompra(compra)}
                   >
                     Editar
                   </button>
-                  <button 
+                  <button
                     className="btn-delete"
                     onClick={() => handleDelete(compra.id)}
                   >

@@ -1,6 +1,7 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/CalculadoraPagos.jsx
 import React, { useState, useEffect } from "react";
 import { useProjects } from "../../../../../../../../../../../../contexts/ProjectContext";
+import { usePersonal } from "../../../../../../../../../../../../contexts/PersonalContext";
 import "./CalculadoraPagos.css";
 
 const CalculadoraPagos = ({
@@ -12,6 +13,7 @@ const CalculadoraPagos = ({
   selectedProject,
 }) => {
   const { selectedProject: contextProject } = useProjects();
+  const { getPayrollSettings } = usePersonal();
   const project = selectedProject || contextProject;
 
   const [horasExtras, setHorasExtras] = useState({});
@@ -23,14 +25,12 @@ const CalculadoraPagos = ({
   const [pagosCalculados, setPagosCalculados] = useState([]);
   const [diasHabilesMes, setDiasHabilesMes] = useState(0);
   const [diasRealesMes, setDiasRealesMes] = useState(0);
-
-  // NUEVO: Valores por defecto para los montos base
-  const montosBasePorDefecto = {
-    ivss: 150,
-    paroForzoso: 150,
-    faov: 1300,
-    islr: 120,
-  };
+  const [payrollSettings, setPayrollSettings] = useState({
+    montoBaseIvss: 150,
+    montoBaseParoForzoso: 150,
+    montoBaseFaov: 1300,
+    montoBaseIslr: 120,
+  });
 
   // CORRECCIÓN: Calcular días hábiles y días reales del mes automáticamente
   useEffect(() => {
@@ -45,6 +45,19 @@ const CalculadoraPagos = ({
       setDiasRealesMes(diasReales);
     }
   }, [fechaPago]);
+
+  // Cargar configuración de nómina
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (project?.id) {
+        const settings = await getPayrollSettings(project.id);
+        if (settings) {
+          setPayrollSettings(settings);
+        }
+      }
+    };
+    loadSettings();
+  }, [project?.id]);
 
   // Inicializar días de pago quincenal y mitad
   useEffect(() => {
@@ -257,6 +270,75 @@ const CalculadoraPagos = ({
     }
   };
 
+  // NUEVO: Calcular días a pagar para nómina quincenal basado en asistencia
+  const calcularDiasQuincenalesSegunAsistencia = (empleado, mitad) => {
+    if (!fechaPago || isNaN(new Date(fechaPago).getTime())) return 15;
+
+    const date = new Date(fechaPago);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    let inicioMitad, finMitad;
+    let diasDefault = 15;
+
+    if (mitad === "primera") {
+      inicioMitad = new Date(year, month, 1);
+      finMitad = new Date(year, month, 15);
+      diasDefault = 15;
+    } else {
+      inicioMitad = new Date(year, month, 16);
+      finMitad = new Date(year, month + 1, 0); // Último día del mes
+      diasDefault = finMitad.getDate() - 15;
+    }
+
+    let diasAusentes = 0;
+
+    // Iterar por cada día del rango
+    for (let d = new Date(inicioMitad); d <= finMitad; d.setDate(d.getDate() + 1)) {
+      const fechaStr = formatDateSafe(d);
+      if (!fechaStr) continue;
+
+      // Buscar asistencia para este día
+      const asistenciaDia = asistencias.find(
+        (a) => a.fecha === fechaStr && a.projectId === project?.id
+      );
+
+      if (asistenciaDia) {
+        const registro = asistenciaDia.registros.find(r => r.empleadoId === empleado.id);
+        // Si existe registro y asistio es false, contar como ausente
+        if (registro && registro.asistio === false) {
+          diasAusentes++;
+        }
+      }
+    }
+
+    return Math.max(0, diasDefault - diasAusentes);
+  };
+
+  // NUEVO: Efecto para actualizar días de pago quincenal cuando cambia la asistencia o fecha
+  useEffect(() => {
+    const newDias = { ...diasPagoQuincenal };
+    let changed = false;
+
+    employees.forEach(emp => {
+      if (emp.frecuenciaPago === "Quincenal") {
+        const mitad = mitadPagoQuincenal[emp.id] || "primera";
+        const diasCalculados = calcularDiasQuincenalesSegunAsistencia(emp, mitad);
+
+        // Actualizar si el valor calculado es diferente al actual
+        // Nota: Esto sobrescribirá cambios manuales si la asistencia cambia, lo cual es deseado
+        if (newDias[emp.id] !== diasCalculados) {
+          newDias[emp.id] = diasCalculados;
+          changed = true;
+        }
+      }
+    });
+
+    if (changed) {
+      setDiasPagoQuincenal(newDias);
+    }
+  }, [asistencias, fechaPago, mitadPagoQuincenal, employees]);
+
   // CORRECCIÓN PRINCIPAL: Calcular monto diario diferenciando entre frecuencia semanal y quincenal
   const calcularMontoDiario = (empleado) => {
     // CORRECCIÓN: Incluir Administrativa en nóminas con ley
@@ -269,20 +351,16 @@ const CalculadoraPagos = ({
       if (empleado.frecuenciaPago === "Semanal") {
         // Pago semanal: dividir entre días hábiles del mes
         console.log(
-          `Nómina ${
-            empleado.tipoNomina
-          } (Semanal): ${totalMensual} / ${diasHabilesMes} = ${
-            totalMensual / diasHabilesMes
+          `Nómina ${empleado.tipoNomina
+          } (Semanal): ${totalMensual} / ${diasHabilesMes} = ${totalMensual / diasHabilesMes
           }`
         );
         return totalMensual / diasHabilesMes;
       } else {
         // CORRECCIÓN: Pago quincenal: dividir entre días reales del mes
         console.log(
-          `Nómina ${
-            empleado.tipoNomina
-          } (Quincenal): ${totalMensual} / ${diasRealesMes} = ${
-            totalMensual / diasRealesMes
+          `Nómina ${empleado.tipoNomina
+          } (Quincenal): ${totalMensual} / ${diasRealesMes} = ${totalMensual / diasRealesMes
           }`
         );
         return totalMensual / diasRealesMes;
@@ -299,16 +377,14 @@ const CalculadoraPagos = ({
           if (empleado.frecuenciaPago === "Semanal") {
             // Salario mensual con pago semanal: dividir entre días hábiles del mes
             console.log(
-              `Salario mensual (Semanal): ${montoSalario} / ${diasHabilesMes} = ${
-                montoSalario / diasHabilesMes
+              `Salario mensual (Semanal): ${montoSalario} / ${diasHabilesMes} = ${montoSalario / diasHabilesMes
               }`
             );
             return montoSalario / diasHabilesMes;
           } else {
             // CORRECCIÓN: Salario mensual con pago quincenal: dividir entre días reales del mes
             console.log(
-              `Salario mensual (Quincenal): ${montoSalario} / ${diasRealesMes} = ${
-                montoSalario / diasRealesMes
+              `Salario mensual (Quincenal): ${montoSalario} / ${diasRealesMes} = ${montoSalario / diasRealesMes
               }`
             );
             return montoSalario / diasRealesMes;
@@ -337,18 +413,11 @@ const CalculadoraPagos = ({
     }
 
     // NUEVO: Usar valores por defecto del empleado o los valores por defecto generales
-    const montoBaseIvss = parseFloat(
-      empleado.montoBaseIvss || montosBasePorDefecto.ivss
-    );
-    const montoBaseParoForzoso = parseFloat(
-      empleado.montoBaseParoForzoso || montosBasePorDefecto.paroForzoso
-    );
-    const montoBaseFaov = parseFloat(
-      empleado.montoBaseFaov || montosBasePorDefecto.faov
-    );
-    const montoBaseIslr = parseFloat(
-      empleado.montoBaseIslr || montosBasePorDefecto.islr
-    );
+    // NUEVO: Usar valores de la configuración global
+    const montoBaseIvss = parseFloat(payrollSettings.montoBaseIvss);
+    const montoBaseParoForzoso = parseFloat(payrollSettings.montoBaseParoForzoso);
+    const montoBaseFaov = parseFloat(payrollSettings.montoBaseFaov);
+    const montoBaseIslr = parseFloat(payrollSettings.montoBaseIslr);
     const porcentajeIslrIndividual =
       parseFloat(empleado.porcentajeIslr || 0) / 100;
 
@@ -595,7 +664,7 @@ const CalculadoraPagos = ({
     operativaEspecialQuincenal: employees.filter(
       (e) =>
         e.tipoNomina ===
-          "Tecnica Operativa Administrativa – Trabajos Especiales" &&
+        "Tecnica Operativa Administrativa – Trabajos Especiales" &&
         e.frecuenciaPago === "Quincenal"
     ),
     administrativaQuincenal: employees.filter(
@@ -608,9 +677,9 @@ const CalculadoraPagos = ({
   // Obtener nombre del mes actual
   const nombreMes = fechaPago
     ? new Date(fechaPago.replace(/-/g, "/")).toLocaleDateString("es-ES", {
-        month: "long",
-        year: "numeric",
-      })
+      month: "long",
+      year: "numeric",
+    })
     : "";
 
   return (
@@ -620,14 +689,14 @@ const CalculadoraPagos = ({
           Calculadora de Pagos -{" "}
           {fechaPago
             ? new Date(fechaPago.replace(/-/g, "/")).toLocaleDateString(
-                "es-ES",
-                {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                }
-              )
+              "es-ES",
+              {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }
+            )
             : "Fecha no válida"}
         </h3>
         <div className="mes-info">
@@ -637,8 +706,8 @@ const CalculadoraPagos = ({
           </small>
           <br />
           <small style={{ color: "#059669", fontWeight: "500" }}>
-            💡 <strong>Montos base por defecto:</strong> IVSS: 150 Bs, Paro
-            Forzoso: 150 Bs, FAOV: 1300 Bs, ISLR: 120 USD$
+            💡 <strong>Montos base (Configuración Global):</strong> IVSS: {payrollSettings.montoBaseIvss} Bs, Paro
+            Forzoso: {payrollSettings.montoBaseParoForzoso} Bs, FAOV: {payrollSettings.montoBaseFaov} Bs, ISLR: {payrollSettings.montoBaseIslr} USD$
           </small>
           <br />
           <small style={{ color: "#dc2626", fontWeight: "500" }}>
@@ -661,7 +730,7 @@ const CalculadoraPagos = ({
               {diasHabilesMes} días hábiles = Monto diario
             </small>
           </div>
-          <div className="employees-pagos-list">
+          <div className="employees-pagos-list semanal">
             <div className="list-header-pagos-nomina">
               <span>Empleado</span>
               <span>Días Asist.</span>
@@ -767,12 +836,8 @@ const CalculadoraPagos = ({
                       }
                     >
                       <option value="">Seleccionar</option>
-                      <option value="Banesco">Banesco</option>
-                      <option value="Mercantil">Mercantil</option>
-                      <option value="Provincial">Provincial</option>
-                      <option value="Venezuela">Banco de Venezuela</option>
-                      <option value="Bancaribe">Bancaribe</option>
-                      <option value="BNC">BNC</option>
+                      <option value="FondoComun(BFC)">Fondo Comun(BFC)</option>
+                      <option value="Banco de Venezuela">Banco de Venezuela</option>
                       <option value="Banplus">Banplus</option>
                       <option value="Banco Socios">Banco Socios</option>
                       <option value="Banco Plaza">Banco Plaza</option>
@@ -802,219 +867,217 @@ const CalculadoraPagos = ({
         ...empleadosPorTipo.operativaEspecialQuincenal,
         ...empleadosPorTipo.administrativaQuincenal,
       ].length > 0 && (
-        <div className="nomina-section">
-          <h4>Nóminas Quincenales (Configuración Individual)</h4>
-          <div className="info-adicional">
-            <small>
-              💡 <strong>Cálculo para pago quincenal:</strong> Salario mensual ÷{" "}
-              {diasRealesMes} días del mes = Monto diario
-            </small>
-          </div>
-          <div className="employees-pagos-list quincenal">
-            <div className="list-header-pagos-nomina">
-              <span>Empleado</span>
-              <span>Tipo Nómina</span>
-              <span>Mitad</span>
-              <span>Días a Pagar</span>
-              <span>H. Extra D.</span>
-              <span>H. Extra N.</span>
-              <span>Ded. Manual ($)</span>
-              <span>Banco</span>
-              <span>Observaciones</span>
+          <div className="nomina-section">
+            <h4>Nóminas Quincenales (Configuración Individual)</h4>
+            <div className="info-adicional">
+              <small>
+                💡 <strong>Cálculo para pago quincenal:</strong> Salario mensual ÷{" "}
+                {diasRealesMes} días del mes = Monto diario
+              </small>
             </div>
+            <div className="employees-pagos-list quincenal">
+              <div className="list-header-pagos-nomina">
+                <span>Empleado</span>
+                <span>Tipo Nómina</span>
+                <span>Mitad</span>
+                <span>Días a Pagar</span>
+                <span>H. Extra D.</span>
+                <span>H. Extra N.</span>
+                <span>Ded. Manual ($)</span>
+                <span>Banco</span>
+                <span>Observaciones</span>
+              </div>
 
-            {[
-              ...empleadosPorTipo.operativaEspecialQuincenal,
-              ...empleadosPorTipo.administrativaQuincenal,
-            ].map((empleado) => {
-              const horasExtrasEmpleado = horasExtras[empleado.id] || {
-                diurna: 0,
-                nocturna: 0,
-              };
-              const deduccionManual = deduccionesManuales[empleado.id] || 0;
-              const bancoPago = bancosPago[empleado.id] || "";
-              const observacion = observaciones[empleado.id] || "";
-              const diasPago = diasPagoQuincenal[empleado.id] || 15;
-              const mitadPago = mitadPagoQuincenal[empleado.id] || "primera";
-              const montoDiario = calcularMontoDiario(empleado);
+              {[
+                ...empleadosPorTipo.operativaEspecialQuincenal,
+                ...empleadosPorTipo.administrativaQuincenal,
+              ].map((empleado) => {
+                const horasExtrasEmpleado = horasExtras[empleado.id] || {
+                  diurna: 0,
+                  nocturna: 0,
+                };
+                const deduccionManual = deduccionesManuales[empleado.id] || 0;
+                const bancoPago = bancosPago[empleado.id] || "";
+                const observacion = observaciones[empleado.id] || "";
+                const diasPago = diasPagoQuincenal[empleado.id] || 15;
+                const mitadPago = mitadPagoQuincenal[empleado.id] || "primera";
+                const montoDiario = calcularMontoDiario(empleado);
 
-              // Calcular total mensual para mostrar
-              let totalMensual = 0;
-              if (
-                ["Administrativa", "Ejecucion"].includes(empleado.tipoNomina)
-              ) {
-                totalMensual =
-                  parseFloat(empleado.montoLey || 0) +
-                  parseFloat(empleado.bonificacionEmpresa || 0);
-              } else {
-                totalMensual = parseFloat(empleado.montoSalario || 0);
-              }
+                // Calcular total mensual para mostrar
+                let totalMensual = 0;
+                if (
+                  ["Administrativa", "Ejecucion"].includes(empleado.tipoNomina)
+                ) {
+                  totalMensual =
+                    parseFloat(empleado.montoLey || 0) +
+                    parseFloat(empleado.bonificacionEmpresa || 0);
+                } else {
+                  totalMensual = parseFloat(empleado.montoSalario || 0);
+                }
 
-              return (
-                <div key={empleado.id} className="pago-row">
-                  <div className="employee-info">
-                    <div className="employee-name">
-                      {empleado.nombre} {empleado.apellido}
+                return (
+                  <div key={empleado.id} className="pago-row">
+                    <div className="employee-info">
+                      <div className="employee-name">
+                        {empleado.nombre} {empleado.apellido}
+                      </div>
+                      <div className="employee-details">
+                        <span>C.I. {empleado.cedula}</span>
+                        <span>•</span>
+                        <span>{empleado.cargo}</span>
+                        <br />
+                        <small
+                          style={{
+                            color: "#dc2626",
+                            fontSize: "0.7rem",
+                            fontWeight: "500",
+                          }}
+                        >
+                          ${montoDiario.toFixed(2)}/día ($
+                          {totalMensual.toFixed(2)} ÷ {diasRealesMes})
+                        </small>
+                        {/* NUEVO: Mostrar porcentaje ISLR para nóminas con ley */}
+                        {["Administrativa", "Ejecucion"].includes(
+                          empleado.tipoNomina
+                        ) && (
+                            <>
+                              <br />
+                              <small
+                                style={{
+                                  color: "#7c3aed",
+                                  fontSize: "0.7rem",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                ISLR: {empleado.porcentajeIslr || "0"}%
+                              </small>
+                            </>
+                          )}
+                      </div>
                     </div>
-                    <div className="employee-details">
-                      <span>C.I. {empleado.cedula}</span>
-                      <span>•</span>
-                      <span>{empleado.cargo}</span>
-                      <br />
-                      <small
-                        style={{
-                          color: "#dc2626",
-                          fontSize: "0.7rem",
-                          fontWeight: "500",
-                        }}
+
+                    <div className="tipo-nomina">
+                      <span
+                        className={`nomina-badge ${empleado.tipoNomina.replace(
+                          /\s+/g,
+                          "-"
+                        )}`}
                       >
-                        ${montoDiario.toFixed(2)}/día ($
-                        {totalMensual.toFixed(2)} ÷ {diasRealesMes})
-                      </small>
-                      {/* NUEVO: Mostrar porcentaje ISLR para nóminas con ley */}
+                        {empleado.tipoNomina}
+                      </span>
+                      {/* CORRECCIÓN: Mostrar para ambas nóminas con ley */}
                       {["Administrativa", "Ejecucion"].includes(
                         empleado.tipoNomina
                       ) && (
-                        <>
-                          <br />
-                          <small
-                            style={{
-                              color: "#7c3aed",
-                              fontSize: "0.7rem",
-                              fontWeight: "500",
-                            }}
-                          >
-                            ISLR: {empleado.porcentajeIslr || "0"}%
+                          <small className="deducciones-info">
+                            (Con deducciones ley)
                           </small>
-                        </>
-                      )}
+                        )}
+                    </div>
+
+                    <div className="mitad-pago-input">
+                      <select
+                        value={mitadPago}
+                        onChange={(e) =>
+                          handleMitadPagoChange(empleado.id, e.target.value)
+                        }
+                      >
+                        <option value="primera">Primera Mitad</option>
+                        <option value="segunda">Segunda Mitad</option>
+                      </select>
+                    </div>
+
+                    <div className="dias-pago-input">
+                      <input
+                        type="number"
+                        value={diasPago}
+                        onChange={(e) =>
+                          handleDiasPagoChange(empleado.id, e.target.value)
+                        }
+                        min="1"
+                        max={diasRealesMes}
+                      />
+                    </div>
+
+                    <div className="horas-extra-input">
+                      <input
+                        type="number"
+                        value={horasExtrasEmpleado.diurna}
+                        onChange={(e) =>
+                          handleHorasExtrasChange(
+                            empleado.id,
+                            "diurna",
+                            e.target.value
+                          )
+                        }
+                        placeholder="0"
+                        min="0"
+                        step="0.5"
+                      />
+                    </div>
+
+                    <div className="horas-extra-input">
+                      <input
+                        type="number"
+                        value={horasExtrasEmpleado.nocturna}
+                        onChange={(e) =>
+                          handleHorasExtrasChange(
+                            empleado.id,
+                            "nocturna",
+                            e.target.value
+                          )
+                        }
+                        placeholder="0"
+                        min="0"
+                        step="0.5"
+                      />
+                    </div>
+
+                    <div className="deduccion-manual-input">
+                      <input
+                        type="number"
+                        value={deduccionManual}
+                        onChange={(e) =>
+                          handleDeduccionManualChange(empleado.id, e.target.value)
+                        }
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+
+                    <div className="banco-input">
+                      <select
+                        value={bancoPago}
+                        onChange={(e) =>
+                          handleBancoChange(empleado.id, e.target.value)
+                        }
+                      >
+                        <option value="FondoComun(BFC)">Fondo Comun(BFC)</option>
+                        <option value="Banco de Venezuela">Banco de Venezuela</option>
+                        <option value="Banplus">Banplus</option>
+                        <option value="Banco Socios">Banco Socios</option>
+                        <option value="Banco Plaza">Banco Plaza</option>
+                        <option value="Otro">Otro</option>
+                      </select>
+                    </div>
+
+                    <div className="observaciones-input">
+                      <input
+                        type="text"
+                        value={observacion}
+                        onChange={(e) =>
+                          handleObservacionesChange(empleado.id, e.target.value)
+                        }
+                        placeholder="Observaciones..."
+                      />
                     </div>
                   </div>
-
-                  <div className="tipo-nomina">
-                    <span
-                      className={`nomina-badge ${empleado.tipoNomina.replace(
-                        /\s+/g,
-                        "-"
-                      )}`}
-                    >
-                      {empleado.tipoNomina}
-                    </span>
-                    {/* CORRECCIÓN: Mostrar para ambas nóminas con ley */}
-                    {["Administrativa", "Ejecucion"].includes(
-                      empleado.tipoNomina
-                    ) && (
-                      <small className="deducciones-info">
-                        (Con deducciones ley)
-                      </small>
-                    )}
-                  </div>
-
-                  <div className="mitad-pago-input">
-                    <select
-                      value={mitadPago}
-                      onChange={(e) =>
-                        handleMitadPagoChange(empleado.id, e.target.value)
-                      }
-                    >
-                      <option value="primera">Primera Mitad</option>
-                      <option value="segunda">Segunda Mitad</option>
-                    </select>
-                  </div>
-
-                  <div className="dias-pago-input">
-                    <input
-                      type="number"
-                      value={diasPago}
-                      onChange={(e) =>
-                        handleDiasPagoChange(empleado.id, e.target.value)
-                      }
-                      min="1"
-                      max={diasRealesMes}
-                    />
-                  </div>
-
-                  <div className="horas-extra-input">
-                    <input
-                      type="number"
-                      value={horasExtrasEmpleado.diurna}
-                      onChange={(e) =>
-                        handleHorasExtrasChange(
-                          empleado.id,
-                          "diurna",
-                          e.target.value
-                        )
-                      }
-                      placeholder="0"
-                      min="0"
-                      step="0.5"
-                    />
-                  </div>
-
-                  <div className="horas-extra-input">
-                    <input
-                      type="number"
-                      value={horasExtrasEmpleado.nocturna}
-                      onChange={(e) =>
-                        handleHorasExtrasChange(
-                          empleado.id,
-                          "nocturna",
-                          e.target.value
-                        )
-                      }
-                      placeholder="0"
-                      min="0"
-                      step="0.5"
-                    />
-                  </div>
-
-                  <div className="deduccion-manual-input">
-                    <input
-                      type="number"
-                      value={deduccionManual}
-                      onChange={(e) =>
-                        handleDeduccionManualChange(empleado.id, e.target.value)
-                      }
-                      placeholder="0.00"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-
-                  <div className="banco-input">
-                    <select
-                      value={bancoPago}
-                      onChange={(e) =>
-                        handleBancoChange(empleado.id, e.target.value)
-                      }
-                    >
-                      <option value="">Seleccionar</option>
-                      <option value="Banesco">Banesco</option>
-                      <option value="Mercantil">Mercantil</option>
-                      <option value="Provincial">Provincial</option>
-                      <option value="Venezuela">Banco de Venezuela</option>
-                      <option value="Bancaribe">Bancaribe</option>
-                      <option value="BNC">BNC</option>
-                      <option value="Otro">Otro</option>
-                    </select>
-                  </div>
-
-                  <div className="observaciones-input">
-                    <input
-                      type="text"
-                      value={observacion}
-                      onChange={(e) =>
-                        handleObservacionesChange(empleado.id, e.target.value)
-                      }
-                      placeholder="Observaciones..."
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <div className="calculadora-actions">
         <button

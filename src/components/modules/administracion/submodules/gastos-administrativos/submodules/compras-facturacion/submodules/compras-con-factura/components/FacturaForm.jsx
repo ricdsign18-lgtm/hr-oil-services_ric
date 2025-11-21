@@ -40,6 +40,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
   const [categorias, setCategorias] = useState([])
   const [modosPago, setModosPago] = useState([])
   const [proveedores, setProveedores] = useState([])
+  const [availableSubcategorias, setAvailableSubcategorias] = useState([])
 
   const [nuevaCategoria, setNuevaCategoria] = useState('')
   const [nuevoModoPago, setNuevoModoPago] = useState('')
@@ -130,6 +131,19 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
 
         if (provError) console.error('Error cargando proveedores:', provError)
         else setProveedores(provData)
+      }
+
+      // Cargar Subcategorías existentes
+      const { data: subData, error: subError } = await supabase
+        .from('facturas')
+        .select('subcategorias')
+
+      if (subError) {
+        console.error('Error cargando subcategorías:', subError)
+      } else if (subData) {
+        const allSubs = subData.flatMap(f => f.subcategorias || [])
+        const uniqueSubs = [...new Set(allSubs)].filter(Boolean).sort()
+        setAvailableSubcategorias(uniqueSubs)
       }
     }
     fetchData()
@@ -314,6 +328,12 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
 
       if (error) throw error
 
+      // Actualizar lista de subcategorías disponibles
+      const nuevasSubcategorias = formData.subcategorias.filter(s => s && !availableSubcategorias.includes(s))
+      if (nuevasSubcategorias.length > 0) {
+        setAvailableSubcategorias(prev => [...prev, ...nuevasSubcategorias].sort())
+      }
+
       onFacturaSaved()
 
       // Reset form solo si no estamos editando
@@ -410,12 +430,19 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                     value={sub}
                     onChange={(e) => handleSubcategoriaChange(index, e.target.value)}
                     placeholder={`Subcategoría ${index + 1}`}
+                    list="subcategorias-list-facturas"
+                    autoComplete="off"
                   />
                   {formData.subcategorias.length > 1 && (
                     <button type="button" onClick={() => removeSubcategoria(index)} className="btn-remove-subcategory">-</button>
                   )}
                 </div>
               ))}
+              <datalist id="subcategorias-list-facturas">
+                {availableSubcategorias.map((sub, index) => (
+                  <option key={index} value={sub} />
+                ))}
+              </datalist>
               <button type="button" onClick={addSubcategoria} className="btn-add-subcategory">+ Añadir Subcategoría</button>
             </div>
 

@@ -620,6 +620,89 @@ export const PersonalProvider = ({ children }) => {
     }
   };
 
+  // ========== CONFIGURACIÓN NÓMINA ==========
+  const getPayrollSettings = async (projectId = null) => {
+    const projectToUse = projectId || selectedProject?.id;
+    if (!projectToUse) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from("payroll_settings")
+        .select("*")
+        .eq("project_id", projectToUse)
+        .single();
+
+      if (error && error.code !== "PGRST116") throw error;
+
+      if (!data) {
+        // Si no existe, retornar valores por defecto
+        return {
+          montoBaseIvss: 150,
+          montoBaseParoForzoso: 150,
+          montoBaseFaov: 1300,
+          montoBaseIslr: 120,
+        };
+      }
+
+      return {
+        id: data.id,
+        projectId: data.project_id,
+        montoBaseIvss: parseFloat(data.monto_base_ivss),
+        montoBaseParoForzoso: parseFloat(data.monto_base_paro_forzoso),
+        montoBaseFaov: parseFloat(data.monto_base_faov),
+        montoBaseIslr: parseFloat(data.monto_base_islr),
+      };
+    } catch (error) {
+      console.error("Error cargando configuración de nómina:", error);
+      return {
+        montoBaseIvss: 150,
+        montoBaseParoForzoso: 150,
+        montoBaseFaov: 1300,
+        montoBaseIslr: 120,
+      };
+    }
+  };
+
+  const updatePayrollSettings = async (projectId, settings) => {
+    if (!projectId) throw new Error("Project ID es requerido");
+
+    try {
+      const { data, error } = await supabase
+        .from("payroll_settings")
+        .upsert(
+          {
+            project_id: projectId,
+            monto_base_ivss: parseFloat(settings.montoBaseIvss),
+            monto_base_paro_forzoso: parseFloat(settings.montoBaseParoForzoso),
+            monto_base_faov: parseFloat(settings.montoBaseFaov),
+            monto_base_islr: parseFloat(settings.montoBaseIslr),
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "project_id" }
+        )
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log("✅ PersonalContext: Configuración actualizada exitosamente");
+      addNotification("Configuración actualizada exitosamente", "success");
+
+      return {
+        id: data.id,
+        projectId: data.project_id,
+        montoBaseIvss: parseFloat(data.monto_base_ivss),
+        montoBaseParoForzoso: parseFloat(data.monto_base_paro_forzoso),
+        montoBaseFaov: parseFloat(data.monto_base_faov),
+        montoBaseIslr: parseFloat(data.monto_base_islr),
+      };
+    } catch (error) {
+      console.error("Error actualizando configuración:", error);
+      addNotification("Error al actualizar configuración", "error");
+      throw error;
+    }
+  };
+
   const value = {
     // Empleados
     getEmployeesByProject,
@@ -638,6 +721,10 @@ export const PersonalProvider = ({ children }) => {
     savePagos,
     getPagosByProject,
     getPagoById,
+
+    // Configuración
+    getPayrollSettings,
+    updatePayrollSettings,
   };
 
   return (

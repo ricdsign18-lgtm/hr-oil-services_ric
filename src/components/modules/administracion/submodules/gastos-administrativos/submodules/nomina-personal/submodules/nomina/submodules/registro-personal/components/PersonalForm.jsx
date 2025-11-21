@@ -450,10 +450,9 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
     bonificacionEmpresa: "",
     fechaIngreso: "",
     porcentajeIslr: "",
-    montoBaseIvss: "150",
-    montoBaseParoForzoso: "150",
-    montoBaseFaov: "1300",
-    montoBaseIslr: "120",
+    bonificacionEmpresa: "",
+    fechaIngreso: "",
+    porcentajeIslr: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -474,11 +473,7 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
         bonificacionEmpresa: employee.bonificacionEmpresa?.toString() || "",
         fechaIngreso: employee.fechaIngreso || "",
         porcentajeIslr: employee.porcentajeIslr?.toString() || "",
-        montoBaseIvss: employee.montoBaseIvss?.toString() || "150",
-        montoBaseParoForzoso:
-          employee.montoBaseParoForzoso?.toString() || "150",
-        montoBaseFaov: employee.montoBaseFaov?.toString() || "1300",
-        montoBaseIslr: employee.montoBaseIslr?.toString() || "120",
+        porcentajeIslr: employee.porcentajeIslr?.toString() || "",
       });
     }
   }, [employee]);
@@ -841,73 +836,7 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
                 </div>
               </div>
 
-              {showMontosBase && (
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Monto Base IVSS (Bs)</label>
-                    <input
-                      type="number"
-                      name="montoBaseIvss"
-                      value={formData.montoBaseIvss}
-                      onChange={handleChange}
-                      placeholder="150.00"
-                      step="0.01"
-                      min="0"
-                      disabled={submitting}
-                    />
-                    <small>Monto base para cálculo de IVSS</small>
-                  </div>
 
-                  <div className="form-group">
-                    <label>Monto Base Paro Forzoso (Bs)</label>
-                    <input
-                      type="number"
-                      name="montoBaseParoForzoso"
-                      value={formData.montoBaseParoForzoso}
-                      onChange={handleChange}
-                      placeholder="150.00"
-                      step="0.01"
-                      min="0"
-                      disabled={submitting}
-                    />
-                    <small>Monto base para cálculo de Paro Forzoso</small>
-                  </div>
-                </div>
-              )}
-
-              {showMontosBase && (
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Monto Base FAOV (Bs)</label>
-                    <input
-                      type="number"
-                      name="montoBaseFaov"
-                      value={formData.montoBaseFaov}
-                      onChange={handleChange}
-                      placeholder="1300.00"
-                      step="0.01"
-                      min="0"
-                      disabled={submitting}
-                    />
-                    <small>Monto base para cálculo de FAOV</small>
-                  </div>
-
-                  <div className="form-group">
-                    <label>Monto Base ISLR (USD$)</label>
-                    <input
-                      type="number"
-                      name="montoBaseIslr"
-                      value={formData.montoBaseIslr}
-                      onChange={handleChange}
-                      placeholder="120.00"
-                      step="0.01"
-                      min="0"
-                      disabled={submitting}
-                    />
-                    <small>Monto base para cálculo de ISLR</small>
-                  </div>
-                </div>
-              )}
 
               <div className="calculation-info total">
                 <small>
@@ -946,8 +875,8 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
             {submitting
               ? "Guardando..."
               : employee
-              ? "Actualizar Empleado"
-              : "Registrar Empleado"}
+                ? "Actualizar Empleado"
+                : "Registrar Empleado"}
           </button>
         </div>
       </form>

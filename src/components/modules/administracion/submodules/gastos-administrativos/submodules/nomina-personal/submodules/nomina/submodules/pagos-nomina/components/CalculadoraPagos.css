@@ -78,50 +78,64 @@
 .employees-pagos-list {
   border: 1px solid var(--border-color);
   border-radius: 0.5rem;
-  overflow: scroll;
+  overflow-x: auto;
+  background: var(--surface-color);
 }
 
-.employees-pagos-list.quincenal .list-header {
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
-}
-
-.employees-pagos-list.quincenal .pago-row {
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+/* Common Grid Layout for Rows */
+.list-header-pagos-nomina,
+.pago-row {
+  display: grid;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  min-width: 1200px;
+  /* Ensure content doesn't squash on small screens */
 }
 
 .list-header-pagos-nomina {
-  display: flex;
-  flex-direction: row;
-  width: auto;
-  padding: 1rem 1.5rem;
-
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  background-color: rgba(255, 255, 255, 0.05);
   font-weight: 600;
   color: var(--text-primary);
-  gap: 100px;
-  min-width: 1200px;
   font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .pago-row {
-  display: flex;
-  flex-direction: row;
-  padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--border-color);
-  align-items: center;
-  gap: 30px;
-  min-width: 1200px;
+  transition: background-color 0.2s;
 }
 
 .pago-row:last-child {
   border-bottom: none;
 }
 
+.pago-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Semanal Grid Template (7 Columns) */
+/* Empleado | Días | HE D | HE N | Ded | Banco | Obs */
+.employees-pagos-list.semanal .list-header-pagos-nomina,
+.employees-pagos-list.semanal .pago-row {
+  grid-template-columns: minmax(250px, 2.5fr) minmax(80px, 0.8fr) minmax(80px, 0.8fr) minmax(80px, 0.8fr) minmax(100px, 1fr) minmax(120px, 1.2fr) minmax(150px, 2fr);
+}
+
+/* Quincenal Grid Template (9 Columns) */
+/* Empleado | Tipo | Mitad | Días | HE D | HE N | Ded | Banco | Obs */
+.employees-pagos-list.quincenal .list-header-pagos-nomina,
+.employees-pagos-list.quincenal .pago-row {
+  grid-template-columns: minmax(250px, 2.2fr) minmax(180px, 1.8fr) minmax(110px, 1fr) minmax(70px, 0.7fr) minmax(70px, 0.7fr) minmax(70px, 0.7fr) minmax(90px, 0.9fr) minmax(110px, 1.1fr) minmax(150px, 1.5fr);
+}
+
 .employee-info {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  white-space: nowrap; /* Evita que el texto del empleado se divida */
+  overflow: hidden;
+  /* Prevent text overflow */
 }
 
 .employee-name {
@@ -145,12 +159,17 @@
 }
 
 .nomina-badge {
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.7rem;
-  font-weight: 500;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  /* Permitir que el texto baje si es largo */
+  line-height: 1.2;
+  display: inline-block;
+  width: 100%;
+  overflow: scroll;
 }
 
 .deducciones-info {
@@ -188,12 +207,23 @@
 .mitad-pago-input select,
 .dias-pago-input input,
 .horas-extra-input input,
-.deduccion-manual-input input {
+.deduccion-manual-input input,
+.banco-input select,
+.observaciones-input input {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.6rem 0.5rem;
   border: 1px solid var(--border-color);
   border-radius: 0.375rem;
-  font-size: 0.85rem;
+  background-color: var(--background-color);
+  color: #fef3c7;
+  font-size: 0.9rem;
+  height: 38px;
+  /* Altura fija para consistencia */
+}
+
+.dias-pago-input input,
+.horas-extra-input input,
+.deduccion-manual-input input {
   text-align: center;
 }
 
@@ -236,7 +266,7 @@
     grid-template-columns: 1fr;
   }
 }
-/* Agregar al archivo CalculadoraPagos.css */
+
 .info-adicional {
   background: #e8f4fd;
   border: 1px solid #b3d9ff;
