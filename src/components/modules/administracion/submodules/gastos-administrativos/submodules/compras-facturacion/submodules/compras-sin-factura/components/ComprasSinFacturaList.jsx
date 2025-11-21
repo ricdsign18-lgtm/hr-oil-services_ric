@@ -1,13 +1,22 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/compra-facturacion/submodules/compras-sin-factura/components/ComprasSinFacturaList.jsx
-import React, { useState, useEffect } from 'react'
+import  { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
-
+import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
+import FeedbackModal from '../../../../../../../../../common/FeedbackModal/FeedbackModal'   
 const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
+  const { showToast } = useNotification();
   const [compras, setCompras] = useState([])
   const [filtroProveedor, setFiltroProveedor] = useState('')
   const [filtroCategoria, setFiltroCategoria] = useState('')
   const [fechaInicio, setFechaInicio] = useState('')
   const [fechaFin, setFechaFin] = useState('')
+
+  const [feedback, setFeedback] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     cargarCompras()
@@ -51,6 +60,10 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
     return compra.subcategoria || '-'
   }
 
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({ ...prev, isOpen: false }));
+  };
+
   const handleDelete = async (compraId) => {
     if (window.confirm('¿Está seguro de que desea eliminar esta compra?')) {
       try {
@@ -61,9 +74,20 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
         if (error) throw error
         // Recargar la lista para reflejar el cambio
         cargarCompras()
+        setFeedback({
+          isOpen: true,
+          type: 'success',
+          title: 'Compra Eliminada',
+          message: 'La compra ha sido eliminada exitosamente.'
+        });
       } catch (error) {
         console.error('Error al eliminar compra:', error)
-        alert('Error al eliminar la compra.')
+        setFeedback({
+          isOpen: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Error al eliminar la compra. ' + error.message
+        });
       }
     }
   }
@@ -181,6 +205,14 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
           <p>No se encontraron compras registradas</p>
         </div>
       )}
+
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={handleCloseFeedback}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+      />
     </div>
   )
 }

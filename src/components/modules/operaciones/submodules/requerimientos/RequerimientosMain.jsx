@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOperaciones } from '../../../../../contexts/OperacionesContext';
+import { useNotification } from '../../../../../contexts/NotificationContext';
 import ModuleDescription from '../../../_core/ModuleDescription/ModuleDescription';
 import './RequerimientosMain.css';
 
@@ -13,6 +14,8 @@ const RequerimientosMain = () => {
     getLowStockItems // 1. Get low stock items function
   } = useOperaciones();
   
+  const { showToast } = useNotification();
+
   const [formData, setFormData] = useState({
     fecha_requerimiento: new Date().toISOString().split('T')[0],
     items: [{
@@ -132,7 +135,7 @@ const RequerimientosMain = () => {
     e.preventDefault();
     
     if (formData.items.length === 0) {
-      alert('Debe agregar al menos un item al requerimiento.');
+      showToast('Debe agregar al menos un item al requerimiento.', 'warning');
       return;
     }
 
@@ -141,7 +144,7 @@ const RequerimientosMain = () => {
     );
 
     if (incompleteItems.length > 0) {
-      alert('Por favor complete todos los campos de los items.');
+      showToast('Por favor complete todos los campos de los items.', 'warning');
       return;
     }
 
@@ -166,11 +169,13 @@ const RequerimientosMain = () => {
         monto_dolares_aprox: ''
       }],
     });
+    showToast('Requerimiento registrado exitosamente', 'success');
   };
 
   const handleCancelItem = async (itemId) => {
     if (window.confirm('¿Está seguro de que desea cancelar este ítem del requerimiento?')) {
       await cancelRequerimientoItem(itemId);
+      showToast('Item cancelado exitosamente', 'info');
     }
   };
 

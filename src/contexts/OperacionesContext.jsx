@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import supabase from '../api/supaBase';
 import { useProjects } from './ProjectContext';
+import { useNotification } from './NotificationContext';
 
 const OperacionesContext = createContext();
 
@@ -8,6 +9,7 @@ export const useOperaciones = () => useContext(OperacionesContext);
 
 export const OperacionesProvider = ({ children }) => {
   const { selectedProject } = useProjects();
+  const { showToast } = useNotification();
   const [inventory, setInventory] = useState([]);
   const [compras, setCompras] = useState([]);
   const [retiros, setRetiros] = useState([]);
@@ -238,7 +240,7 @@ export const OperacionesProvider = ({ children }) => {
 
    
     if (item.cantidad_disponible < cantidad_retirada) {
-      alert('No hay suficiente stock para retirar.');
+      showToast('No hay suficiente stock para retirar.', 'error');
       setLoading(false);
       return;
     }
@@ -276,7 +278,7 @@ export const OperacionesProvider = ({ children }) => {
       await getRetiros();
     }
     setLoading(false);
-  }, [selectedProject, getInventory, getRetiros]);
+  }, [selectedProject, getInventory, getRetiros, showToast]);
 
   const addPurchase = useCallback(async (purchaseData) => {
     if (!selectedProject) return;

@@ -3,11 +3,13 @@ import { useState, useEffect, useCallback } from 'react';
 import supabase from '../../../../../../api/supaBase';
 import { usePlanning } from '../../../../../../contexts/PlanningContext';
 import { useBudget } from '../../../../../../contexts/BudgetContext';
+import { useNotification } from '../../../../../../contexts/NotificationContext';
 import { ActividadForm } from './ActividadForm';
 import { ActividadesList } from './ActividadesList';
 
 export const DiaPlanning = ({ dia, onBack }) => {
   const { getSemanaById, recalcularMontosSemana, deleteActividad } = usePlanning();
+  const { showToast } = useNotification();
   const [actividades, setActividades] = useState([]);
   const [currentDia, setCurrentDia] = useState(dia);
   const [loading, setLoading] = useState(false);
@@ -74,8 +76,9 @@ export const DiaPlanning = ({ dia, onBack }) => {
         await deleteActividad(actividadId);
         // Refrescar datos después de eliminar
         handleSuccess();
+        showToast('Actividad eliminada exitosamente', 'success');
       } catch (error) {
-        alert('No se pudo eliminar la actividad.');
+        showToast('No se pudo eliminar la actividad.', 'error');
       }
     }
   };

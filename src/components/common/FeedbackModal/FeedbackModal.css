@@ -1,0 +1,59 @@
+.feedback-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+.feedback-icon-container {
+  margin-bottom: 1.5rem;
+}
+
+.feedback-icon {
+  width: 64px;
+  height: 64px;
+}
+
+.feedback-icon--success {
+  color: #10B981;
+}
+
+.feedback-icon--error {
+  color: #EF4444;
+}
+
+.feedback-icon--warning {
+  color: #F59E0B;
+}
+
+.feedback-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.feedback-message {
+  font-size: 1rem;
+  color: #6B7280;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.feedback-button {
+  background-color: #2563EB;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.feedback-button:hover {
+  background-color: #1D4ED8;
+}

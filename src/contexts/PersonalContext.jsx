@@ -1,5 +1,5 @@
 // src/contexts/PersonalContext.jsx
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useCallback, useMemo } from "react";
 import supabase from "../api/supaBase";
 import { useProjects } from "./ProjectContext";
 import { useNotification } from "./NotificationContext";
@@ -19,7 +19,7 @@ export const PersonalProvider = ({ children }) => {
   const { addNotification } = useNotification();
 
   // ========== EMPLEADOS ==========
-  const getEmployeesByProject = async (projectId = null) => {
+  const getEmployeesByProject = useCallback(async (projectId = null) => {
     const projectToUse = projectId || selectedProject?.id;
     if (!projectToUse) {
       console.log("⚠️ PersonalContext: projectId no definido");
@@ -68,9 +68,9 @@ export const PersonalProvider = ({ children }) => {
       console.error("Error cargando empleados:", error);
       return [];
     }
-  };
+  }, [selectedProject?.id]);
 
-  const addEmployee = async (employeeData) => {
+  const addEmployee = useCallback(async (employeeData) => {
     if (!employeeData.projectId) {
       throw new Error("Project ID es requerido");
     }
@@ -142,9 +142,9 @@ export const PersonalProvider = ({ children }) => {
       addNotification("Error al agregar empleado", "error");
       throw error;
     }
-  };
+  }, [addNotification]);
 
-  const updateEmployee = async (id, employeeData) => {
+  const updateEmployee = useCallback(async (id, employeeData) => {
     console.log("✏️ PersonalContext: Actualizando empleado:", id, employeeData);
 
     try {
@@ -205,9 +205,9 @@ export const PersonalProvider = ({ children }) => {
       addNotification("Error al actualizar empleado", "error");
       throw error;
     }
-  };
+  }, [addNotification]);
 
-  const deleteEmployee = async (id) => {
+  const deleteEmployee = useCallback(async (id) => {
     console.log("🗑️ PersonalContext: Eliminando empleado:", id);
 
     try {
@@ -223,9 +223,9 @@ export const PersonalProvider = ({ children }) => {
       addNotification("Error al eliminar empleado", "error");
       throw error;
     }
-  };
+  }, [addNotification]);
 
-  const getEmployeeById = async (id) => {
+  const getEmployeeById = useCallback(async (id) => {
     try {
       const { data, error } = await supabase
         .from("employees")
@@ -262,10 +262,10 @@ export const PersonalProvider = ({ children }) => {
       console.error("Error cargando empleado:", error);
       return null;
     }
-  };
+  }, []);
 
   // ========== ASISTENCIAS ==========
-  const saveAsistencia = async (asistenciaData) => {
+  const saveAsistencia = useCallback(async (asistenciaData) => {
     if (!asistenciaData.projectId) {
       throw new Error("Project ID es requerido");
     }
@@ -328,9 +328,9 @@ export const PersonalProvider = ({ children }) => {
       addNotification("Error al guardar asistencia", "error");
       throw error;
     }
-  };
+  }, [addNotification]);
 
-  const getAsistenciaByFechaAndProject = async (fecha, projectId = null) => {
+  const getAsistenciaByFechaAndProject = useCallback(async (fecha, projectId = null) => {
     const projectToUse = projectId || selectedProject?.id;
     if (!projectToUse || !fecha) return null;
 
@@ -367,9 +367,9 @@ export const PersonalProvider = ({ children }) => {
       console.error("Error cargando asistencia:", error);
       return null;
     }
-  };
+  }, [selectedProject?.id]);
 
-  const getAsistenciasByProject = async (projectId = null) => {
+  const getAsistenciasByProject = useCallback(async (projectId = null) => {
     const projectToUse = projectId || selectedProject?.id;
     if (!projectToUse) return [];
 
@@ -409,9 +409,9 @@ export const PersonalProvider = ({ children }) => {
       console.error("Error cargando asistencias:", error);
       return [];
     }
-  };
+  }, [selectedProject?.id]);
 
-  const deleteAsistencia = async (id) => {
+  const deleteAsistencia = useCallback(async (id) => {
     console.log("🗑️ PersonalContext: Eliminando asistencia:", id);
 
     try {
@@ -439,10 +439,10 @@ export const PersonalProvider = ({ children }) => {
       addNotification("Error al eliminar asistencia", "error");
       throw error;
     }
-  };
+  }, [addNotification]);
 
   // ========== PAGOS ==========
-  const savePagos = async (paymentData) => {
+  const savePagos = useCallback(async (paymentData) => {
     if (!paymentData.projectId) {
       throw new Error("Project ID es requerido");
     }
@@ -498,9 +498,9 @@ export const PersonalProvider = ({ children }) => {
       console.error("Error guardando pagos:", error);
       throw error;
     }
-  };
+  }, []);
 
-  const getPagosByProject = async (projectId = null) => {
+  const getPagosByProject = useCallback(async (projectId = null) => {
     const projectToUse = projectId || selectedProject?.id;
     if (!projectToUse) return [];
 
@@ -563,9 +563,9 @@ export const PersonalProvider = ({ children }) => {
       console.error("Error cargando pagos:", error);
       return [];
     }
-  };
+  }, [selectedProject?.id]);
 
-  const getPagoById = async (id) => {
+  const getPagoById = useCallback(async (id) => {
     try {
       const { data, error } = await supabase
         .from("payroll_payments")
@@ -618,10 +618,10 @@ export const PersonalProvider = ({ children }) => {
       console.error("Error cargando pago:", error);
       return null;
     }
-  };
+  }, []);
 
   // ========== CONFIGURACIÓN NÓMINA ==========
-  const getPayrollSettings = async (projectId = null) => {
+  const getPayrollSettings = useCallback(async (projectId = null) => {
     const projectToUse = projectId || selectedProject?.id;
     if (!projectToUse) return null;
 
@@ -661,9 +661,9 @@ export const PersonalProvider = ({ children }) => {
         montoBaseIslr: 120,
       };
     }
-  };
+  }, [selectedProject?.id]);
 
-  const updatePayrollSettings = async (projectId, settings) => {
+  const updatePayrollSettings = useCallback(async (projectId, settings) => {
     if (!projectId) throw new Error("Project ID es requerido");
 
     try {
@@ -701,9 +701,9 @@ export const PersonalProvider = ({ children }) => {
       addNotification("Error al actualizar configuración", "error");
       throw error;
     }
-  };
+  }, [addNotification]);
 
-  const value = {
+  const value = useMemo(() => ({
     // Empleados
     getEmployeesByProject,
     addEmployee,
@@ -715,7 +715,7 @@ export const PersonalProvider = ({ children }) => {
     saveAsistencia,
     getAsistenciaByFechaAndProject,
     getAsistenciasByProject,
-    deleteAsistencia, // Exportar nueva función
+    deleteAsistencia,
 
     // Pagos
     savePagos,
@@ -725,7 +725,22 @@ export const PersonalProvider = ({ children }) => {
     // Configuración
     getPayrollSettings,
     updatePayrollSettings,
-  };
+  }), [
+    getEmployeesByProject,
+    addEmployee,
+    updateEmployee,
+    deleteEmployee,
+    getEmployeeById,
+    saveAsistencia,
+    getAsistenciaByFechaAndProject,
+    getAsistenciasByProject,
+    deleteAsistencia,
+    savePagos,
+    getPagosByProject,
+    getPagoById,
+    getPayrollSettings,
+    updatePayrollSettings
+  ]);
 
   return (
     <PersonalContext.Provider value={value}>

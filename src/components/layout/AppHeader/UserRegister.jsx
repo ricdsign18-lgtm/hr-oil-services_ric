@@ -7,11 +7,20 @@ import { UserIcon, OutIcon, ArrowDown } from "../../../assets/icons/Icons";
 import { UserRegisterPanel } from "./UserRegisterPanel";
 import bcrypt from "bcryptjs";
 import supabase from "../../../api/supaBase";
+import FeedbackModal from "../../common/FeedbackModal/FeedbackModal";
 
 export const UserRegister = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const { registerUser, userData: currentUser, logout } = useAuth();
+  
+  const [feedback, setFeedback] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
+
   const [userData, setUserData] = useState({
     username: "",
     password: "",
@@ -40,6 +49,10 @@ export const UserRegister = () => {
     setUserData({ username: "", password: "", role: "viewer" });
   };
 
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({ ...prev, isOpen: false }));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
@@ -49,7 +62,12 @@ export const UserRegister = () => {
     e.preventDefault();
     const passwordHashed = await bcrypt.hash(userData.password, 12);
     if (!userData.username || !userData.password) {
-      alert("Por favor, completa el nombre de usuario y la contraseña.");
+      setFeedback({
+        isOpen: true,
+        type: 'warning',
+        title: 'Campos Incompletos',
+        message: 'Por favor, completa el nombre de usuario y la contraseña.'
+      });
       return;
     }
     const { error } = await supabase.from("users").insert({
@@ -59,9 +77,22 @@ export const UserRegister = () => {
     });
 
     if (error) {
-      alert("Error");
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Hubo un problema al crear el usuario. Inténtalo de nuevo.'
+      });
       return;
     }
+    
+    handleCloseModal();
+    setFeedback({
+      isOpen: true,
+      type: 'success',
+      title: 'Usuario Creado',
+      message: `El usuario ${userData.username} ha sido creado exitosamente.`
+    });
   };
 
   return (
@@ -128,6 +159,14 @@ export const UserRegister = () => {
           </button>
         </form>
       </Modal>
+
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={handleCloseFeedback}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+      />
     </div>
   );
 };

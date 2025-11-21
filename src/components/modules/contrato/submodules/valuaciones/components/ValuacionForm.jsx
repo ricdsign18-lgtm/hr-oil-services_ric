@@ -5,6 +5,7 @@ import { useCurrency } from "../../../../../../contexts/CurrencyContext";
 import { useProjects } from "../../../../../../contexts/ProjectContext";
 import { useBudget } from "../../../../../../contexts/BudgetContext"; // 1. Importar useBudget
 import { useValuation } from "../../../../../../contexts/ValuationContext";
+import { useNotification } from "../../../../../../contexts/NotificationContext";
 import "./ValuacionForm.css";
 
 const ValuacionForm = ({
@@ -18,6 +19,7 @@ const ValuacionForm = ({
   const { selectedProject } = useProjects();
   const { budget } = useBudget(); // 2. Obtener el presupuesto para sacar la moneda principal
   const { valuations } = useValuation();
+  const { showToast } = useNotification();
 
   // 3. Determinar la moneda principal del proyecto
   const mainCurrency = budget?.monedaPrincipal || "USD";
@@ -155,7 +157,7 @@ const ValuacionForm = ({
       !cantidadEjecutada ||
       parseFloat(cantidadEjecutada) <= 0
     ) {
-      alert("Por favor selecciona una partida y ingresa una cantidad válida");
+      showToast("Por favor selecciona una partida y ingresa una cantidad válida", "warning");
       return;
     }
 
@@ -178,10 +180,10 @@ const ValuacionForm = ({
     });
 
     if (cantidad > cantidadDisponibleReal) {
-      alert(
+      showToast(
         `No hay suficiente cantidad disponible. Máximo disponible: ${cantidadDisponibleReal.toFixed(
           2
-        )} ${partidaPresupuesto.unidad}`
+        )} ${partidaPresupuesto.unidad}`, "warning"
       );
       return;
     }
@@ -220,12 +222,12 @@ const ValuacionForm = ({
 
   const handleSave = () => {
     if (!formData.numero || !formData.periodoInicio || !formData.periodoFin) {
-      alert("Por favor completa todos los campos obligatorios");
+      showToast("Por favor completa todos los campos obligatorios", "warning");
       return;
     }
 
     if (formData.partidas.length === 0) {
-      alert("Debes agregar al menos una partida ejecutada");
+      showToast("Debes agregar al menos una partida ejecutada", "warning");
       return;
     }
 

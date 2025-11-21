@@ -4,6 +4,7 @@ import { useProjects } from "../../../../../contexts/ProjectContext";
 import { useBudget } from "../../../../../contexts/BudgetContext";
 import { useValuation } from "../../../../../contexts/ValuationContext"; // NUEVO
 import { useCurrency } from "../../../../../contexts/CurrencyContext";
+import { useNotification } from "../../../../../contexts/NotificationContext"; // NUEVO
 import { getMainCurrency } from "../../../../../utils/mainCurrency";
 
 import ModuleDescription from "../../../_core/ModuleDescription/ModuleDescription";
@@ -16,6 +17,7 @@ import "./ValuacionesMain.css";
 const ValuacionesMain = () => {
   const navigate = useNavigate();
   const { selectedProject } = useProjects();
+  const { showToast } = useNotification();
 
   //TODO: A partir de aqui agarramos para la logica del tipo de moneda, se hace poniendo el contexto de moneda
 
@@ -52,7 +54,7 @@ const ValuacionesMain = () => {
 
   const handleCreateValuacion = () => {
     if (!presupuestoData || presupuestoData.items.length === 0) {
-      alert("No hay presupuesto cargado. Debes crear un presupuesto primero.");
+      showToast("No hay presupuesto cargado. Debes crear un presupuesto primero.", "warning");
       return;
     }
     setSelectedValuacion(null);
@@ -65,11 +67,12 @@ const ValuacionesMain = () => {
 
     if (result.success) {
       setCurrentView("list");
-      alert(
-        `✅ Valuación ${isEditing ? "actualizada" : "guardada"} exitosamente`
+      showToast(
+        `✅ Valuación ${isEditing ? "actualizada" : "guardada"} exitosamente`,
+        "success"
       );
     } else {
-      alert(`Error al guardar la valuación: ${result.error}`);
+      showToast(`Error al guardar la valuación: ${result.error}`, "error");
     }
   };
 
@@ -97,9 +100,9 @@ const ValuacionesMain = () => {
         setSelectedValuacion(null);
         setCurrentView("list");
       }
-      alert("✅ Valuación eliminada exitosamente");
+      showToast("✅ Valuación eliminada exitosamente", "success");
     } else {
-      alert(`Error al eliminar la valuación: ${result.error}`);
+      showToast(`Error al eliminar la valuación: ${result.error}`, "error");
     }
   };
 

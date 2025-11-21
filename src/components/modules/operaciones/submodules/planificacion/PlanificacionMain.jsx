@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { usePlanning } from '../../../../../contexts/PlanningContext';
 import { useGeneradorSemanas } from '../../../../../hooks/useGeneradorSemanas';
 import { useProjects } from '../../../../../contexts/ProjectContext';
+import { useNotification } from '../../../../../contexts/NotificationContext';
 import { SemanasList } from './components/SemanasList';
 import { SemanaDetail } from './components/SemanaDetail';
 import supabase from '../../../../../api/supaBase';
@@ -13,6 +14,7 @@ const PlanificacionMain = () => {
   const { semanas, loading, guardarSemanasGeneradas, getSemanasPlanificacion } = usePlanning();
   const { generarSemanasProyecto } = useGeneradorSemanas();
   const { selectedProject } = useProjects();
+  const { showToast } = useNotification();
   const [selectedSemana, setSelectedSemana] = useState(null);
 
   useEffect(() => {
@@ -23,7 +25,7 @@ const PlanificacionMain = () => {
 
   const handleGenerarPlanificacion = async () => {
     if (!selectedProject) {
-      alert("Por favor, selecciona un proyecto primero.");
+      showToast("Por favor, selecciona un proyecto primero.", "warning");
       return;
     }
 
@@ -45,6 +47,7 @@ const PlanificacionMain = () => {
     });
     if (semanasGeneradas && semanasGeneradas.length > 0) {
       await guardarSemanasGeneradas(semanasGeneradas);
+      showToast("Planificación generada exitosamente", "success");
     }
   };
 

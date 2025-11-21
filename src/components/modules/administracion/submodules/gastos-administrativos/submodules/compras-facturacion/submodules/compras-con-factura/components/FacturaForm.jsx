@@ -2,8 +2,10 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import RetencionesCalculator from './RetencionesCalculator'
 import supabase from '../../../../../../../../../../api/supaBase.js'
-
+import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
+import FeedbackModal from '../../../../../../../../../common/FeedbackModal/FeedbackModal'   
 const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) => {
+  const { showToast } = useNotification();
   const [formData, setFormData] = useState({
     categoria: '',
     subcategorias: [''], // Changed to array
@@ -45,6 +47,13 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
   const [nuevaCategoria, setNuevaCategoria] = useState('')
   const [nuevoModoPago, setNuevoModoPago] = useState('')
   const tiposRif = ['J-', 'V-', 'E-', 'P-', 'G-']
+
+  const [feedback, setFeedback] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   // Cargar datos de edición si existe
   useEffect(() => {
@@ -159,6 +168,10 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
     }
   }, [facturaEdit])
 
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({ ...prev, isOpen: false }));
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type } = e.target
     setFormData(prev => ({
@@ -206,13 +219,13 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
     if (nuevaCategoria && !categorias.includes(nuevaCategoria)) {
       const { error } = await supabase.from('categorias_compras').insert({ nombre: nuevaCategoria })
       if (error) {
-        alert('Error al guardar la nueva categoría: ' + error.message)
+        showToast('Error al guardar la nueva categoría: ' + error.message, 'error')
       } else {
         const nuevasCategorias = [...categorias, nuevaCategoria]
         setCategorias(nuevasCategorias)
         setFormData(prev => ({ ...prev, categoria: nuevaCategoria }))
         setNuevaCategoria('')
-        alert('Categoría guardada exitosamente.')
+        showToast('Categoría guardada exitosamente.', 'success')
       }
     }
   }
@@ -221,13 +234,13 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
     if (nuevoModoPago && !modosPago.includes(nuevoModoPago)) {
       const { error } = await supabase.from('modos_pago').insert({ nombre: nuevoModoPago })
       if (error) {
-        alert('Error al guardar el nuevo modo de pago: ' + error.message)
+        showToast('Error al guardar el nuevo modo de pago: ' + error.message, 'error')
       } else {
         const nuevosModosPago = [...modosPago, nuevoModoPago]
         setModosPago(nuevosModosPago)
         setFormData(prev => ({ ...prev, modoPago: nuevoModoPago }))
         setNuevoModoPago('')
-        alert('Modo de pago guardado exitosamente.')
+        showToast('Modo de pago guardado exitosamente.', 'success')
       }
     }
   }
@@ -243,7 +256,12 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!projectId) {
-      alert('Error: No se ha seleccionado un proyecto. Por favor, regrese y seleccione un proyecto.')
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Error de Proyecto',
+        message: 'No se ha seleccionado un proyecto. Por favor, regrese y seleccione un proyecto.'
+      });
       return
     }
     try {
@@ -372,10 +390,20 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
         })
       }
 
-      alert(facturaEdit ? 'Factura actualizada exitosamente' : 'Factura guardada exitosamente')
+      setFeedback({
+        isOpen: true,
+        type: 'success',
+        title: facturaEdit ? 'Factura Actualizada' : 'Factura Guardada',
+        message: facturaEdit ? 'La factura ha sido actualizada exitosamente.' : 'La factura ha sido guardada exitosamente.'
+      });
     } catch (error) {
       console.error('Error al guardar factura:', error)
-      alert(`Error al guardar la factura: ${error.message}. Por favor, intente nuevamente.`)
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: `Error al guardar la factura: ${error.message}. Por favor, intente nuevamente.`
+      });
     }
   }
 
@@ -691,6 +719,14 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
           </button>
         </div>
       </form>
+
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={handleCloseFeedback}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+      />
     </div>
   )
 }

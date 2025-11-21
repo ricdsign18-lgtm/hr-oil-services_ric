@@ -1,10 +1,12 @@
 // src/components/modules/administracion/submodules/ingresos-comisiones/submodules/ingresos-pagos/components/ClientDeductionsForm.jsx
 import React, { useState, useEffect } from 'react'
 import { useIncome } from '../../../../../../../../contexts/IncomeContext'
+import { useNotification } from '../../../../../../../../contexts/NotificationContext'
 import './ClientDeductionsForm.css'
 
 const ClientDeductionsForm = ({ invoices, selectedDate }) => {
   const { addClientDeductions } = useIncome()
+  const { showToast } = useNotification()
   const [deductions, setDeductions] = useState([{ description: '', percentage: '' }])
   const [selectedInvoice, setSelectedInvoice] = useState('')
   const [invoiceDetails, setInvoiceDetails] = useState(null)
@@ -59,7 +61,7 @@ const ClientDeductionsForm = ({ invoices, selectedDate }) => {
 
   const handleSaveDeductions = async () => {
     if (!selectedInvoice) {
-      alert('Por favor selecciona una factura')
+      showToast('Por favor selecciona una factura', 'warning')
       return
     }
 
@@ -69,13 +71,13 @@ const ClientDeductionsForm = ({ invoices, selectedDate }) => {
     )
 
     if (validDeductions.length === 0) {
-      alert('Por favor agrega al menos una deducción válida')
+      showToast('Por favor agrega al menos una deducción válida', 'warning')
       return
     }
 
     // Validar que el total de deducciones no supere la base imponible
     if (calculateTotalDeductions() > parseFloat(invoiceDetails.taxable_base)) {
-      alert('El total de deducciones no puede ser mayor a la base imponible')
+      showToast('El total de deducciones no puede ser mayor a la base imponible', 'warning')
       return
     }
 
@@ -92,14 +94,14 @@ const ClientDeductionsForm = ({ invoices, selectedDate }) => {
       // Usar la función del contexto para guardar
       await addClientDeductions(selectedInvoice, deductionsData)
 
-      alert('✅ Deducciones guardadas exitosamente')
+      showToast('✅ Deducciones guardadas exitosamente', 'success')
       
       // Limpiar formulario después de guardar
       setDeductions([{ description: '', percentage: '' }])
       
     } catch (error) {
       console.error('Error al guardar deducciones:', error)
-      alert('❌ Error al guardar las deducciones: ' + error.message)
+      showToast('❌ Error al guardar las deducciones: ' + error.message, 'error')
     } finally {
       setSaving(false)
     }
