@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
+import Toast from "../components/layout/Toast/Toast";
 
 const NotificationContext = createContext();
 
@@ -12,7 +13,19 @@ export const useNotification = () => {
 
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
-  const [hasNewNotification, setHasNewNotification] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const hasNewNotification = useMemo(() => {
+    return notifications.some(n => !n.viewed);
+  }, [notifications]);
+
+  const showToast = useCallback((message, type = "info") => {
+    setToast({ message, type, id: Date.now() });
+  }, []);
+
+  const closeToast = useCallback(() => {
+    setToast(null);
+  }, []);
 
   const addNotification = useCallback((message, type = "info") => {
     const newNotification = {
@@ -24,19 +37,18 @@ export const NotificationProvider = ({ children }) => {
     };
 
     setNotifications((prev) => [newNotification, ...prev]);
-    setHasNewNotification(true);
-  }, []);
+    // Automatically show toast for new notifications
+    showToast(message, type);
+  }, [showToast]);
 
   const markAsRead = useCallback(() => {
     setNotifications((prev) =>
       prev.map((n) => ({ ...n, viewed: true }))
     );
-    setHasNewNotification(false);
   }, []);
 
   const clearNotifications = useCallback(() => {
     setNotifications([]);
-    setHasNewNotification(false);
   }, []);
 
   const value = {
@@ -45,11 +57,20 @@ export const NotificationProvider = ({ children }) => {
     addNotification,
     markAsRead,
     clearNotifications,
+    showToast, // Export showToast for direct usage if needed
   };
 
   return (
     <NotificationContext.Provider value={value}>
       {children}
+      {toast && (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={closeToast}
+        />
+      )}
     </NotificationContext.Provider>
   );
 };

@@ -1,8 +1,10 @@
 // src/components/modules/administracion/submodules/ingresos-comisiones/submodules/ingresos-pagos/components/CompanyDeductionsForm.jsx
 import React, { useState } from 'react'
+import { useNotification } from '../../../../../../../../contexts/NotificationContext'
 import './CompanyDeductionsForm.css'
 
 const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit }) => {
+  const { showToast } = useNotification()
   const [deductions, setDeductions] = useState([{ description: '', percentage: '' }])
   const [deductionDate, setDeductionDate] = useState(selectedDate)
   const [saving, setSaving] = useState(false)
@@ -72,7 +74,7 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
     )
 
     if (validDeductions.length === 0) {
-      alert('Por favor agrega al menos una deducción válida')
+      showToast('Por favor agrega al menos una deducción válida', 'warning')
       return
     }
 
@@ -90,14 +92,14 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
         await onDeductionSubmit(deductionData)
       }
 
-      alert('✅ Deducciones de empresa guardadas exitosamente')
+      showToast('✅ Deducciones de empresa guardadas exitosamente', 'success')
       
       // Limpiar formulario después de guardar
       setDeductions([{ description: '', percentage: '' }])
       
     } catch (error) {
       console.error('Error al guardar deducciones:', error)
-      alert('❌ Error al guardar las deducciones: ' + error.message)
+      showToast('❌ Error al guardar las deducciones: ' + error.message, 'error')
     } finally {
       setSaving(false)
     }

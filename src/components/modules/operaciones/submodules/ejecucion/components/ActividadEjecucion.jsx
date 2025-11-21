@@ -1,12 +1,14 @@
 // components/modules/operaciones/submodules/ejecucion/components/ActividadEjecucion.jsx
 import { useState } from 'react';
 import { useExecution } from '../../../../../../contexts/ExecutionContext';
+import { useNotification } from '../../../../../../contexts/NotificationContext';
 import { SubactividadesList } from './SubactividadesList';
 import { TiempoTracker } from './TiempoTracker';
 
 export const ActividadEjecucion = ({ actividadPlanificada, onUpdate, onFinalizar }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { iniciarEjecucionActividad, finalizarActividad, loading } = useExecution();
+  const { showToast } = useNotification();
 
   // Manejo seguro de datos de ejecución que pueden no existir
   const ejecucion = Array.isArray(actividadPlanificada.ejecucion_actividades)
@@ -32,8 +34,9 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate, onFinalizar
     try {
       await iniciarEjecucionActividad(actividadPlanificada); // Pasamos el objeto completo
       onUpdate(); // Llama a la función del padre para refrescar la lista
+      showToast("Actividad iniciada exitosamente", "success");
     } catch (error) {
-      alert("No se pudo iniciar la actividad.");
+      showToast("No se pudo iniciar la actividad.", "error");
     }
   };
 
@@ -43,8 +46,9 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate, onFinalizar
       try {
         await finalizarActividad(ejecucionId, actividadPlanificada.id);
         onUpdate();
+        showToast("Actividad finalizada exitosamente", "success");
       } catch (error) {
-        alert("No se pudo finalizar la actividad.");
+        showToast("No se pudo finalizar la actividad.", "error");
       }
     }
   };

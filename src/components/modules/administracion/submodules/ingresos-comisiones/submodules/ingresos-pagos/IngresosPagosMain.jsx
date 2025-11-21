@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useIncome } from '../../../../../../../contexts/IncomeContext'
 import { useProjects } from '../../../../../../../contexts/ProjectContext'
+import { useNotification } from '../../../../../../../contexts/NotificationContext'
 import InvoiceForm from './components/InvoiceForm'
 import ClientDeductionsForm from './components/ClientDeductionsForm'
 import CompanyDeductionsForm from './components/CompanyDeductionsForm'
@@ -13,6 +14,7 @@ import './IngresosPagosMain.css'
 const IngresosPagosMain = () => {
   const navigate = useNavigate()
   const { selectedProject } = useProjects()
+  const { showToast } = useNotification()
   const { 
     invoices, 
     companyDeductions, 
@@ -42,19 +44,20 @@ const IngresosPagosMain = () => {
     try {
       await addInvoice(invoiceData)
       setActiveSection('client-deductions')
+      showToast('Factura agregada exitosamente', 'success')
     } catch (error) {
       console.error('Error al agregar factura:', error)
-      alert('Error al guardar la factura')
+      showToast('Error al guardar la factura', 'error')
     }
   }
 
   const handleCompanyDeductionSubmit = async (deductionData) => {
     try {
       await addCompanyDeduction(deductionData)
-      alert('Deducción de empresa agregada exitosamente')
+      showToast('Deducción de empresa agregada exitosamente', 'success')
     } catch (error) {
       console.error('Error al agregar deducción:', error)
-      alert('Error al guardar la deducción')
+      showToast('Error al guardar la deducción', 'error')
     }
   }
 

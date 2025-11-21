@@ -1,13 +1,23 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/compra-facturacion/submodules/compras-con-factura/components/FacturasList.jsx
 import React, { useState, useEffect } from "react";
 import supabase from "../../../../../../../../../../api/supaBase";
+import { useNotification } from "../../../../../../../../../../contexts/NotificationContext";
+import FeedbackModal from "../../../../../../../../../../common/FeedbackModal/FeedbackModal";
 
 const FacturasList = ({ projectId, onEditFactura }) => {
+  const { showToast } = useNotification();
   const [facturas, setFacturas] = useState([]);
   const [filtroProveedor, setFiltroProveedor] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
+
+  const [feedback, setFeedback] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     cargarFacturas();
@@ -46,6 +56,10 @@ const FacturasList = ({ projectId, onEditFactura }) => {
 
   const categoriasUnicas = [...new Set(facturas.map((f) => f.categoria))];
 
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({ ...prev, isOpen: false }));
+  };
+
   const handleDelete = async (facturaId) => {
     if (window.confirm("¿Está seguro de que desea eliminar esta factura?")) {
       try {
@@ -55,9 +69,20 @@ const FacturasList = ({ projectId, onEditFactura }) => {
           .eq("id", facturaId);
         if (error) throw error;
         cargarFacturas(); // Recargar la lista
+        setFeedback({
+          isOpen: true,
+          type: 'success',
+          title: 'Factura Eliminada',
+          message: 'La factura ha sido eliminada exitosamente.'
+        });
       } catch (error) {
         console.error("Error al eliminar factura:", error);
-        alert("Error al eliminar la factura.");
+        setFeedback({
+          isOpen: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Error al eliminar la factura.'
+        });
       }
     }
   };
@@ -302,6 +327,14 @@ const FacturasList = ({ projectId, onEditFactura }) => {
           <p>No se encontraron facturas registradas</p>
         </div>
       )}
+
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={handleCloseFeedback}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+      />
     </div>
   );
 };

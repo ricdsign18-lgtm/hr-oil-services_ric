@@ -1,6 +1,7 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/CalculadoraPagos.jsx
 import React, { useState, useEffect } from "react";
 import { useProjects } from "../../../../../../../../../../../../contexts/ProjectContext";
+import { useNotification } from "../../../../../../../../../../../../contexts/NotificationContext";
 import "./CalculadoraPagos.css";
 
 const CalculadoraPagos = ({
@@ -12,6 +13,7 @@ const CalculadoraPagos = ({
   selectedProject,
 }) => {
   const { selectedProject: contextProject } = useProjects();
+  const { showToast } = useNotification();
   const project = selectedProject || contextProject;
 
   const [horasExtras, setHorasExtras] = useState({});
@@ -490,12 +492,12 @@ const CalculadoraPagos = ({
 
   const handleCalcular = () => {
     if (!tasaCambio || parseFloat(tasaCambio) <= 0) {
-      alert("Por favor ingrese una tasa de cambio válida");
+      showToast("Por favor ingrese una tasa de cambio válida", "warning");
       return;
     }
 
     if (!fechaPago) {
-      alert("Por favor seleccione una fecha de pago");
+      showToast("Por favor seleccione una fecha de pago", "warning");
       return;
     }
 
@@ -505,7 +507,7 @@ const CalculadoraPagos = ({
       onCalcular(pagos);
     } catch (error) {
       console.error("Error calculando pagos:", error);
-      alert("Error al calcular pagos. Verifique la consola para más detalles.");
+      showToast("Error al calcular pagos. Verifique la consola para más detalles.", "error");
     }
   };
 

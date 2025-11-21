@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOperaciones } from '../../../../../contexts/OperacionesContext';
+import { useNotification } from '../../../../../contexts/NotificationContext';
 import ModuleDescription from '../../../_core/ModuleDescription/ModuleDescription';
 import Modal from '../../../../common/Modal/Modal';
 import ComprasTable from './ComprasTable';
@@ -7,6 +8,7 @@ import './ComprasMain.css';
 
 const ComprasMain = () => {
   const { addPurchase, loading, productos, compras, updateCompra, requerimientos } = useOperaciones();
+  const { showToast } = useNotification();
   const [formData, setFormData] = useState({
     fecha_compra: new Date().toISOString().split('T')[0],
     nro_factura: '',
@@ -90,12 +92,12 @@ const ComprasMain = () => {
     
     // Validaciones básicas
     if (!formData.nombre_producto || !formData.cantidad || !formData.precio_unitario || !formData.tasa_cambio) {
-      alert('Por favor complete todos los campos requeridos.');
+      showToast('Por favor complete todos los campos requeridos.', 'warning');
       return;
     }
 
     if (parseFloat(formData.cantidad) <= 0 || parseFloat(formData.precio_unitario) <= 0 || parseFloat(formData.tasa_cambio) <= 0) {
-      alert('La cantidad, precio unitario y tasa de cambio deben ser mayores a cero.');
+      showToast('La cantidad, precio unitario y tasa de cambio deben ser mayores a cero.', 'warning');
       return;
     }
     
@@ -129,6 +131,7 @@ const ComprasMain = () => {
       tasa_cambio: '',
       observaciones: '',
     });
+    showToast('Compra registrada exitosamente', 'success');
   };
 
   // Editar compra
@@ -148,7 +151,7 @@ const ComprasMain = () => {
 
     // Validaciones
     if (!selectedCompra.nombre_producto || !selectedCompra.cantidad || !selectedCompra.precio_unitario || !selectedCompra.tasa_cambio) {
-      alert('Por favor complete todos los campos requeridos.');
+      showToast('Por favor complete todos los campos requeridos.', 'warning');
       return;
     }
 
@@ -169,6 +172,7 @@ const ComprasMain = () => {
     await updateCompra(selectedCompra.id, updatedPurchase);
     setShowEditModal(false);
     setSelectedCompra(null);
+    showToast('Compra actualizada exitosamente', 'success');
   };
 
   // Calcular totales en tiempo real

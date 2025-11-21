@@ -1,8 +1,10 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/compra-facturacion/submodules/compras-con-factura/components/ProveedoresList.jsx
 import React, { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
+import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
 
 const ProveedoresList = ({ projectId, refreshTrigger }) => {
+  const { showToast } = useNotification();
   const [facturas, setFacturas] = useState([])
   const [proveedores, setProveedores] = useState([])
   const [filtroProveedor, setFiltroProveedor] = useState('')
@@ -183,7 +185,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
       })
 
     if (facturasAActualizar.length === 0) {
-      alert('No hay retenciones pendientes para procesar con esta opción.')
+      showToast('No hay retenciones pendientes para procesar con esta opción.', 'warning')
       return
     }
 
@@ -194,11 +196,11 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
       const results = await Promise.all(updates)
       results.forEach(res => { if (res.error) throw res.error })
 
-      alert('Pago procesado exitosamente')
+      showToast('Pago procesado exitosamente', 'success')
       cargarFacturas() // Recargar datos
     } catch (error) {
       console.error('Error al procesar el pago:', error)
-      alert(`Error al procesar el pago: ${error.message}`)
+      showToast(`Error al procesar el pago: ${error.message}`, 'error')
     } finally {
       setMostrarModalPago(false)
       setProveedorSeleccionado(null)

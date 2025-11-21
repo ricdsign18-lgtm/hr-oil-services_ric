@@ -1,7 +1,7 @@
-
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/asistencia-diaria/components/AsistenciaForm.jsx
 import React, { useState, useEffect } from "react";
 import { formatDate } from "../../../../../../../../../../../../utils/formatters";
+import { useNotification } from "../../../../../../../../../../../../contexts/NotificationContext";
 import "./AsistenciaForm.css";
 import {
   CheckIcon,
@@ -18,6 +18,7 @@ const AsistenciaForm = ({
   const [asistencias, setAsistencias] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useNotification();
 
   useEffect(() => {
     loadExistingAsistencia();
@@ -115,7 +116,7 @@ const AsistenciaForm = ({
 
   const handleSave = async () => {
     if (asistencias.length === 0) {
-      alert("No hay empleados para registrar asistencia");
+      showToast("No hay empleados para registrar asistencia", "warning");
       return;
     }
 

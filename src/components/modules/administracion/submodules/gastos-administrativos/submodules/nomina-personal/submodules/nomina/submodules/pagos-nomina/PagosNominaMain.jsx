@@ -3,10 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProjects } from "../../../../../../../../../../../contexts/ProjectContext";
 import { usePersonal } from "../../../../../../../../../../../contexts/PersonalContext";
+import { useNotification } from "../../../../../../../../../../../contexts/NotificationContext";
 import ModuleDescription from "../../../../../../../../../_core/ModuleDescription/ModuleDescription";
 import CalculadoraPagos from "./components/CalculadoraPagos";
 import HistorialPagos from "./components/HistorialPagos";
 import ResumenPagos from "./components/ResumenPagos";
+import FeedbackModal from "../../../../../../../../../../../components/common/FeedbackModal/FeedbackModal";
 import "./PagosNominaMain.css";
 
 const PagosNominaMain = () => {
@@ -18,6 +20,7 @@ const PagosNominaMain = () => {
     savePagos,
     getPagosByProject,
   } = usePersonal();
+  const { showToast } = useNotification();
 
   const [currentView, setCurrentView] = useState("calculadora");
   const [fechaPago, setFechaPago] = useState("");
@@ -27,6 +30,13 @@ const PagosNominaMain = () => {
   const [employees, setEmployees] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [feedback, setFeedback] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   // Cargar empleados, asistencias y pagos del proyecto
   useEffect(() => {
@@ -63,10 +73,14 @@ const PagosNominaMain = () => {
       setPagosGuardados(pagosData);
     } catch (error) {
       console.error("Error cargando datos:", error);
-      alert("Error al cargar datos: " + error.message);
+      showToast("Error al cargar datos: " + error.message, "error");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({ ...prev, isOpen: false }));
   };
 
   const handleBack = () => {
@@ -90,9 +104,19 @@ const PagosNominaMain = () => {
       await savePagos(nuevoPago);
       await loadData(); // Recargar datos
       setCurrentView("historial");
-      alert("Pagos guardados exitosamente");
+      setFeedback({
+        isOpen: true,
+        type: 'success',
+        title: 'Pagos Guardados',
+        message: 'Los pagos de nómina han sido guardados exitosamente.'
+      });
     } catch (error) {
-      alert("Error al guardar pagos: " + error.message);
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Error al guardar pagos: ' + error.message
+      });
     }
   };
 
@@ -201,6 +225,14 @@ const PagosNominaMain = () => {
           )}
         </div>
       )}
+
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={handleCloseFeedback}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+      />
     </div>
   );
 };

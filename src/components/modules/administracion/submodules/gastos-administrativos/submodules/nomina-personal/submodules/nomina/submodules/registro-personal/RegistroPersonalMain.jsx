@@ -1,13 +1,13 @@
-
-
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/registro-personal/RegistroPersonalMain.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProjects } from "../../../../../../../../../../../contexts/ProjectContext";
 import { usePersonal } from "../../../../../../../../../../../contexts/PersonalContext";
+import { useNotification } from "../../../../../../../../../../../contexts/NotificationContext";
 import ModuleDescription from "../../../../../../../../../_core/ModuleDescription/ModuleDescription";
 import PersonalForm from "./components/PersonalForm";
 import PersonalList from "./components/PersonalList";
+import FeedbackModal from "../../../../../../../../../common/FeedbackModal/FeedbackModal";
 import "./RegistroPersonalMain.css";
 
 const RegistroPersonalMain = () => {
@@ -15,11 +15,19 @@ const RegistroPersonalMain = () => {
   const { selectedProject } = useProjects();
   const { getEmployeesByProject, addEmployee, updateEmployee, deleteEmployee } =
     usePersonal();
+  const { showToast } = useNotification();
 
   const [employees, setEmployees] = useState([]);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const [feedback, setFeedback] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   // Cargar empleados del proyecto actual
   useEffect(() => {
@@ -35,7 +43,7 @@ const RegistroPersonalMain = () => {
       setEmployees(employeesData);
     } catch (error) {
       console.error("Error cargando empleados:", error);
-      alert("Error al cargar empleados: " + error.message);
+      showToast("Error al cargar empleados: " + error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -43,6 +51,10 @@ const RegistroPersonalMain = () => {
 
   const handleBack = () => {
     navigate(-1);
+  };
+
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({ ...prev, isOpen: false }));
   };
 
   const handleAddEmployee = async (employeeData) => {
@@ -53,9 +65,19 @@ const RegistroPersonalMain = () => {
       });
       await loadEmployees(); // Recargar la lista
       setShowForm(false);
-      alert("Empleado agregado exitosamente");
+      setFeedback({
+        isOpen: true,
+        type: 'success',
+        title: 'Empleado Agregado',
+        message: `El empleado ${employeeData.nombre} ${employeeData.apellido} ha sido registrado exitosamente.`
+      });
     } catch (error) {
-      alert("Error al agregar empleado: " + error.message);
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Hubo un problema al registrar el empleado. ' + error.message
+      });
     }
   };
 
@@ -65,9 +87,19 @@ const RegistroPersonalMain = () => {
       await loadEmployees(); // Recargar la lista
       setEditingEmployee(null);
       setShowForm(false);
-      alert("Empleado actualizado exitosamente");
+      setFeedback({
+        isOpen: true,
+        type: 'success',
+        title: 'Empleado Actualizado',
+        message: `Los datos del empleado ${employeeData.nombre} ${employeeData.apellido} han sido actualizados.`
+      });
     } catch (error) {
-      alert("Error al actualizar empleado: " + error.message);
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Hubo un problema al actualizar el empleado. ' + error.message
+      });
     }
   };
 
@@ -76,9 +108,19 @@ const RegistroPersonalMain = () => {
       try {
         await deleteEmployee(employeeId);
         await loadEmployees(); // Recargar la lista
-        alert("Empleado eliminado exitosamente");
+        setFeedback({
+          isOpen: true,
+          type: 'success',
+          title: 'Empleado Eliminado',
+          message: 'El empleado ha sido eliminado exitosamente del sistema.'
+        });
       } catch (error) {
-        alert("Error al eliminar empleado: " + error.message);
+        setFeedback({
+          isOpen: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Hubo un problema al eliminar el empleado. ' + error.message
+        });
       }
     }
   };
@@ -144,6 +186,14 @@ const RegistroPersonalMain = () => {
           </>
         )}
       </div>
+
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={handleCloseFeedback}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+      />
     </div>
   );
 };

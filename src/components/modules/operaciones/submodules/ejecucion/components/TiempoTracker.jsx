@@ -1,9 +1,11 @@
 // components/modules/operaciones/submodules/ejecucion/components/TiempoTracker.jsx
 import { useState, useEffect, useCallback } from 'react';
 import { useExecution } from '../../../../../../contexts/ExecutionContext';
+import { useNotification } from '../../../../../../contexts/NotificationContext';
 
 export const TiempoTracker = ({ ejecucionActividadId }) => {
   const { getTiemposPorActividad, registrarTiempo, loading } = useExecution();
+  const { showToast } = useNotification();
   const [tiempos, setTiempos] = useState([]);
   const [formData, setFormData] = useState({
     fecha: new Date().toISOString().split('T')[0],
@@ -25,7 +27,7 @@ export const TiempoTracker = ({ ejecucionActividadId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.hora_inicio || !formData.hora_fin) {
-      alert("Debe ingresar hora de inicio y fin.");
+      showToast("Debe ingresar hora de inicio y fin.", "warning");
       return;
     }
 
@@ -37,7 +39,7 @@ export const TiempoTracker = ({ ejecucionActividadId }) => {
     const tiempoProductivo = diffHoras - (parseFloat(formData.pausas) || 0);
 
     if (tiempoProductivo < 0) {
-      alert("El tiempo de pausa no puede ser mayor al tiempo total.");
+      showToast("El tiempo de pausa no puede ser mayor al tiempo total.", "warning");
       return;
     }
 
@@ -56,6 +58,7 @@ export const TiempoTracker = ({ ejecucionActividadId }) => {
       observaciones: '',
     });
     fetchTiempos();
+    showToast("Tiempo registrado exitosamente", "success");
   };
 
   return (

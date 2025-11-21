@@ -1,8 +1,11 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/compra-facturacion/submodules/compras-sin-factura/components/CompraSinFacturaForm.jsx
 import  { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
+import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
+import FeedbackModal from '../../../../../../../../../../common/FeedbackModal/FeedbackModal'
 
 const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEdit }) => {
+  const { showToast } = useNotification();
   const [formData, setFormData] = useState({
     categoria: '',
     subcategorias: [''], 
@@ -29,6 +32,12 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
   const [nuevoModoPago, setNuevoModoPago] = useState('')
   const tiposRif = ['J-', 'V-', 'E-', 'P-', 'G-']
 
+  const [feedback, setFeedback] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     if (compraEdit) {
@@ -100,6 +109,16 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
     }))
   }, [formData.pagoBolivares, formData.tasaPago])
 
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({ ...prev, isOpen: false }));
+    if (feedback.type === 'success') {
+        // If success, we might want to trigger the parent callback after closing modal
+        // But onCompraSaved is called immediately in handleSubmit, which might refresh the list.
+        // If we want to wait for the modal to close before refreshing/closing form, we'd need to change logic.
+        // For now, let's keep it simple.
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type } = e.target
     setFormData(prev => ({
@@ -147,13 +166,13 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
     if (nuevaCategoria && !categorias.includes(nuevaCategoria)) {
       const { error } = await supabase.from('categorias_compras').insert({ nombre: nuevaCategoria })
       if (error) {
-        alert('Error al guardar la nueva categoría: ' + error.message)
+        showToast('Error al guardar la nueva categoría: ' + error.message, 'error')
       } else {
         const nuevasCategorias = [...categorias, nuevaCategoria]
         setCategorias(nuevasCategorias)
         setFormData(prev => ({ ...prev, categoria: nuevaCategoria }))
         setNuevaCategoria('')
-        alert('Categoría guardada exitosamente.')
+        showToast('Categoría guardada exitosamente.', 'success')
       }
     }
   }
@@ -162,13 +181,13 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
     if (nuevoModoPago && !modosPago.includes(nuevoModoPago)) {
       const { error } = await supabase.from('modos_pago').insert({ nombre: nuevoModoPago })
       if (error) {
-        alert('Error al guardar el nuevo modo de pago: ' + error.message)
+        showToast('Error al guardar el nuevo modo de pago: ' + error.message, 'error')
       } else {
         const nuevosModosPago = [...modosPago, nuevoModoPago]
         setModosPago(nuevosModosPago)
         setFormData(prev => ({ ...prev, modoPago: nuevoModoPago }))
         setNuevoModoPago('')
-        alert('Modo de pago guardado exitosamente.')
+        showToast('Modo de pago guardado exitosamente.', 'success')
       }
     }
   }
@@ -283,10 +302,20 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
         })
       }
 
-      alert(compraEdit ? 'Compra actualizada exitosamente' : 'Compra guardada exitosamente')
+      setFeedback({
+        isOpen: true,
+        type: 'success',
+        title: compraEdit ? 'Compra Actualizada' : 'Compra Guardada',
+        message: compraEdit ? 'La compra ha sido actualizada exitosamente.' : 'La compra ha sido guardada exitosamente.'
+      });
     } catch (error) {
       console.error('Error al guardar compra:', error)
-      alert(`Error al guardar la compra: ${error.message}. Por favor, intente nuevamente.`)
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: `Error al guardar la compra: ${error.message}. Por favor, intente nuevamente.`
+      });
     }
   }
 
@@ -560,6 +589,14 @@ const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEd
           </button>
         </div>
       </form>
+
+      <FeedbackModal
+        isOpen={feedback.isOpen}
+        onClose={handleCloseFeedback}
+        type={feedback.type}
+        title={feedback.title}
+        message={feedback.message}
+      />
     </div>
   )
 }

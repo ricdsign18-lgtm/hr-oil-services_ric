@@ -15,7 +15,7 @@
   background-color: red;
   border-radius: 50%;
   border: 2px solid #2d3748; /* Borde del color del fondo para crear separación */
-
+ 
 /* Ajustamos el tamaño del ícono directamente en el SVG dentro del botón */
 .btn-notifications svg {
   width: 24px;

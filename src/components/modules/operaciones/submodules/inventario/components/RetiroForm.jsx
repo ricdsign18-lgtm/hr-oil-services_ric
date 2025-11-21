@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useOperaciones } from '../../../../../../contexts/OperacionesContext';
+import { useNotification } from '../../../../../../contexts/NotificationContext';
 import './RetiroForm.css';
 
 const RetiroForm = () => {
   const { inventory, withdrawInventory, loading } = useOperaciones();
+  const { showToast } = useNotification();
   const [formData, setFormData] = useState({
     inventario_id: '',
     cantidad_retirada: 0,
@@ -19,7 +21,7 @@ const RetiroForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.inventario_id || formData.cantidad_retirada <= 0) {
-      alert('Por favor, seleccione un ítem y una cantidad válida.');
+      showToast('Por favor, seleccione un ítem y una cantidad válida.', 'warning');
       return;
     }
     await withdrawInventory(formData);
@@ -29,6 +31,7 @@ const RetiroForm = () => {
       retirado_por: '',
       observaciones: ''
     });
+    showToast('Retiro registrado exitosamente', 'success');
   };
 
   return (
