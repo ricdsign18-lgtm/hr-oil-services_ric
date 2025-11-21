@@ -41,6 +41,13 @@
   color: #EF4444;
 }
 
+.toast--delete {
+  border-left-color: #EF4444;
+}
+.toast--delete .toast__icon {
+  color: #EF4444;
+}
+
 .toast--warning {
   border-left-color: #F59E0B;
 }

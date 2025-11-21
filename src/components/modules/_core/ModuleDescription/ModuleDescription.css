@@ -3,10 +3,23 @@
   margin-bottom: 2rem;
 }
 
+.module-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
 .module-description h2 {
   color: #fff;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
   font-size: 1.75rem;
+}
+
+.module-action {
+  display: flex;
+  align-items: center;
 }
 
 .module-description p {

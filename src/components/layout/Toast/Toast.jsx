@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { CheckCircleIcon, XCircleIcon, AlertTriangleIcon, DelateIcon } from '../../../assets/icons/Icons';
 import './Toast.css';
 
 const Toast = ({ message, type = 'info', onClose }) => {
@@ -13,13 +14,15 @@ const Toast = ({ message, type = 'info', onClose }) => {
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return console.log("success");
+        return <CheckCircleIcon />;
       case 'error':
-        return console.log("error");
+        return <XCircleIcon />;
       case 'warning':
-        return console.log("warning");
+        return <AlertTriangleIcon />;
+      case 'delete':
+        return <DelateIcon />;
       default:
-        return console.log("info");
+        return <CheckCircleIcon />; // Default icon
     }
   };
 

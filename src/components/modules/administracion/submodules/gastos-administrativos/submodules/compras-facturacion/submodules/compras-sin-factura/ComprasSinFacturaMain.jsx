@@ -6,8 +6,8 @@ import ModuleDescription from '../../../../../../../_core/ModuleDescription/Modu
 import CompraSinFacturaForm from './components/ComprasSinFacturaForm'
 import ComprasSinFacturaList from './components/ComprasSinFacturaList'
 import ProveedoresSinFacturaList from './components/ProveedoresSinFacturaList'
-import './ComprasSinFacturaMain.css'
 
+import './ComprasSinFacturaMain.css'
 const ComprasSinFacturaMain = ({ projectId }) => {
   const { selectedProject } = useProjects()
   const navigate = useNavigate();
@@ -94,4 +94,4 @@ const ComprasSinFacturaMain = ({ projectId }) => {
   )
 }
 
-export default ComprasSinFacturaMain
+export default ComprasSinFacturaMain;

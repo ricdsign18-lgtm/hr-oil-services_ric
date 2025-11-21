@@ -7,11 +7,14 @@ import ComprasConFacturaMain from './submodules/compras-con-factura/ComprasConFa
 import ComprasSinFacturaMain from './submodules/compras-sin-factura/ComprasSinFacturaMain'
 import supabase from '../../../../../../../api/supaBase'
 import './ComprasFacturacionMain.css'
+import { ClipBoardIcon, CartShoppingIcon, InfoIcon } from '../../../../../../../assets/icons/Icons'
+import Modal from '../../../../../../common/Modal/Modal'
 
 const ComprasFacturacionMain = ({ projectId }) => {
   const navigate = useNavigate()
   const { selectedProject } = useProjects()
   const [activeSubmodule, setActiveSubmodule] = useState('compras-con-factura')
+  const [showInfoModal, setShowInfoModal] = useState(false)
   const [summaryData, setSummaryData] = useState({
     countFacturas: 0,
     countSinFactura: 0,
@@ -150,14 +153,14 @@ const ComprasFacturacionMain = ({ projectId }) => {
       id: 'compras-con-factura', 
       title: 'Compras con Factura', 
       description: 'Registro y control de compras con factura formal, cálculo de retenciones',
-      icon: '📋',
+      icon: <ClipBoardIcon/>,
       path: 'compras-con-factura'
     },
     { 
       id: 'compras-sin-factura', 
       title: 'Compras sin Factura', 
       description: 'Registro de compras informales y gastos menores',
-      icon: '🛒',
+      icon: <CartShoppingIcon/>,
       path: 'compras-sin-factura'
     }
   ]
@@ -238,6 +241,15 @@ const ComprasFacturacionMain = ({ projectId }) => {
       <ModuleDescription 
         title="COMPRA & FACTURACIÓN"
         description={`Gestión integral de compras y facturación del proyecto ${selectedProject?.name || ''}`}
+        action={
+          <button 
+            className="btn-info-circle"
+            onClick={() => setShowInfoModal(true)}
+            title="Ver información del módulo"
+          >
+            <InfoIcon/>
+          </button>
+        }
       />
 
       <div className="compras-facturacion-grid">
@@ -280,18 +292,32 @@ const ComprasFacturacionMain = ({ projectId }) => {
           </div>
         </div>
 
-        <div className="info-card">
-          <h4>ℹ️ Información del Módulo</h4>
+  
+      </div>
+
+      <Modal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        title="Información del Módulo"
+      >
+        <div className="modal-info-content">
+          <p>Este módulo permite la gestión integral de todas las compras y gastos del proyecto.</p>
+          
+          <h3>Funcionalidades Principales:</h3>
           <ul className="info-list">
-            <li>✅ Gestión completa de compras formales e informales</li>
-            <li>✅ Cálculo automático de retenciones (IVA e ISLR)</li>
-            <li>✅ Control de proveedores y categorías</li>
-            <li>✅ Conversión automática de divisas</li>
-            <li>✅ Reportes y filtros avanzados</li> 
-            <li>✅ Almacenamiento seguro y centralizado con Supabase</li>
+            <li><strong>Compras con Factura:</strong> Registro de compras formales, cálculo automático de retenciones (IVA, ISLR) y gestión de proveedores.</li>
+            <li><strong>Compras sin Factura:</strong> Control de gastos menores, caja chica y compras informales.</li>
+          </ul>
+
+          <h3>Características:</h3>
+          <ul className="info-list">
+            <li>✅ Conversión automática de divisas (Bs/USD)</li>
+            <li>✅ Reportes detallados por tipo de gasto</li>
+            <li>✅ Almacenamiento digital de comprobantes</li>
+            <li>✅ Control de estatus de facturas</li>
           </ul>
         </div>
-      </div>
+      </Modal>
     </div>
   )
 }

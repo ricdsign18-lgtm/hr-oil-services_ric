@@ -99,9 +99,15 @@
 }
 
 .compras-card-icon {
+  
+
+  width: 70px;
+  margin: auto;
+  fill: #394bd3;
   font-size: clamp(2.4rem, 6vw, 3.5rem);
   margin-bottom: 1rem;
   transition: transform 0.3s ease;
+
 }
 
 .compras-facturacion-card:hover .compras-card-icon {
@@ -307,4 +313,45 @@
   .submodule-nav-btn:hover {
     background: var(--background-color, #4a5568);
   }
+}
+
+/* Info Button & Modal */
+.btn-info-circle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.btn-info-circle:hover {
+  transform: scale(1.1);
+}
+
+.btn-info-circle svg {
+  fill: #fff;
+  width: 24px;
+  height: 24px;
+}
+
+.modal-info-content {
+  color: var(--text-primary);
+}
+
+.modal-info-content h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.modal-info-content ul {
+  padding-left: 1.5rem;
+}
+
+.modal-info-content li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
 }

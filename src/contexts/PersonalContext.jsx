@@ -216,7 +216,7 @@ export const PersonalProvider = ({ children }) => {
       if (error) throw error;
 
       console.log("✅ PersonalContext: Empleado eliminado exitosamente");
-      addNotification("Empleado eliminado exitosamente", "success");
+      addNotification("Empleado eliminado exitosamente", "delete");
       return true;
     } catch (error) {
       console.error("Error eliminando empleado:", error);
@@ -432,7 +432,7 @@ export const PersonalProvider = ({ children }) => {
       if (error) throw error;
 
       console.log("✅ PersonalContext: Asistencia eliminada exitosamente");
-      addNotification("Asistencia eliminada exitosamente", "success");
+      addNotification("Asistencia eliminada exitosamente", "delete");
       return true;
     } catch (error) {
       console.error("Error eliminando asistencia:", error);
