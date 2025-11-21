@@ -1,13 +1,9 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/compra-facturacion/submodules/compras-sin-factura/components/CompraSinFacturaForm.jsx
 import { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
-<<<<<<< HEAD
 import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
 import FeedbackModal from '../../../../../../../../../../common/FeedbackModal/FeedbackModal'
 
-=======
-//prueba
->>>>>>> 3f245d04cba11fe840a4399a5325cacb49cb8fa0
 const CompraSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEdit }) => {
   const { showToast } = useNotification();
   const [formData, setFormData] = useState({
