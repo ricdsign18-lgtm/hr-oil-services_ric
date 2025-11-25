@@ -7,6 +7,9 @@ import { useNotification } from '../../../../../contexts/NotificationContext';
 import { SemanasList } from './components/SemanasList';
 import { SemanaDetail } from './components/SemanaDetail';
 import supabase from '../../../../../api/supaBase';
+import ModuleDescription from '../../../_core/ModuleDescription/ModuleDescription';
+import { InfoIcon } from '../../../../../assets/icons/Icons';
+import Modal from '../../../../common/Modal/Modal';
 import './Planning.css';
 
 
@@ -16,6 +19,7 @@ const PlanificacionMain = () => {
   const { selectedProject } = useProjects();
   const { showToast } = useNotification();
   const [selectedSemana, setSelectedSemana] = useState(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   useEffect(() => {
     if (selectedProject) {
@@ -66,15 +70,19 @@ const PlanificacionMain = () => {
           />
         ) : (
           <>
-            <div className="planning-header">
-              <h2>Planificación del Proyecto</h2>
-              <div className="planning-semana-dates">
-                {semanas.length > 0 
-                  ? `${semanas.length} semanas planificadas`
-                  : "No hay planificación generada."
-                }
-              </div>
-            </div>
+            <ModuleDescription 
+              title="PLANIFICACIÓN DEL PROYECTO"
+              description={semanas.length > 0 ? `${semanas.length} semanas planificadas` : "Gestión y generación de semanas de trabajo"}
+              action={
+                <button 
+                  className="btn-info-circle"
+                  onClick={() => setShowInfoModal(true)}
+                  title="Ver información del módulo"
+                >
+                  <InfoIcon/>
+                </button>
+              }
+            />
             
             {semanas.length > 0 ? (
               <SemanasList 
@@ -89,6 +97,23 @@ const PlanificacionMain = () => {
           </>
         )
       }
+
+      <Modal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        title="Información de Planificación"
+      >
+        <div className="modal-info-content">
+          <p>Este módulo permite generar y visualizar la planificación semanal del proyecto.</p>
+          
+          <h3>Funcionalidades:</h3>
+          <ul className="info-list">
+            <li><strong>Generación Automática:</strong> Crea semanas de trabajo basadas en la fecha de inicio y fin del proyecto.</li>
+            <li><strong>Gestión de Semanas:</strong> Visualiza el estado y detalles de cada semana.</li>
+            <li><strong>Asignación de Actividades:</strong> (Próximamente) Asigna actividades específicas a cada semana.</li>
+          </ul>
+        </div>
+      </Modal>
     </div>
   );
 };

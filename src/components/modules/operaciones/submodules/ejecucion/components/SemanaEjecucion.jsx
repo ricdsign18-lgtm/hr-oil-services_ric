@@ -7,42 +7,35 @@ export const SemanaEjecucion = ({ semana, onBack }) => {
   const [vista, setVista] = useState('dias'); // 'dias' | 'metricas'
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button 
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded"
-          >
-            ← Volver
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold">Ejecución - Semana {semana.numero_semana}</h1>
-            <p className="text-gray-600">
-              {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
-            </p>
+      <div className="ejecucion-header">
+        <div className="ejecucion-semana-header-content">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+            <button 
+              onClick={onBack}
+              className="btn-secondary"
+              style={{ padding: '6px 12px', fontSize: '0.9rem' }}
+            >
+              ← Volver
+            </button>
+            <h2 style={{ margin: 0 }}>Semana {semana.numero_semana}</h2>
           </div>
+          <p className="ejecucion-semana-dates" style={{ marginLeft: '0', display: 'inline-block' }}>
+            {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
+          </p>
         </div>
         
-        <div className="flex space-x-2">
+        <div className="ejecucion-actions">
           <button
             onClick={() => setVista('dias')}
-            className={`px-4 py-2 rounded ${
-              vista === 'dias' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={vista === 'dias' ? "btn-primary" : "btn-secondary"}
           >
             Días
           </button>
           <button
             onClick={() => setVista('metricas')}
-            className={`px-4 py-2 rounded ${
-              vista === 'metricas' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={vista === 'metricas' ? "btn-primary" : "btn-secondary"}
           >
             Métricas
           </button>

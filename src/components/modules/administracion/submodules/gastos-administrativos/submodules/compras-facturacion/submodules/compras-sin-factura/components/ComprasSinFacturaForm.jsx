@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
 import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
 import FeedbackModal from '../../../../../../../../../common/FeedbackModal/FeedbackModal'
+import '../ComprasSinFacturaMain.css'
 
 const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEdit }) => {
   const { showToast } = useNotification();
@@ -30,6 +31,18 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
   const [proveedores, setProveedores] = useState([])
   const [nuevaCategoria, setNuevaCategoria] = useState('')
   const [nuevoModoPago, setNuevoModoPago] = useState('')
+  
+  // Modales
+  const [showProveedorModal, setShowProveedorModal] = useState(false)
+  const [showCategoriaModal, setShowCategoriaModal] = useState(false)
+  const [showModoPagoModal, setShowModoPagoModal] = useState(false)
+
+  const [nuevoProveedor, setNuevoProveedor] = useState({
+    nombre: '',
+    tipoRif: 'J-',
+    rif: '',
+    direccion: ''
+  })
   const tiposRif = ['J-', 'V-', 'E-', 'P-', 'G-']
 
   const [feedback, setFeedback] = useState({
@@ -113,9 +126,6 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
     setFeedback(prev => ({ ...prev, isOpen: false }));
     if (feedback.type === 'success') {
         // If success, we might want to trigger the parent callback after closing modal
-        // But onCompraSaved is called immediately in handleSubmit, which might refresh the list.
-        // If we want to wait for the modal to close before refreshing/closing form, we'd need to change logic.
-        // For now, let's keep it simple.
     }
   };
 
@@ -172,6 +182,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
         setCategorias(nuevasCategorias)
         setFormData(prev => ({ ...prev, categoria: nuevaCategoria }))
         setNuevaCategoria('')
+        setShowCategoriaModal(false)
         showToast('Categoría guardada exitosamente.', 'success')
       }
     }
@@ -187,8 +198,68 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
         setModosPago(nuevosModosPago)
         setFormData(prev => ({ ...prev, modoPago: nuevoModoPago }))
         setNuevoModoPago('')
+        setShowModoPagoModal(false)
         showToast('Modo de pago guardado exitosamente.', 'success')
       }
+    }
+  }
+
+  const agregarProveedor = async () => {
+    if (!nuevoProveedor.nombre.trim() || !nuevoProveedor.rif.trim()) {
+      showToast('Por favor complete nombre y RIF del proveedor', 'error')
+      return
+    }
+
+    try {
+      const proveedorData = {
+        projectid: projectId,
+        nombre: nuevoProveedor.nombre.trim(),
+        tiporif: nuevoProveedor.tipoRif,
+        rif: nuevoProveedor.rif.trim(),
+        direccion: nuevoProveedor.direccion.trim()
+      }
+
+      const { error } = await supabase
+        .from('proveedores')
+        .insert([proveedorData])
+
+      if (error) throw error
+
+      // Reload providers
+      console.log('Recargando proveedores para projectid:', projectId);
+      const { data: provData, error: reloadError } = await supabase
+        .from('proveedores')
+        .select('*')
+        .eq('projectid', projectId)
+      
+      if (reloadError) {
+        console.error('Error recargando proveedores:', reloadError);
+      } else {
+        console.log('Proveedores recargados:', provData);
+        if (provData) setProveedores(provData)
+      }
+
+      // Auto-fill form with new provider
+      setFormData(prev => ({
+        ...prev,
+        proveedor: nuevoProveedor.nombre.trim(),
+        tipoRif: nuevoProveedor.tipoRif,
+        rif: nuevoProveedor.rif.trim(),
+        direccion: nuevoProveedor.direccion.trim()
+      }))
+
+      // Reset and close modal
+      setNuevoProveedor({
+        nombre: '',
+        tipoRif: 'J-',
+        rif: '',
+        direccion: ''
+      })
+      setShowProveedorModal(false)
+      showToast('Proveedor agregado exitosamente', 'success')
+    } catch (error) {
+      console.error('Error adding proveedor:', error)
+      showToast('Error al agregar proveedor', 'error')
     }
   }
 
@@ -196,58 +267,6 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
     e.preventDefault()
 
     try {
-      // Calcular nuevos totales para el proveedor
-      let newTotalFacturas = 0
-      let newTotalGastado = 0
-
-      // Obtener datos actuales del proveedor si existe
-      const { data: existingProv } = await supabase
-        .from('proveedores')
-        .select('total_facturas, total_gastado_dolares')
-        .eq('projectid', projectId)
-        .eq('tiporif', formData.tipoRif)
-        .eq('rif', formData.rif)
-        .single()
-
-      if (existingProv) {
-        newTotalFacturas = existingProv.total_facturas || 0
-        newTotalGastado = existingProv.total_gastado_dolares || 0
-      }
-
-      // Si es una nueva compra (no edición), incrementar contadores
-      if (!compraEdit) {
-        newTotalFacturas += 1
-        newTotalGastado += (formData.totalDolares || 0)
-      }
-
-      // Guardar o actualizar proveedor
-      const proveedorData = {
-        projectid: projectId,
-        nombre: formData.proveedor,
-        tiporif: formData.tipoRif,
-        rif: formData.rif,
-        direccion: formData.direccion,
-        total_facturas: newTotalFacturas,
-        total_gastado_dolares: newTotalGastado,
-        updatedat: new Date().toISOString()
-      }
-
-      // Upsert proveedor (inserta si no existe conflicto con projectid, tiporif, rif)
-      const { error: provError } = await supabase
-        .from('proveedores')
-        .upsert(proveedorData, { onConflict: 'projectid, tiporif, rif' })
-
-      if (provError) {
-        console.error('Error al guardar proveedor:', provError)
-      } else {
-        // Recargar proveedores
-        const { data: newProvs } = await supabase
-          .from('proveedores')
-          .select('*')
-          .eq('projectid', projectId)
-        if (newProvs) setProveedores(newProvs)
-      }
-
       const cleanedFormData = { ...formData }
 
       delete cleanedFormData.id
@@ -336,7 +355,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
           <div className="form-grid">
             <div className="form-group">
               <label>CATEGORÍA *</label>
-              <div className="select-with-add">
+              <div className="input-with-button">
                 <select
                   name="categoria"
                   value={formData.categoria}
@@ -348,66 +367,79 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
-                <div className="add-new-input">
-                  <input
-                    type="text"
-                    placeholder="Nueva categoría..."
-                    value={nuevaCategoria}
-                    onChange={(e) => setNuevaCategoria(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), agregarCategoria())}
-                  />
-                  <button type="button" onClick={agregarCategoria}>+</button>
-                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setShowCategoriaModal(true)}
+                  className="btn-add-inline"
+                  title="Agregar nueva categoría"
+                >
+                  +
+                </button>
               </div>
             </div>
 
             <div className="form-group">
               <label>SUBCATEGORÍAS (DESTINO DE COMPRA)</label>
               {formData.subcategorias.map((sub, index) => (
-                <div key={index} className="subcategoria-input-group">
+                <div key={index} className="subcategoria-input-group" style={{ display: 'flex', gap: '5px', alignItems: 'center', marginBottom: '10px' }}>
                   <input
                     type="text"
                     value={sub}
                     onChange={(e) => handleSubcategoriaChange(index, e.target.value)}
                     placeholder={`Subcategoría ${index + 1}`}
+                    style={{ flex: 1 }}
                   />
                   {formData.subcategorias.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeSubcategoria(index)}
                       className="btn-remove-subcategory"
+                      title="Eliminar subcategoría"
                     >
                       -
                     </button>
                   )}
+                  {index === formData.subcategorias.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={addSubcategoria}
+                      className="btn-add-inline"
+                      title="Añadir Subcategoría"
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={addSubcategoria}
-                className="btn-add-subcategory"
-              >
-                + Añadir Subcategoría
-              </button>
             </div>
 
             <div className="form-group">
               <label>PROVEEDOR *</label>
-              <input
-                type="text"
-                list="proveedores-list"
-                name="proveedor"
-                value={formData.proveedor}
-                onChange={handleProveedorChange}
-                required
-                placeholder="Nombre del proveedor"
-                autoComplete="off"
-              />
-              <datalist id="proveedores-list">
-                {proveedores.map((prov, index) => (
-                  <option key={index} value={prov.nombre} />
-                ))}
-              </datalist>
+              <div className="input-with-button">
+                <input
+                  type="text"
+                  list="proveedores-list"
+                  name="proveedor"
+                  value={formData.proveedor}
+                  onChange={handleProveedorChange}
+                  required
+                  placeholder="Nombre del proveedor"
+                  autoComplete="off"
+                />
+                <datalist id="proveedores-list">
+                  {proveedores.map((prov, index) => (
+                    <option key={index} value={prov.nombre} />
+                  ))}
+                </datalist>
+                <button 
+                  type="button" 
+                  onClick={() => setShowProveedorModal(true)}
+                  className="btn-add-inline"
+                  title="Agregar nuevo proveedor"
+                >
+                  +
+                </button>
+              </div>
             </div>
 
             <div className="form-group">
@@ -543,7 +575,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
           <div className="form-grid">
             <div className="form-group">
               <label>MODO DE PAGO</label>
-              <div className="select-with-add">
+              <div className="input-with-button">
                 <select
                   name="modoPago"
                   value={formData.modoPago}
@@ -554,16 +586,14 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                     <option key={modo} value={modo}>{modo}</option>
                   ))}
                 </select>
-                <div className="add-new-input">
-                  <input
-                    type="text"
-                    placeholder="Nuevo modo de pago..."
-                    value={nuevoModoPago}
-                    onChange={(e) => setNuevoModoPago(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), agregarModoPago())}
-                  />
-                  <button type="button" onClick={agregarModoPago}>+</button>
-                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setShowModoPagoModal(true)}
+                  className="btn-add-inline"
+                  title="Agregar nuevo modo de pago"
+                >
+                  +
+                </button>
               </div>
             </div>
 
@@ -589,6 +619,171 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
           </button>
         </div>
       </form>
+
+      {/* Modal Agregar Proveedor */}
+      {showProveedorModal && (
+        <div className="modal-overlay" onClick={() => setShowProveedorModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Agregar Nuevo Proveedor</h3>
+              <button 
+                type="button" 
+                className="btn-close" 
+                onClick={() => setShowProveedorModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>NOMBRE DEL PROVEEDOR *</label>
+                <input
+                  type="text"
+                  value={nuevoProveedor.nombre}
+                  onChange={(e) => setNuevoProveedor(prev => ({ ...prev, nombre: e.target.value }))}
+                  placeholder="Nombre del proveedor"
+                />
+              </div>
+              <div className="form-group">
+                <label>RIF *</label>
+                <div className="rif-input">
+                  <select
+                    value={nuevoProveedor.tipoRif}
+                    onChange={(e) => setNuevoProveedor(prev => ({ ...prev, tipoRif: e.target.value }))}
+                  >
+                    {tiposRif.map(tipo => (
+                      <option key={tipo} value={tipo}>{tipo}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={nuevoProveedor.rif}
+                    onChange={(e) => setNuevoProveedor(prev => ({ ...prev, rif: e.target.value }))}
+                    placeholder="Número de RIF"
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>DIRECCIÓN</label>
+                <input
+                  type="text"
+                  value={nuevoProveedor.direccion}
+                  onChange={(e) => setNuevoProveedor(prev => ({ ...prev, direccion: e.target.value }))}
+                  placeholder="Dirección del proveedor"
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                type="button" 
+                className="btn-primary" 
+                onClick={agregarProveedor}
+              >
+                Guardar Proveedor
+              </button>
+              <button 
+                type="button" 
+                className="btn-secondary" 
+                onClick={() => setShowProveedorModal(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Agregar Categoría */}
+      {showCategoriaModal && (
+        <div className="modal-overlay" onClick={() => setShowCategoriaModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3>Agregar Nueva Categoría</h3>
+              <button 
+                type="button" 
+                className="btn-close" 
+                onClick={() => setShowCategoriaModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>NOMBRE DE LA CATEGORÍA *</label>
+                <input
+                  type="text"
+                  value={nuevaCategoria}
+                  onChange={(e) => setNuevaCategoria(e.target.value)}
+                  placeholder="Nombre de la categoría"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), agregarCategoria())}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                type="button" 
+                className="btn-primary" 
+                onClick={agregarCategoria}
+              >
+                Guardar Categoría
+              </button>
+              <button 
+                type="button" 
+                className="btn-secondary" 
+                onClick={() => setShowCategoriaModal(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Agregar Modo de Pago */}
+      {showModoPagoModal && (
+        <div className="modal-overlay" onClick={() => setShowModoPagoModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3>Agregar Nuevo Modo de Pago</h3>
+              <button 
+                type="button" 
+                className="btn-close" 
+                onClick={() => setShowModoPagoModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>NOMBRE DEL MODO DE PAGO *</label>
+                <input
+                  type="text"
+                  value={nuevoModoPago}
+                  onChange={(e) => setNuevoModoPago(e.target.value)}
+                  placeholder="Ej: Zelle, Efectivo, Transferencia..."
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), agregarModoPago())}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                type="button" 
+                className="btn-primary" 
+                onClick={agregarModoPago}
+              >
+                Guardar Modo de Pago
+              </button>
+              <button 
+                type="button" 
+                className="btn-secondary" 
+                onClick={() => setShowModoPagoModal(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <FeedbackModal
         isOpen={feedback.isOpen}

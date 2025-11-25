@@ -1,23 +1,25 @@
 // components/ejecucion/SemanasEjecucion.jsx
 export const SemanasEjecucion = ({ semanas, onSelectSemana }) => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="ejecucion-semanas-container">
       {semanas.map((semana) => (
         <div 
           key={semana.id}
-          className="bg-white rounded-lg border p-4 cursor-pointer hover:shadow-md transition-shadow"
+          className="ejecucion-semana-item"
           onClick={() => onSelectSemana(semana)}
         >
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="font-semibold text-lg">Semana {semana.numero_semana}</h3>
+          <div className="ejecucion-semana-header">
+            <h3>Semana {semana.numero_semana}</h3>
             <EstadoBadge estado={semana.estado} />
           </div>
           
-          <div className="text-sm text-gray-600 mb-3">
-            {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
+          <div style={{ padding: '0 16px' }}>
+            <div className="ejecucion-semana-dates">
+              {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
+            </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="ejecucion-semana-financials">
             <MetricaRow 
               label="Avance Físico" 
               valor={semana.avance_fisico || 0} 
@@ -34,10 +36,10 @@ export const SemanasEjecucion = ({ semanas, onSelectSemana }) => {
             />
           </div>
 
-          <div className="mt-3 pt-3 border-t">
-            <button className="w-full text-center text-blue-600 hover:text-blue-800 text-sm font-medium">
+          <div className="ejecucion-semana-footer">
+            <span className="ejecucion-view-details">
               Ver Detalles →
-            </button>
+            </span>
           </div>
         </div>
       ))}
@@ -46,20 +48,34 @@ export const SemanasEjecucion = ({ semanas, onSelectSemana }) => {
 };
 
 // Componentes internos
-const EstadoBadge = ({ estado }) => (
-  <span className={`px-2 py-1 rounded text-xs ${
-    estado === 'completada' ? 'bg-green-100 text-green-800' :
-    estado === 'en_proceso' ? 'bg-yellow-100 text-yellow-800' :
-    'bg-gray-100 text-gray-800'
-  }`}>
-    {estado}
-  </span>
-);
+const EstadoBadge = ({ estado }) => {
+  const getBadgeStyle = (estado) => {
+    switch(estado) {
+      case 'completada': return { backgroundColor: '#dcfce7', color: '#166534' };
+      case 'en_proceso': return { backgroundColor: '#fef9c3', color: '#854d0e' };
+      default: return { backgroundColor: '#f1f5f9', color: '#1e293b' };
+    }
+  };
+
+  const style = {
+    padding: '2px 8px',
+    borderRadius: '4px',
+    fontSize: '0.75rem',
+    fontWeight: '500',
+    ...getBadgeStyle(estado)
+  };
+
+  return (
+    <span style={style}>
+      {estado}
+    </span>
+  );
+};
 
 const MetricaRow = ({ label, valor, tipo = 'text' }) => (
-  <div className="flex justify-between items-center text-sm">
-    <span className="text-gray-600">{label}</span>
-    <span className="font-semibold">
+  <div className="ejecucion-metric-row">
+    <span className="ejecucion-metric-label">{label}</span>
+    <span className="ejecucion-metric-value">
       {tipo === 'porcentaje' ? `${valor}%` :
        tipo === 'moneda' ? `$${valor.toLocaleString()}` : valor}
     </span>

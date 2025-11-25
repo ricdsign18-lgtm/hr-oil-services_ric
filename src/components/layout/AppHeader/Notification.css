@@ -4,21 +4,27 @@
   border: none;
   position: relative;
   color: #555;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* .badge {
+.badge {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 9px;
-  height: 9px;
-  background-color: red;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  background-color: #ef4444; /* Red-500 */
   border-radius: 50%;
-  border: 2px solid #2d3748; /* Borde del color del fondo para crear separación */
- 
+  border: 2px solid #1e293b; /* Match header background if dark, or white if light. Assuming dark header based on image. */
+  z-index: 10;
+}
+
 /* Ajustamos el tamaño del ícono directamente en el SVG dentro del botón */
 .btn-notifications svg {
   width: 24px;
   height: 24px;
-  fill: #fff;
+  fill: #fff; /* Assuming white icon on dark background */
 }

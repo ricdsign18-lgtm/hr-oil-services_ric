@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useOperaciones } from '../../../../../contexts/OperacionesContext';
 import { useNotification } from '../../../../../contexts/NotificationContext';
 import ModuleDescription from '../../../_core/ModuleDescription/ModuleDescription';
+import { InfoIcon } from '../../../../../assets/icons/Icons';
+import Modal from '../../../../common/Modal/Modal';
 import './RequerimientosMain.css';
 
 const RequerimientosMain = () => {
@@ -15,6 +17,7 @@ const RequerimientosMain = () => {
   } = useOperaciones();
   
   const { showToast } = useNotification();
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   const [formData, setFormData] = useState({
     fecha_requerimiento: new Date().toISOString().split('T')[0],
@@ -186,6 +189,15 @@ const RequerimientosMain = () => {
       <ModuleDescription
         title="Gestión de Requerimientos"
         description="Registre y gestione los requerimientos de materiales para el proyecto."
+        action={
+          <button 
+            className="btn-info-circle"
+            onClick={() => setShowInfoModal(true)}
+            title="Ver información del módulo"
+          >
+            <InfoIcon/>
+          </button>
+        }
       />
 
       <div className="requerimientos-stats">
@@ -455,6 +467,23 @@ const RequerimientosMain = () => {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        title="Información de Requerimientos"
+      >
+        <div className="modal-info-content">
+          <p>Este módulo permite gestionar las solicitudes de materiales y servicios del proyecto.</p>
+          
+          <h3>Funcionalidades:</h3>
+          <ul className="info-list">
+            <li><strong>Registro:</strong> Cree nuevos requerimientos de materiales.</li>
+            <li><strong>Seguimiento:</strong> Monitoree el estado de cada ítem (pendiente, comprado, etc.).</li>
+            <li><strong>Sugerencias:</strong> Reciba alertas de stock bajo para reposición automática.</li>
+          </ul>
+        </div>
+      </Modal>
     </div>
   );
 };

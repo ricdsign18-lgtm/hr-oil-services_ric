@@ -45,26 +45,27 @@ export const SemanaDetail = ({ semana, onBack }) => {
     <>
       {/* Header */}
       <div className="planning-header">
-        <div className="planning-semana-header" style={{ marginBottom: 0, cursor: 'default' }}>
-          <button 
-            onClick={onBack}
-            className="btn-secondary" // Asumiendo que tienes una clase global para botones secundarios
-          >
-            ← Volver
-          </button>
-          <div>
-            <h2>Semana {semana.numero_semana}</h2>
-            <p className="planning-semana-dates" style={{ marginTop: '5px' }}>
-              {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
-            </p>
+        <div className="planning-semana-header-content">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+            <button 
+              onClick={onBack}
+              className="btn-secondary"
+              style={{ padding: '6px 12px', fontSize: '0.9rem' }}
+            >
+              ← Volver
+            </button>
+            <h2 style={{ margin: 0 }}>Semana {semana.numero_semana}</h2>
           </div>
+          <p className="planning-semana-dates" style={{ marginLeft: '0' }}>
+            {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
+          </p>
         </div>
         
         <div className="planning-actions">
           <button
             onClick={() => setShowRequerimientos(!showRequerimientos)}
             className={showRequerimientos ? "btn-secondary" : "btn-primary"}>
-            {showRequerimientos ? 'Ver Días' : 'Ver/Agregar Requerimientos'}
+            {showRequerimientos ? 'Ver Calendario Semanal' : 'Ver Requerimientos'}
           </button>
         </div>
       </div>
