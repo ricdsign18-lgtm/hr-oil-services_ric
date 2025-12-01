@@ -481,8 +481,8 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
                       value={formData.porcentajeIslr}
                       onChange={handleChange}
                       className={errors.porcentajeIslr ? "error" : ""}
-                      placeholder="0.0"
-                      step="0.1"
+                      placeholder="0.00"
+                      step="0.01"
                       min="0"
                       max="100"
                       disabled={submitting}

@@ -122,6 +122,9 @@ export const AuthProvider = ({ children }) => {
       editor: {
         resumen: ["read", "write", "delete"],
         administracion: ["read", "write", "delete"],
+        contrato: ["read", "write", "delete"],
+        coordinaciones: ["read", "write", "delete"],
+        operaciones: ["read", "write", "delete"],
       },
       viewer: {
         resumen: ["read"],
