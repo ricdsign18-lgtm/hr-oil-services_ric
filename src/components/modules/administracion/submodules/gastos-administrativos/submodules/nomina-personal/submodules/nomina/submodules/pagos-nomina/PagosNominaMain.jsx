@@ -9,6 +9,7 @@ import ModuleDescription from "../../../../../../../../../_core/ModuleDescriptio
 import CalculadoraPagos from "./components/CalculadoraPagos";
 import HistorialPagos from "./components/HistorialPagos";
 import ResumenPagos from "./components/ResumenPagos";
+import ReportesNomina from "./components/ReportesNomina";
 import FeedbackModal from "../../../../../../../../../../../components/common/FeedbackModal/FeedbackModal";
 import "./PagosNominaMain.css";
 
@@ -206,6 +207,13 @@ const PagosNominaMain = () => {
           >
             Historial
           </button>
+          <button
+            className={currentView === "reportes" ? "active" : ""}
+            onClick={() => setCurrentView("reportes")}
+            disabled={loading}
+          >
+            Reportes
+          </button>
         </div>
       </div>
 
@@ -248,6 +256,15 @@ const PagosNominaMain = () => {
                 setCurrentView("resumen");
               }}
               onDeletePago={handleDeletePago}
+              selectedProject={selectedProject}
+            />
+          )}
+
+          {currentView === "reportes" && (
+            <ReportesNomina
+              pagosGuardados={pagosGuardados}
+              employees={employees}
+              asistencias={asistencias}
               selectedProject={selectedProject}
             />
           )}
