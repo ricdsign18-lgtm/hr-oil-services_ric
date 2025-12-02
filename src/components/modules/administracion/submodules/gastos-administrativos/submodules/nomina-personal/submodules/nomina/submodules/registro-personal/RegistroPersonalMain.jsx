@@ -16,7 +16,7 @@ const RegistroPersonalMain = () => {
   const { getEmployeesByProject, addEmployee, updateEmployee, deleteEmployee } =
     usePersonal();
   const { showToast } = useNotification();
-  const { hasPermission } = useAuth(); // Destructure hasPermission
+  const { hasPermissionSync } = useAuth(); // Destructure hasPermissionSync
 
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
@@ -68,6 +68,10 @@ const RegistroPersonalMain = () => {
   };
 
   const handleAddEmployee = async (employeeData) => {
+    if (!hasPermissionSync("administracion", "write")) {
+      showToast("No tienes permisos para realizar esta acción", "error");
+      return;
+    }
     try {
       await addEmployee({
         ...employeeData,
@@ -82,6 +86,10 @@ const RegistroPersonalMain = () => {
   };
 
   const handleEditEmployee = async (employeeData) => {
+    if (!hasPermissionSync("administracion", "write")) {
+        showToast("No tienes permisos para realizar esta acción", "error");
+        return;
+    }
     try {
       await updateEmployee(editingEmployee.id, employeeData);
       await loadEmployees(); // Recargar la lista
@@ -94,6 +102,10 @@ const RegistroPersonalMain = () => {
   };
 
   const handleDeleteEmployee = async (employeeId) => {
+    if (!hasPermissionSync("administracion", "delete")) {
+        showToast("No tienes permisos para realizar esta acción", "error");
+        return;
+    }
     if (window.confirm("¿Estás seguro de que deseas eliminar este empleado?")) {
       try {
         await deleteEmployee(employeeId);
@@ -107,6 +119,7 @@ const RegistroPersonalMain = () => {
   };
 
   const handleEditClick = (employee) => {
+    if (!hasPermissionSync("administracion", "write")) return;
     setEditingEmployee(employee);
     setShowForm(true);
   };
@@ -177,7 +190,7 @@ const RegistroPersonalMain = () => {
               disabled={loading}
             />
           </div>
-          {hasPermission("administracion", "write") && (
+          {hasPermissionSync("administracion", "write") && (
             <button
               className="btn-new-employee"
               onClick={() => setShowForm(true)}

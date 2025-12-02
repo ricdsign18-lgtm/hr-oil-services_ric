@@ -13,7 +13,7 @@ import { Header } from "../AppHeader/Header";
 import "./MainLayout.css";
 
 const MainLayout = ({ children }) => {
-  const { user } = useAuth();
+  const { userData } = useAuth();
   const { selectedProject } = useProjects();
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -67,6 +67,13 @@ const MainLayout = ({ children }) => {
     },
   ];
 
+  const filteredSidebarItems = sidebarItems.filter(item => {
+    if (userData?.role === 'editor') {
+      return item.id === 'administracion';
+    }
+    return true;
+  });
+
   return (
     <div
       className={`main-layout ${
@@ -74,7 +81,7 @@ const MainLayout = ({ children }) => {
       }`}
     >
       <Sidebar
-        items={sidebarItems}
+        items={filteredSidebarItems}
         isOpen={isSidebarOpen}
         onToggle={handleToggleSidebar}
         isMobile={isMobile}

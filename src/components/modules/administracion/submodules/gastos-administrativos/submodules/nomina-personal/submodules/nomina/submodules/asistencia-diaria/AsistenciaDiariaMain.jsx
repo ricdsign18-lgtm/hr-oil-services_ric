@@ -7,9 +7,12 @@ import AsistenciaForm from "./components/AsistenciaForm";
 import HistorialAsistencias from "./components/HistorialAsistencias";
 import "./AsistenciaDiariaMain.css";
 
+import { useAuth } from "../../../../../../../../../../../contexts/AuthContext"; // Import useAuth
+
 const AsistenciaDiariaMain = () => {
   const navigate = useNavigate();
   const { selectedProject } = useProjects();
+  const { hasPermissionSync } = useAuth(); // Destructure hasPermissionSync
   const {
     getEmployeesByProject,
     saveAsistencia,
@@ -25,6 +28,8 @@ const AsistenciaDiariaMain = () => {
   const [employees, setEmployees] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // ... (rest of the component logic remains the same until the button)
 
   // Cargar empleados y asistencias del proyecto actual
   useEffect(() => {
@@ -55,6 +60,10 @@ const AsistenciaDiariaMain = () => {
   };
 
   const handleSaveAsistencia = async (asistenciaData) => {
+    if (!hasPermissionSync("administracion", "write")) {
+        alert("No tienes permisos para realizar esta acción");
+        return;
+    }
     try {
       await saveAsistencia({
         fecha: selectedDate,
@@ -69,6 +78,10 @@ const AsistenciaDiariaMain = () => {
   };
 
   const handleDeleteAsistencia = async (id) => {
+    if (!hasPermissionSync("administracion", "delete")) {
+        alert("No tienes permisos para realizar esta acción");
+        return;
+    }
     if (window.confirm("¿Estás seguro de que deseas eliminar este registro de asistencia?")) {
       try {
         await deleteAsistencia(id); // Asumiendo que deleteAsistencia está disponible en usePersonal
@@ -127,13 +140,15 @@ const AsistenciaDiariaMain = () => {
         </div>
 
         <div className="view-toggle">
-          <button
-            className={currentView === "registrar" ? "active" : ""}
-            onClick={() => setCurrentView("registrar")}
-            disabled={loading}
-          >
-            Registrar Asistencia
-          </button>
+          {hasPermissionSync("administracion", "write") && (
+            <button
+                className={currentView === "registrar" ? "active" : ""}
+                onClick={() => setCurrentView("registrar")}
+                disabled={loading}
+            >
+                Registrar Asistencia
+            </button>
+          )}
           <button
             className={currentView === "historial" ? "active" : ""}
             onClick={() => setCurrentView("historial")}
@@ -148,7 +163,7 @@ const AsistenciaDiariaMain = () => {
         <div className="loading-state">
           <p>Cargando datos...</p>
         </div>
-      ) : employees.length > 0 ? (
+      ) : (
         <>
           <div className="stats-cards-asistencia">
             <div className="stat-card total-asistencia">
@@ -176,6 +191,7 @@ const AsistenciaDiariaMain = () => {
                 selectedDate={selectedDate}
                 getExistingAsistencia={getAsistenciaDelDia}
                 onSave={handleSaveAsistencia}
+                readOnly={!hasPermissionSync("administracion", "write")}
               />
             ) : (
               <HistorialAsistencias
@@ -190,21 +206,6 @@ const AsistenciaDiariaMain = () => {
             )}
           </div>
         </>
-      ) : (
-        <div className="no-employees-warning">
-          <div className="warning-icon">👥</div>
-          <h4>No hay empleados registrados</h4>
-          <p>
-            Para registrar asistencias, primero debes agregar empleados en el
-            módulo de Registro de Personal.
-          </p>
-          <button
-            className="btn-primary"
-            onClick={() => navigate("../registro-personal")}
-          >
-            Ir a Registro de Personal
-          </button>
-        </div>
       )}
     </div>
   );

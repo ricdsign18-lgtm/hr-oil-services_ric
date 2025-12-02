@@ -1,0 +1,80 @@
+/* ===== DARK THEME SUMMARY ===== */
+.proveedores-summary-container {
+  margin-bottom: 32px;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.summary-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #f8fafc; /* Slate 50 */
+  font-weight: 600;
+  border-left: 4px solid #3b82f6; /* Blue 500 */
+  padding-left: 12px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.summary-card {
+  background: #111827; /* Gray 900 / Very Dark Blue */
+  border: 1px solid #1f2937; /* Gray 800 */
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon-wrapper {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 8px;
+}
+
+.card-icon-wrapper svg {
+  fill: #fff;
+  width: 100%;
+  height: 100%;
+}
+
+.icon-users {
+  color: #94a3b8; /* Slate 400 */
+}
+
+.icon-check {
+  color: #94a3b8;
+}
+
+.icon-alert {
+  color: #f59e0b; /* Amber 500 */
+}
+
+.icon-money {
+  color: #94a3b8;
+}
+
+.card-label {
+  color: #94a3b8; /* Slate 400 */
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card-value {
+  color: #f8fafc; /* Slate 50 */
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}

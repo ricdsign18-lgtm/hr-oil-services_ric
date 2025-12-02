@@ -23,7 +23,6 @@ export const Notification = () => {
         onClick={handleIconClick}
       >
         <NotificationIcon />
-        {hasNewNotification && <div className="badge"></div>}
       </button>
       {isPanelOpen && <NotificationPanel notifications={notifications} />}
     </>

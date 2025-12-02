@@ -1,5 +1,5 @@
-// src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/asistencia-diaria/components/AsistenciaForm.jsx
 import React, { useState, useEffect } from "react";
+
 import { formatDate } from "../../../../../../../../../../../../utils/formatters";
 import { useNotification } from "../../../../../../../../../../../../contexts/NotificationContext";
 import "./AsistenciaForm.css";
@@ -7,6 +7,7 @@ import {
   CheckIcon,
   RepeatIcon,
   XIcon,
+  InfoIcon,
 } from "../../../../../../../../../../../../assets/icons/Icons";
 
 const AsistenciaForm = ({
@@ -14,11 +15,15 @@ const AsistenciaForm = ({
   selectedDate,
   getExistingAsistencia,
   onSave,
+  readOnly = false, // Default to false
 }) => {
+
   const [asistencias, setAsistencias] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showToast } = useNotification();
+
+  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     loadExistingAsistencia();
@@ -67,6 +72,7 @@ const AsistenciaForm = ({
   };
 
   const handleToggleAsistencia = (empleadoId) => {
+    if (readOnly) return;
     setAsistencias((prev) =>
       prev.map((registro) =>
         registro.empleadoId === empleadoId
@@ -81,6 +87,7 @@ const AsistenciaForm = ({
   };
 
   const handleToggleAll = (asistio) => {
+    if (readOnly) return;
     setAsistencias((prev) =>
       prev.map((registro) => ({
         ...registro,
@@ -91,6 +98,7 @@ const AsistenciaForm = ({
   };
 
   const handleHorasTrabajadasChange = (empleadoId, horas) => {
+    if (readOnly) return;
     const horasNum = parseFloat(horas) || 0;
     setAsistencias((prev) =>
       prev.map((registro) =>
@@ -106,6 +114,7 @@ const AsistenciaForm = ({
   };
 
   const handleObservacionesChange = (empleadoId, observaciones) => {
+    if (readOnly) return;
     setAsistencias((prev) =>
       prev.map((registro) =>
         registro.empleadoId === empleadoId
@@ -116,6 +125,7 @@ const AsistenciaForm = ({
   };
 
   const handleSave = async () => {
+    if (readOnly) return;
     if (asistencias.length === 0) {
       showToast("No hay empleados para registrar asistencia", "warning");
       return;
@@ -139,6 +149,7 @@ const AsistenciaForm = ({
   };
 
   const handleReset = () => {
+    if (readOnly) return;
     // Resetear a todos presentes
     const resetAsistencias = employees.map((emp) => ({
       empleadoId: emp.id,
@@ -177,37 +188,48 @@ const AsistenciaForm = ({
     <div className="asistencia-form">
       <div className="form-header">
         <div className="header-title">
-          <h3>Registro de Asistencia</h3>
+          <div className="header-title-container">
+            <h3>Registro de Asistencia</h3>
+            <button
+              className="btn-info-asistencia"
+              onClick={() => setShowInstructions(true)}
+              title="Ver instrucciones"
+            >
+              <InfoIcon />
+            </button>
+          </div>
           <h3>{formatDate(selectedDate)}</h3>
           {/* {isEditing && (
             <span className="edit-badge">📝 Editando registro existente</span>
           )} */}
         </div>
-        <div className="quick-actions">
-          <button
-            className="btn-asistencia-form-check"
-            onClick={() => handleToggleAll(true)}
-            disabled={isFutureDate}
-          >
-            <CheckIcon />
-            Marcar Todos Presentes
-          </button>
-          <button
-            className="btn-asistencia-form-x"
-            onClick={() => handleToggleAll(false)}
-            disabled={isFutureDate}
-          >
-            <XIcon />
-            Marcar Todos Ausentes
-          </button>
-          <button
-            className="btn-asistencia-form-repeat"
-            onClick={handleReset}
-            disabled={isFutureDate}
-          >
-            <RepeatIcon /> Reiniciar
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="quick-actions">
+            <button
+              className="btn-asistencia-form-check"
+              onClick={() => handleToggleAll(true)}
+              disabled={isFutureDate}
+            >
+              <CheckIcon />
+              Marcar Todos Presentes
+            </button>
+            <button
+              className="btn-asistencia-form-x"
+              onClick={() => handleToggleAll(false)}
+              disabled={isFutureDate}
+            >
+              <XIcon />
+              Marcar Todos Ausentes
+            </button>
+            <button
+              className="btn-asistencia-form-repeat"
+              onClick={handleReset}
+              disabled={isFutureDate}
+            >
+              <RepeatIcon /> Reiniciar
+            </button>
+          </div>
+        )}
       </div>
 
       {isFutureDate && (
@@ -244,134 +266,162 @@ const AsistenciaForm = ({
       </div>
 
       <div className="employees-list-asistencia-form">
-        <div className="list-header-asistencia-form">
-          <span className="col-employee">Empleado</span>
-          <span className="col-status">Estado</span>
-          <span className="col-hours">Horas</span>
-          <span className="col-observations">Observaciones</span>
-        </div>
-
-        <div className="employees-scroll-container-asistencia-form">
-          {asistencias.map((registro) => (
-            <div
-              key={registro.empleadoId}
-              className={`employee-row ${registro.asistio ? "present" : "absent"
-                }`}
-            >
-              <div className="employee-info">
-                <div className="employee-name">{registro.nombre}</div>
-                <div className="employee-details">
-                  <span className="cedula">C.I. {registro.cedula}</span>
-                  <span className="separator">•</span>
-                  <span className="cargo">{registro.cargo}</span>
-                </div>
-              </div>
-
-              <div className="attendance-controls">
-                <div className="attendance-toggle">
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={registro.asistio}
-                      onChange={() =>
-                        handleToggleAsistencia(registro.empleadoId)
-                      }
-                      disabled={isFutureDate}
-                    />
-                    <span className="slider">
-                      <span className="toggle-text">
-                        {registro.asistio ? "✅ Presente" : "❌ Ausente"}
-                      </span>
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="hours-control">
-                <input
-                  type="number"
-                  value={registro.horasTrabajadas || 0}
-                  onChange={(e) =>
-                    handleHorasTrabajadasChange(
-                      registro.empleadoId,
-                      e.target.value
-                    )
-                  }
-                  min="0"
-                  max="24"
-                  step="0.5"
-                  disabled={!registro.asistio || isFutureDate}
-                  className={!registro.asistio ? "disabled" : ""}
-                />
-                <span className="hours-label">horas</span>
-              </div>
-
-              <div className="observations-control">
-                <input
-                  type="text"
-                  value={registro.observaciones || ""}
-                  onChange={(e) =>
-                    handleObservacionesChange(
-                      registro.empleadoId,
-                      e.target.value
-                    )
-                  }
-                  placeholder="Observaciones..."
-                  disabled={isFutureDate}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="form-actions">
-        <button
-          className="btn-save-asistencia-form"
-          onClick={handleSave}
-          disabled={asistencias.length === 0 || isFutureDate}
-        >
-          {isEditing
-            ? "💾 Actualizar Asistencia"
-            : "💾 Guardar Asistencia del Día"}
-        </button>
-
-        {isEditing && (
-          <div className="saved-info">
+        {asistencias.length === 0 ? (
+          <div className="no-employees-warning">
+            <div className="warning-icon">👥</div>
+            <h4>No hay empleados registrados</h4>
             <p>
-              ✅ <strong>Asistencia registrada anteriormente</strong>
+              Para registrar asistencias, primero debes agregar empleados en el
+              módulo de Registro de Personal.
             </p>
-            <small>Puedes modificar los registros y guardar los cambios.</small>
+
           </div>
+        ) : (
+          <>
+            <div className="list-header-asistencia-form">
+              <span className="col-employee">Empleado</span>
+              <span className="col-status">Estado</span>
+              <span className="col-hours">Horas</span>
+              <span className="col-observations">Observaciones</span>
+            </div>
+
+            <div className="employees-scroll-container-asistencia-form">
+              {asistencias.map((registro) => (
+                <div
+                  key={registro.empleadoId}
+                  className={`employee-row ${registro.asistio ? "present" : "absent"
+                    }`}
+                >
+                  <div className="employee-info">
+                    <div className="employee-name">{registro.nombre}</div>
+                    <div className="employee-details">
+                      <span className="cedula">C.I. {registro.cedula}</span>
+                      <span className="separator">•</span>
+                      <span className="cargo">{registro.cargo}</span>
+                    </div>
+                  </div>
+
+                  <div className="attendance-controls">
+                    <div className="attendance-toggle">
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={registro.asistio}
+                          onChange={() =>
+                            handleToggleAsistencia(registro.empleadoId)
+                          }
+                          disabled={isFutureDate || readOnly}
+                        />
+                        <span className="slider">
+                          <span className="toggle-text">
+                            {registro.asistio ? "✅ Presente" : "❌ Ausente"}
+                          </span>
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="hours-control">
+                    <input
+                      type="number"
+                      value={registro.horasTrabajadas || 0}
+                      onChange={(e) =>
+                        handleHorasTrabajadasChange(
+                          registro.empleadoId,
+                          e.target.value
+                        )
+                      }
+                      min="0"
+                      max="24"
+                      step="0.5"
+                      disabled={!registro.asistio || isFutureDate || readOnly}
+                      className={!registro.asistio ? "disabled" : ""}
+                    />
+                    <span className="hours-label">horas</span>
+                  </div>
+
+                  <div className="observations-control">
+                    <input
+                      type="text"
+                      value={registro.observaciones || ""}
+                      onChange={(e) =>
+                        handleObservacionesChange(
+                          registro.empleadoId,
+                          e.target.value
+                        )
+                      }
+                      placeholder="Observaciones..."
+                      disabled={isFutureDate || readOnly}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
-      {/* Leyenda y ayuda */}
-      <div className="form-help">
-        <h4>📋 Instrucciones:</h4>
-        <ul>
-          <li>
-            Usa los interruptores para marcar <strong>Presente</strong> o{" "}
-            <strong>Ausente</strong>
-          </li>
-          <li>
-            Para empleados presentes, ajusta las{" "}
-            <strong>horas trabajadas</strong> (por defecto 8 horas)
-          </li>
-          <li>
-            Agrega <strong>observaciones</strong> para casos especiales
-            (licencias, permisos, etc.)
-          </li>
-          <li>
-            Los botones de acción rápida te permiten marcar todos los empleados
-            de una vez
-          </li>
-          <li>
-            Puedes <strong>editar</strong> asistencias ya guardadas en cualquier
-            momento
-          </li>
-        </ul>
-      </div>
+      {!readOnly && (
+        <div className="form-actions">
+          <button
+            className="btn-save-asistencia-form"
+            onClick={handleSave}
+            disabled={asistencias.length === 0 || isFutureDate}
+          >
+            {isEditing
+              ? "💾 Actualizar Asistencia"
+              : "💾 Guardar Asistencia del Día"}
+          </button>
+
+          {isEditing && (
+            <div className="saved-info">
+              <p>
+                ✅ <strong>Asistencia registrada anteriormente</strong>
+              </p>
+              <small>Puedes modificar los registros y guardar los cambios.</small>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal de Instrucciones */}
+      {showInstructions && (
+        <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="modal-close-btn"
+              onClick={() => setShowInstructions(false)}
+            >
+              <XIcon />
+            </button>
+            <div className="form-help" style={{ marginTop: 0, border: 'none', background: 'transparent', padding: 0 }}>
+              <h4>📋 Instrucciones:</h4>
+              <ul>
+                <li>
+                  Usa los interruptores para marcar <strong>Presente</strong> o{" "}
+                  <strong>Ausente</strong>
+                </li>
+                <li>
+                  Para empleados presentes, ajusta las{" "}
+                  <strong>horas trabajadas</strong> (por defecto 8 horas)
+                </li>
+                <li>
+                  Agrega <strong>observaciones</strong> para casos especiales
+                  (licencias, permisos, etc.)
+                </li>
+                <li>
+                  Los botones de acción rápida te permiten marcar todos los empleados
+                  de una vez
+                </li>
+                <li>
+                  Puedes <strong>editar</strong> asistencias ya guardadas en cualquier
+                  momento
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

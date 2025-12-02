@@ -1,7 +1,8 @@
-// src/components/modules/administracion/submodules/gastos-administrativos/submodules/compra-facturacion/submodules/compras-con-factura/components/ProveedoresList.jsx
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
 import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
+import { MultiUsersIcon, CheckCircleIcon, AlertTriangleIcon, SackDollarIcon } from '../../../../../../../../../../assets/icons/Icons'
+import './ProveedoresList.css'
 
 const ProveedoresList = ({ projectId, refreshTrigger }) => {
   const { showToast } = useNotification();
@@ -167,6 +168,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
           nuevaRetencionCobrada += nuevaRetencionIslrPendiente
           nuevaRetencionPorCobrar -= nuevaRetencionIslrPendiente
           nuevaRetencionIslrCobrada += nuevaRetencionIslrPendiente
+          nuevaRetencionIslrCobrada += nuevaRetencionIslrPendiente
           nuevaRetencionIslrPendiente = 0
         }
 
@@ -222,32 +224,48 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
         </div>
       </div>
 
-      <div className="resumen-totales">
-        <div className="resumen-card">
-          <h4>Resumen General</h4>
-          <div className="resumen-grid">
-            <div className="resumen-item">
-              <span>Total Proveedores:</span>
-              <strong>{proveedores.length}</strong>
+      <div className="proveedores-summary-container">
+        <div className="summary-header">
+          <h3>Resumen General</h3>
+        </div>
+        
+        <div className="summary-grid">
+          <div className="summary-card">
+            <div className="card-icon-wrapper icon-users">
+              <MultiUsersIcon />
             </div>
-            <div className="resumen-item">
-              <span>Proveedores al Día:</span>
-              <strong className="estado-bueno">
-                {proveedores.filter(p => p.estadoRetenciones === 'al-dia').length}
-              </strong>
+            <span className="card-label">TOTAL PROVEEDORES</span>
+            <strong className="card-value">{proveedores.length}</strong>
+          </div>
+
+          <div className="summary-card">
+            <div className="card-icon-wrapper icon-check">
+              <CheckCircleIcon />
             </div>
-            <div className="resumen-item">
-              <span>Proveedores Pendientes:</span>
-              <strong className="estado-pendiente">
-                {proveedores.filter(p => p.estadoRetenciones === 'pendiente').length}
-              </strong>
+            <span className="card-label">PROVEEDORES AL DÍA</span>
+            <strong className="card-value">
+              {proveedores.filter(p => p.estadoRetenciones === 'al-dia').length}
+            </strong>
+          </div>
+
+          <div className="summary-card">
+            <div className="card-icon-wrapper icon-alert">
+              <AlertTriangleIcon />
             </div>
-            <div className="resumen-item">
-              <span>Total Ret. por Cobrar:</span>
-              <strong className="estado-pendiente">
-                Bs {proveedores.reduce((sum, p) => sum + p.totalRetencionPorCobrar, 0).toFixed(2)}
-              </strong>
+            <span className="card-label">PROVEEDORES PENDIENTES</span>
+            <strong className="card-value">
+              {proveedores.filter(p => p.estadoRetenciones === 'pendiente').length}
+            </strong>
+          </div>
+
+          <div className="summary-card">
+            <div className="card-icon-wrapper icon-money">
+              <SackDollarIcon />
             </div>
+            <span className="card-label">TOTAL RET. POR COBRAR</span>
+            <strong className="card-value">
+              $ {proveedores.reduce((sum, p) => sum + (p.totalRetencionPorCobrar / 50), 0).toFixed(2)}
+            </strong>
           </div>
         </div>
       </div>

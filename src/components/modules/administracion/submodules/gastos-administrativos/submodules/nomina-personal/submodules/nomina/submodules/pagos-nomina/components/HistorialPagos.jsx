@@ -1,4 +1,5 @@
 
+
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/HistorialPagos.jsx
 import React, { useState } from "react";
 import * as XLSX from "xlsx";

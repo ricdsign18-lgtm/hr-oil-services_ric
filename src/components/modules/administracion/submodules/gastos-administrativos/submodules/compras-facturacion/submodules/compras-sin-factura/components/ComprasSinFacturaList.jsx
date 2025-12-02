@@ -160,50 +160,58 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
             </tr>
           </thead>
           <tbody>
-            {comprasFiltradas.map((compra, index) => (
-              <tr key={compra.id}>
-                <td>{compra.fechaCompra}</td>
-                <td>{compra.fechaRecibida || '-'}</td>
-                <td>{compra.proveedor}</td>
-                <td>{compra.tipoRif}{compra.rif}</td>
-                <td>{compra.numeroNotaEntrega || '-'}</td>
-                <td>{compra.descripcion || '-'}</td>
-                <td>{compra.categoria}</td>
-                <td>{formatSubcategorias(compra)}</td>
-                <td>$ {compra.totalDolares?.toFixed(2) || '0.00'}</td>
-                <td>Bs {compra.tasaPago?.toFixed(2) || '0.00'}</td>
-                <td>Bs {compra.pagoBolivares?.toFixed(2) || '0.00'}</td>
-                <td>{compra.modoPago || '-'}</td>
-                <td>{compra.contrato || '-'}</td>
-                <td>{compra.valuacion || '-'}</td>
-                <td className="observaciones-cell">
-                  {compra.observaciones ? (
-                    <div className="observaciones-tooltip">
-                      <span className="observaciones-icon">
-                        <ClipBoardIcon style={{ width: '20px', height: '20px' }} />
-                      </span>
-                      <div className="observaciones-content">
-                        {compra.observaciones}
-                      </div>
-                    </div>
-                  ) : '-'}
-                </td>
-                <td>
-                  <button
-                    className="btn-edit"
-                    onClick={() => onEditCompra(compra)}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    className="btn-delete"
-                    onClick={() => handleDelete(compra.id)}
-                  >
-                    Eliminar
-                  </button>
+            {comprasFiltradas.length === 0 ? (
+              <tr>
+                <td colSpan="16" style={{ textAlign: 'center', padding: '20px' }}>
+                  No hay datos registrados
                 </td>
               </tr>
-            ))}
+            ) : (
+              comprasFiltradas.map((compra, index) => (
+                <tr key={compra.id}>
+                  <td>{compra.fechaCompra}</td>
+                  <td>{compra.fechaRecibida || '-'}</td>
+                  <td>{compra.proveedor}</td>
+                  <td>{compra.tipoRif}{compra.rif}</td>
+                  <td>{compra.numeroNotaEntrega || '-'}</td>
+                  <td>{compra.descripcion || '-'}</td>
+                  <td>{compra.categoria}</td>
+                  <td>{formatSubcategorias(compra)}</td>
+                  <td>$ {compra.totalDolares?.toFixed(2) || '0.00'}</td>
+                  <td>Bs {compra.tasaPago?.toFixed(2) || '0.00'}</td>
+                  <td>Bs {compra.pagoBolivares?.toFixed(2) || '0.00'}</td>
+                  <td>{compra.modoPago || '-'}</td>
+                  <td>{compra.contrato || '-'}</td>
+                  <td>{compra.valuacion || '-'}</td>
+                  <td className="observaciones-cell">
+                    {compra.observaciones ? (
+                      <div className="observaciones-tooltip">
+                        <span className="observaciones-icon">
+                          <ClipBoardIcon style={{ width: '20px', height: '20px' }} />
+                        </span>
+                        <div className="observaciones-content">
+                          {compra.observaciones}
+                        </div>
+                      </div>
+                    ) : '-'}
+                  </td>
+                  <td>
+                    <button
+                      className="btn-edit"
+                      onClick={() => onEditCompra(compra)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="btn-delete"
+                      onClick={() => handleDelete(compra.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

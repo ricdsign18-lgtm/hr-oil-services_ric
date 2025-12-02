@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useProjects } from "../../../../../../../../../../../contexts/ProjectContext";
 import { usePersonal } from "../../../../../../../../../../../contexts/PersonalContext";
 import { useNotification } from "../../../../../../../../../../../contexts/NotificationContext";
+import { useAuth } from "../../../../../../../../../../../contexts/AuthContext";
 import ModuleDescription from "../../../../../../../../../_core/ModuleDescription/ModuleDescription";
 import CalculadoraPagos from "./components/CalculadoraPagos";
 import HistorialPagos from "./components/HistorialPagos";
@@ -14,6 +15,7 @@ import "./PagosNominaMain.css";
 const PagosNominaMain = () => {
   const navigate = useNavigate();
   const { selectedProject } = useProjects();
+  const { hasPermissionSync } = useAuth();
   const {
     getEmployeesByProject,
     getAsistenciasByProject,
@@ -23,7 +25,9 @@ const PagosNominaMain = () => {
   } = usePersonal();
   const { showToast } = useNotification();
 
-  const [currentView, setCurrentView] = useState("calculadora");
+  const [currentView, setCurrentView] = useState(
+    hasPermissionSync("administracion", "write") ? "calculadora" : "historial"
+  );
   const [fechaPago, setFechaPago] = useState("");
   const [tasaCambio, setTasaCambio] = useState("");
   const [pagosCalculados, setPagosCalculados] = useState([]);
@@ -179,13 +183,15 @@ const PagosNominaMain = () => {
         </div>
 
         <div className="view-toggle">
-          <button
-            className={currentView === "calculadora" ? "active" : ""}
-            onClick={() => setCurrentView("calculadora")}
-            disabled={loading}
-          >
-            Calculadora
-          </button>
+          {hasPermissionSync("administracion", "write") && (
+            <button
+              className={currentView === "calculadora" ? "active" : ""}
+              onClick={() => setCurrentView("calculadora")}
+              disabled={loading}
+            >
+              Calculadora
+            </button>
+          )}
           <button
             className={currentView === "resumen" ? "active" : ""}
             onClick={() => setCurrentView("resumen")}
