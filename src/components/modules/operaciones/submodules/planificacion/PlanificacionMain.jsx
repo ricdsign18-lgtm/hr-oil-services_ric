@@ -14,107 +14,124 @@ import './Planning.css';
 
 
 const PlanificacionMain = () => {
-  const { semanas, loading, guardarSemanasGeneradas, getSemanasPlanificacion } = usePlanning();
-  const { generarSemanasProyecto } = useGeneradorSemanas();
-  const { selectedProject } = useProjects();
-  const { showToast } = useNotification();
-  const [selectedSemana, setSelectedSemana] = useState(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
+    const { semanas, loading, guardarSemanasGeneradas, getSemanasPlanificacion, eliminarPlanificacion } = usePlanning();
+    const { generarSemanasProyecto } = useGeneradorSemanas();
+    const { selectedProject } = useProjects();
+    const { showToast } = useNotification();
+    const [selectedSemana, setSelectedSemana] = useState(null);
+    const [showInfoModal, setShowInfoModal] = useState(false);
 
-  useEffect(() => {
-    if (selectedProject) {
-      getSemanasPlanificacion();
+    useEffect(() => {
+        if (selectedProject) {
+            getSemanasPlanificacion();
+        }
+    }, [selectedProject, getSemanasPlanificacion]);
+
+    const handleGenerarPlanificacion = async () => {
+        if (!selectedProject) {
+            showToast("Por favor, selecciona un proyecto primero.", "warning");
+            return;
+        }
+
+        // Asegurarse de tener el objeto completo del proyecto con las fechas
+        const { data: fullProject, error } = await supabase
+            .from('projects')
+            .select('start_date, end_date')
+            .eq('id', selectedProject.id)
+            .single();
+
+        if (error || !fullProject) {
+            console.error("No se pudieron obtener los detalles completos del proyecto:", error);
+            return;
+        }
+
+        const semanasGeneradas = generarSemanasProyecto({
+            fecha_inicio: fullProject.start_date,
+            fecha_fin: fullProject.end_date
+        });
+        if (semanasGeneradas && semanasGeneradas.length > 0) {
+            await guardarSemanasGeneradas(semanasGeneradas);
+            showToast("Planificación generada exitosamente", "success");
+        }
+    };
+
+
+    if (loading && semanas.length === 0) {
+        return <div className="planning-no-content">Cargando planificación...</div>;
     }
-  }, [selectedProject, getSemanasPlanificacion]);
 
-  const handleGenerarPlanificacion = async () => {
-    if (!selectedProject) {
-      showToast("Por favor, selecciona un proyecto primero.", "warning");
-      return;
-    }
+    return (
+        <div className="planning-container">
+            {
+                selectedSemana ? (
+                    <SemanaDetail
+                        semana={selectedSemana}
+                        onBack={() => setSelectedSemana(null)}
+                    />
+                ) : (
+                    <>
+                        <ModuleDescription
+                            title="PLANIFICACIÓN DEL PROYECTO"
+                            description={semanas.length > 0 ? `${semanas.length} semanas planificadas` : "Gestión y generación de semanas de trabajo"}
+                            action={
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    {semanas.length > 0 && (
+                                        <button
+                                            className="btn-info-circle"
+                                            onClick={() => {
+                                                if (window.confirm('¿Estás seguro de eliminar toda la planificación? Esto borrará semanas, días y actividades de forma permanente.')) {
+                                                    eliminarPlanificacion();
+                                                    showToast("Planificación eliminada", "info");
+                                                }
+                                            }}
+                                            title="Eliminar toda la planificación"
+                                            style={{ backgroundColor: '#ffebee', color: '#c62828', borderColor: '#ef9a9a' }}
+                                        >
+                                            🗑️
+                                        </button>
+                                    )}
+                                    <button
+                                        className="btn-info-circle"
+                                        onClick={() => setShowInfoModal(true)}
+                                        title="Ver información del módulo"
+                                    >
+                                        <InfoIcon />
+                                    </button>
+                                </div>
+                            }
+                        />
 
-    // Asegurarse de tener el objeto completo del proyecto con las fechas
-    const { data: fullProject, error } = await supabase
-      .from('projects')
-      .select('start_date, end_date')
-      .eq('id', selectedProject.id)
-      .single();
+                        {semanas.length > 0 ? (
+                            <SemanasList
+                                semanas={semanas}
+                                onSelectSemana={setSelectedSemana}
+                            />
+                        ) : (
+                            <div className="planning-no-content">
+                                <button onClick={handleGenerarPlanificacion} className="btn-primary">Generar Planificación Inicial</button>
+                            </div>
+                        )}
+                    </>
+                )
+            }
 
-    if (error || !fullProject) {
-      console.error("No se pudieron obtener los detalles completos del proyecto:", error);
-      return;
-    }
+            <Modal
+                isOpen={showInfoModal}
+                onClose={() => setShowInfoModal(false)}
+                title="Información de Planificación"
+            >
+                <div className="modal-info-content">
+                    <p>Este módulo permite generar y visualizar la planificación semanal del proyecto.</p>
 
-    const semanasGeneradas = generarSemanasProyecto({
-      fecha_inicio: fullProject.start_date,
-      fecha_fin: fullProject.end_date
-    });
-    if (semanasGeneradas && semanasGeneradas.length > 0) {
-      await guardarSemanasGeneradas(semanasGeneradas);
-      showToast("Planificación generada exitosamente", "success");
-    }
-  };
-
-
-  if (loading && semanas.length === 0) {
-    return <div className="planning-no-content">Cargando planificación...</div>;
-  }
-
-  return (
-    <div className="planning-container">
-      {
-        selectedSemana ? (
-          <SemanaDetail 
-            semana={selectedSemana}
-            onBack={() => setSelectedSemana(null)}
-          />
-        ) : (
-          <>
-            <ModuleDescription 
-              title="PLANIFICACIÓN DEL PROYECTO"
-              description={semanas.length > 0 ? `${semanas.length} semanas planificadas` : "Gestión y generación de semanas de trabajo"}
-              action={
-                <button 
-                  className="btn-info-circle"
-                  onClick={() => setShowInfoModal(true)}
-                  title="Ver información del módulo"
-                >
-                  <InfoIcon/>
-                </button>
-              }
-            />
-            
-            {semanas.length > 0 ? (
-              <SemanasList 
-                semanas={semanas}
-                onSelectSemana={setSelectedSemana}
-              />
-            ) : (
-              <div className="planning-no-content">
-                <button onClick={handleGenerarPlanificacion} className="btn-primary">Generar Planificación Inicial</button>
-              </div>
-            )}
-          </>
-        )
-      }
-
-      <Modal
-        isOpen={showInfoModal}
-        onClose={() => setShowInfoModal(false)}
-        title="Información de Planificación"
-      >
-        <div className="modal-info-content">
-          <p>Este módulo permite generar y visualizar la planificación semanal del proyecto.</p>
-          
-          <h3>Funcionalidades:</h3>
-          <ul className="info-list">
-            <li><strong>Generación Automática:</strong> Crea semanas de trabajo basadas en la fecha de inicio y fin del proyecto.</li>
-            <li><strong>Gestión de Semanas:</strong> Visualiza el estado y detalles de cada semana.</li>
-            <li><strong>Asignación de Actividades:</strong> (Próximamente) Asigna actividades específicas a cada semana.</li>
-          </ul>
+                    <h3>Funcionalidades:</h3>
+                    <ul className="info-list">
+                        <li><strong>Generación Automática:</strong> Crea semanas de trabajo basadas en la fecha de inicio y fin del proyecto.</li>
+                        <li><strong>Gestión de Semanas:</strong> Visualiza el estado y detalles de cada semana.</li>
+                        <li><strong>Asignación de Actividades:</strong> (Próximamente) Asigna actividades específicas a cada semana.</li>
+                    </ul>
+                </div>
+            </Modal>
         </div>
-      </Modal>
-    </div>
-  );
+    );
 };
 export default PlanificacionMain;

@@ -41,8 +41,10 @@ export const DiasList = ({ semanaId }) => {
   return (
     <>
       {selectedDia ? (
-        <DiaPlanning 
-          dia={selectedDia} 
+        <DiaPlanning
+          dia={selectedDia}
+          allDias={diasDeLaSemana}
+          onNavigate={setSelectedDia}
           onBack={handleBackFromDia}
         />
       ) : (
@@ -53,7 +55,7 @@ export const DiasList = ({ semanaId }) => {
                 key={dia.id}
                 className="planning-dia-item"
                 onClick={() => setSelectedDia(dia)}
-                style={{cursor: 'pointer'}}
+                style={{ cursor: 'pointer' }}
               >
                 <div className="planning-dia-header">
                   <h4>
@@ -64,7 +66,7 @@ export const DiasList = ({ semanaId }) => {
                     })}
                   </h4>
                 </div>
-                <p className="planning-semana-dates" style={{margin: 0}}>
+                <p className="planning-semana-dates" style={{ margin: 0 }}>
                   {dia.cantidad_actividades || 0} actividades • ${dia.monto_planificado?.toLocaleString() || 0}
                 </p>
               </div>

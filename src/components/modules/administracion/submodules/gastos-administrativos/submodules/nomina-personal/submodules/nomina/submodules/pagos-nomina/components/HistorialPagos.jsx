@@ -1,4 +1,5 @@
 
+
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/HistorialPagos.jsx
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
@@ -60,7 +61,7 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
   const calcularTotalesPago = (pago) => {
     return pago.pagos.reduce(
       (totales, pagoEmp) => ({
-        totalUSD: totales.totalUSD + pagoEmp.subtotalUSD + (pagoEmp.montoExtraUSD || 0),
+        totalUSD: totales.totalUSD + (pagoEmp.montoTotalUSD || 0),
         totalBs: totales.totalBs + pagoEmp.subtotalBs,
         totalPagar: totales.totalPagar + pagoEmp.totalPagarBs + (pagoEmp.montoExtraBs || 0),
       }),
@@ -271,11 +272,18 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
                           {pagoEmp.empleado.nombre} {pagoEmp.empleado.apellido}
                         </span>
                         <div className="amounts">
-                          <span className="amount-bs">
-                            Bs {(pagoEmp.totalPagarBs + (pagoEmp.montoExtraBs || 0)).toFixed(2)}
-                          </span>
-                          <span className="amount-usd">
-                            $ {(pagoEmp.subtotalUSD + (pagoEmp.montoExtraUSD || 0)).toFixed(2)}
+                          {(pagoEmp.deduccionesManualesUSD > 0) && (
+                            <span className="amount-deduc" style={{ color: '#ef4444', marginRight: '0.5rem', fontSize: '0.85rem' }}>
+                              Ded: ${pagoEmp.deduccionesManualesUSD.toFixed(2)}
+                            </span>
+                          )}
+                          {(pagoEmp.adelantosUSD > 0) && (
+                            <span className="amount-adel" style={{ color: '#f59e0b', marginRight: '0.5rem', fontSize: '0.85rem' }}>
+                              Adel: ${pagoEmp.adelantosUSD.toFixed(2)}
+                            </span>
+                          )}
+                          <span className="amount-usd" style={{ fontWeight: 'bold' }}>
+                            Total: $ {(pagoEmp.montoTotalUSD || 0).toFixed(2)}
                           </span>
                         </div>
                       </div>

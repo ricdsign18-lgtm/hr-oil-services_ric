@@ -10,18 +10,19 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
   const { budget } = useBudget();
   const { convertToUSD, formatCurrency } = useCurrency();
   const { validarActividad } = useValidaciones();
-  
+
   const [formData, setFormData] = useState({
-    equipo_nombre: '', // Campo para el input de texto
+    equipo_nombre: '',
     equipo_id: '',
     tipo_equipo: '',
     partida_id: '',
     cantidad: 1,
     observaciones: '',
-    subactividades: '' // Nuevo campo para el textarea
+    subactividades: [''] // Inicializar con un campo vacío
   });
   const [loading, setLoading] = useState(false);
   const [errores, setErrores] = useState({});
+  const [partidaSearch, setPartidaSearch] = useState('');
 
   const isEditMode = !!actividadAEditar;
 
@@ -35,14 +36,15 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
         partida_id: actividadAEditar.partida_id,
         cantidad: actividadAEditar.cantidad,
         observaciones: actividadAEditar.observaciones || '',
-        // Las subactividades se guardan como array, las convertimos a string para el textarea
-        subactividades: (actividadAEditar.subactividades || []).join('\n'),
+        subactividades: (actividadAEditar.subactividades && actividadAEditar.subactividades.length > 0)
+          ? actividadAEditar.subactividades
+          : [''],
       });
     }
   }, [actividadAEditar, isEditMode, equipos]);
 
   // Calcular monto total automáticamente
-  const partidaSeleccionada = budget?.items?.find(item => item.id === formData.partida_id);  
+  const partidaSeleccionada = budget?.items?.find(item => item.id === formData.partida_id);
   const precioUnitarioOriginal = partidaSeleccionada?.precioUnitario || 0;
   const monedaOriginal = partidaSeleccionada?.moneda || 'USD';
 
@@ -50,30 +52,51 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
   const montoTotalUSD = precioUnitarioUSD * (formData.cantidad || 0);
 
   const montoTotalOriginal = precioUnitarioOriginal * (formData.cantidad || 0);
-  const displayMontoTotal = monedaOriginal !== 'USD' 
+  const displayMontoTotal = monedaOriginal !== 'USD'
     ? `${formatCurrency(montoTotalOriginal, monedaOriginal)} (${formatCurrency(montoTotalUSD, 'USD')})`
     : formatCurrency(montoTotalUSD, 'USD');
 
-
+  // Filtrar partidas
+  const partidasFiltradas = budget?.items?.filter(item => {
+    const searchLower = partidaSearch.toLowerCase();
+    return (
+      item.item.toLowerCase().includes(searchLower) ||
+      item.descripcion.toLowerCase().includes(searchLower)
+    );
+  }) || [];
 
   const handleEquipoChange = (e) => {
     const nombre = e.target.value;
-    // Resetear campos relacionados al escribir
     setFormData(prev => ({ ...prev, equipo_nombre: nombre, equipo_id: '', tipo_equipo: '' }));
 
-    // Intentar encontrar el equipo por nombre o tag
     const equipoEncontrado = equipos.find(
-      eq => eq.nombre.toLowerCase() === nombre.toLowerCase() || 
-            eq.tag_serial.toLowerCase() === nombre.toLowerCase()
+      eq => eq.nombre.toLowerCase() === nombre.toLowerCase() ||
+        eq.tag_serial.toLowerCase() === nombre.toLowerCase()
     );
 
     if (equipoEncontrado) {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         equipo_id: equipoEncontrado.id,
-        tipo_equipo: equipoEncontrado.tipo_equipo // Rellenar tipo de equipo
+        tipo_equipo: equipoEncontrado.tipo_equipo
       }));
     }
+  };
+
+  // Manejo de subactividades dinámicas
+  const handleSubactividadChange = (index, value) => {
+    const newSubactividades = [...formData.subactividades];
+    newSubactividades[index] = value;
+    setFormData({ ...formData, subactividades: newSubactividades });
+  };
+
+  const addSubactividad = () => {
+    setFormData({ ...formData, subactividades: [...formData.subactividades, ''] });
+  };
+
+  const removeSubactividad = (index) => {
+    const newSubactividades = formData.subactividades.filter((_, i) => i !== index);
+    setFormData({ ...formData, subactividades: newSubactividades });
   };
 
   const handleSubmit = async (e) => {
@@ -83,16 +106,14 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
     try {
       let equipoIdFinal = formData.equipo_id;
 
-      // 1. Si no hay ID de equipo pero sí un nombre, crear el equipo
       if (!equipoIdFinal && formData.equipo_nombre.trim()) {
         const nuevoEquipo = await crearEquipo(
           formData.equipo_nombre.trim(),
-          formData.tipo_equipo.trim() || 'No especificado' // Usar el tipo ingresado o un default
+          formData.tipo_equipo.trim() || 'No especificado'
         );
         equipoIdFinal = nuevoEquipo.id;
       }
 
-      // 2. Validar los datos (ahora con el equipoId asegurado)
       const datosParaValidar = {
         ...formData,
         equipo_id: equipoIdFinal,
@@ -106,10 +127,9 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
         return;
       }
 
-      // Convertir subactividades de string a array JSON
-      const subactividadesArray = formData.subactividades.split('\n').filter(line => line.trim() !== '');
+      // Filtrar subactividades vacías
+      const subactividadesArray = formData.subactividades.filter(s => s.trim() !== '');
 
-      // 3. Crear la actividad planificada
       const actividadPayload = {
         equipo_id: equipoIdFinal,
         partida_id: formData.partida_id,
@@ -128,7 +148,7 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
           dia_id: diaId,
         });
       }
-      
+
       onSuccess();
     } catch (error) {
       console.error('Error creando actividad:', error);
@@ -141,7 +161,7 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
   return (
     <div className="form-container">
       <h3>{isEditMode ? 'Editar Actividad' : 'Nueva Actividad'}</h3>
-      
+
       <form onSubmit={handleSubmit}>
         {/* Equipo y Tipo de Equipo */}
         <div className="form-grid cols-2">
@@ -172,31 +192,41 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
               onChange={(e) => setFormData({ ...formData, tipo_equipo: e.target.value })}
               placeholder="Ej: Camioneta, Grúa, etc."
               className="form-control"
-              disabled={!!formData.equipo_id} // Deshabilitado si el equipo ya existe
+              disabled={!!formData.equipo_id}
             />
           </div>
         </div>
 
-        {/* Partida */}
-        <div className="form-group" style={{marginTop: '20px'}}>
+        {/* Partida con Buscador */}
+        <div className="form-group" style={{ marginTop: '20px' }}>
           <label className="form-label">Partida Presupuestaria *</label>
+          <input
+            type="text"
+            placeholder="Buscar partida por nombre o código..."
+            className="form-control"
+            style={{ marginBottom: '5px' }}
+            value={partidaSearch}
+            onChange={(e) => setPartidaSearch(e.target.value)}
+          />
           <select
             value={formData.partida_id}
             onChange={(e) => setFormData({ ...formData, partida_id: e.target.value })}
             className="form-control"
+            size={5} // Mostrar varias opciones para facilitar la selección
           >
             <option value="">Seleccionar partida</option>
-            {budget?.items?.map(item => (
+            {partidasFiltradas.map(item => (
               <option key={item.id} value={item.id} data-moneda={item.moneda}>
                 {item.item} - {item.descripcion} (${item.precioUnitario?.toLocaleString()}/{item.unidad})
               </option>
             ))}
           </select>
+          {partidasFiltradas.length === 0 && <p className="text-muted" style={{ fontSize: '0.8rem' }}>No se encontraron partidas</p>}
           {errores.partida && <p className="form-error">{errores.partida}</p>}
         </div>
 
         {/* Cantidad y Monto */}
-        <div className="form-grid cols-2" style={{marginTop: '20px'}}>
+        <div className="form-grid cols-2" style={{ marginTop: '20px' }}>
           <div className="form-group">
             <label className="form-label">Cantidad *</label>
             <input
@@ -217,21 +247,42 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
           </div>
         </div>
 
-        {/* Subactividades */}
-        <div className="form-group" style={{marginTop: '20px'}}>
-          <label className="form-label">Subactividades (una por línea)</label>
-          <textarea
-            value={formData.subactividades}
-            onChange={(e) => setFormData({ ...formData, subactividades: e.target.value })}
-            rows="4"
-            className="form-control"
-            placeholder="Ej: Inspección de frenos&#10;Cambio de aceite&#10;Revisión de neumáticos"
-          />
+        {/* Subactividades Dinámicas */}
+        <div className="form-group" style={{ marginTop: '20px' }}>
+          <label className="form-label">Subactividades</label>
+          {formData.subactividades.map((sub, index) => (
+            <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+              <input
+                type="text"
+                value={sub}
+                onChange={(e) => handleSubactividadChange(index, e.target.value)}
+                className="form-control"
+                placeholder={`Subactividad ${index + 1}`}
+              />
+              <button
+                type="button"
+                onClick={() => removeSubactividad(index)}
+                className="btn-secondary"
+                style={{ padding: '0 10px', color: '#d32f2f', borderColor: '#d32f2f' }}
+                title="Eliminar subactividad"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addSubactividad}
+            className="btn-secondary"
+            style={{ fontSize: '0.9rem', width: '100%' }}
+          >
+            + Agregar Subactividad
+          </button>
         </div>
 
 
         {/* Observaciones */}
-        <div className="form-group" style={{marginTop: '20px'}}>
+        <div className="form-group" style={{ marginTop: '20px' }}>
           <label className="form-label">Observaciones</label>
           <textarea
             value={formData.observaciones}

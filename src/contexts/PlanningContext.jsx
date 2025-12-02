@@ -17,7 +17,7 @@ export const usePlanning = () => {
 export const PlanningProvider = ({ children }) => {
   const { selectedProject } = useProjects();
   const { budget } = useBudget();
-  
+
   const [semanas, setSemanas] = useState([]);
   const [dias, setDias] = useState([]);
   const [actividades, setActividades] = useState([]);
@@ -28,7 +28,7 @@ export const PlanningProvider = ({ children }) => {
   const getSemanasPlanificacion = useCallback(async () => {
     if (!selectedProject) return;
     setLoading(true);
-    
+
     const { data, error } = await supabase
       .from('planificacion_semanas')
       .select('*')
@@ -50,7 +50,7 @@ export const PlanningProvider = ({ children }) => {
       .select('*')
       .eq('id', semanaId)
       .single();
-    
+
     if (error) {
       console.error('Error fetching semana by id:', error);
     } else if (data) {
@@ -63,7 +63,7 @@ export const PlanningProvider = ({ children }) => {
   const getEquipos = useCallback(async () => {
     if (!selectedProject) return;
     setLoading(true);
-    
+
     const { data, error } = await supabase
       .from('equipos')
       .select('*')
@@ -82,29 +82,29 @@ export const PlanningProvider = ({ children }) => {
     if (!selectedProject) throw new Error("No hay un proyecto seleccionado para crear el equipo.");
     setLoading(true);
     try {
-        const { data, error } = await supabase
-            .from('equipos')
-            .insert([{
-                project_id: selectedProject.id,
-                nombre: nombreEquipo,
-                tag_serial: nombreEquipo.toUpperCase().replace(/\s/g, '-'), // Generar un tag simple
-                tipo_equipo: tipoEquipo
-            }])
-            .select()
-            .single();
+      const { data, error } = await supabase
+        .from('equipos')
+        .insert([{
+          project_id: selectedProject.id,
+          nombre: nombreEquipo,
+          tag_serial: nombreEquipo.toUpperCase().replace(/\s/g, '-'), // Generar un tag simple
+          tipo_equipo: tipoEquipo
+        }])
+        .select()
+        .single();
 
-        if (error) throw error;
-        setEquipos(prev => [...prev, data]); // Actualizar estado local para que esté disponible inmediatamente
-        return data;
+      if (error) throw error;
+      setEquipos(prev => [...prev, data]); // Actualizar estado local para que esté disponible inmediatamente
+      return data;
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   }, [selectedProject]);
 
   // Crear actividad
   const crearActividadPlanificada = useCallback(async (actividadData) => {
     setLoading(true);
-    
+
     try {
       const { data, error } = await supabase
         .from('planificacion_actividades')
@@ -152,8 +152,7 @@ export const PlanningProvider = ({ children }) => {
         .eq('id', actividadId);
 
       if (error) throw error;
-    } catch (error)
-    {
+    } catch (error) {
       console.error('Error eliminando actividad:', error);
       throw error;
     } finally {
@@ -223,6 +222,7 @@ export const PlanningProvider = ({ children }) => {
   const guardarSemanasGeneradas = useCallback(async (semanasGeneradas) => {
     if (!selectedProject) return;
     setLoading(true);
+    console.log("Guardando semanas generadas:", semanasGeneradas);
 
     // 1. Preparar y guardar las semanas
     const semanasParaGuardar = semanasGeneradas.map(s => ({
@@ -243,16 +243,33 @@ export const PlanningProvider = ({ children }) => {
       setLoading(false);
       return;
     }
+    console.log("Semanas guardadas en DB:", semanasGuardadas);
 
     // 2. Preparar y guardar los días
-    const diasParaGuardar = semanasGuardadas.flatMap((semanaGuardada, index) => {
-      const semanaOriginal = semanasGeneradas[index];
+    // Usamos map para asegurar que los días se asignen a la semana correcta
+    const diasParaGuardar = semanasGuardadas.flatMap((semanaGuardada) => {
+      // IMPORTANTE: Asegurar que la comparación de numero_semana sea correcta (ambos números)
+      const semanaOriginal = semanasGeneradas.find(s => Number(s.numeroSemana) === Number(semanaGuardada.numero_semana));
+
+      if (!semanaOriginal) {
+        console.warn(`No se encontró la semana original para la semana guardada ${semanaGuardada.numero_semana}`);
+        return [];
+      }
+
       return semanaOriginal.dias.map(dia => ({
         semana_id: semanaGuardada.id,
         fecha: dia.toISOString(),
         estado: 'planificado'
       }));
     });
+
+    console.log("Días preparados para guardar:", diasParaGuardar);
+
+    if (diasParaGuardar.length === 0) {
+      console.warn("No hay días para guardar. Verifique la generación de semanas.");
+      setLoading(false);
+      return;
+    }
 
     const { error: errorDias } = await supabase
       .from('planificacion_dias')
@@ -268,10 +285,32 @@ export const PlanningProvider = ({ children }) => {
         .in('id', idsSemanasFallidas);
       setLoading(false);
     } else {
+      console.log("Días guardados exitosamente.");
       // 3. Actualizar el estado local
-      setSemanas(semanasGuardadas || []);
+      getSemanasPlanificacion();
     }
 
+    setLoading(false);
+  }, [selectedProject, getSemanasPlanificacion]);
+
+  const eliminarPlanificacion = useCallback(async () => {
+    if (!selectedProject) return;
+    setLoading(true);
+
+    // Eliminar semanas (Cascade debería eliminar días y actividades si está configurado, 
+    // pero por seguridad intentamos limpiar todo lo relacionado al proyecto en este módulo)
+    const { error } = await supabase
+      .from('planificacion_semanas')
+      .delete()
+      .eq('project_id', selectedProject.id);
+
+    if (error) {
+      console.error("Error eliminando planificación:", error);
+    } else {
+      setSemanas([]);
+      setDias([]);
+      setActividades([]);
+    }
     setLoading(false);
   }, [selectedProject]);
 
@@ -304,13 +343,14 @@ export const PlanningProvider = ({ children }) => {
     crearRequerimiento,
     recalcularMontosSemana,
     recalcularMontoRequerimientosSemana,
-    guardarSemanasGeneradas
+    guardarSemanasGeneradas,
+    eliminarPlanificacion
   }), [
     semanas, dias, actividades, equipos, loading,
-    getSemanasPlanificacion, getSemanaById, getEquipos, crearEquipo, 
-    crearActividadPlanificada, updateActividad, deleteActividad, 
+    getSemanasPlanificacion, getSemanaById, getEquipos, crearEquipo,
+    crearActividadPlanificada, updateActividad, deleteActividad,
     crearRequerimiento, recalcularMontosSemana, recalcularMontoRequerimientosSemana,
-    guardarSemanasGeneradas
+    guardarSemanasGeneradas, eliminarPlanificacion
   ]);
 
   return (

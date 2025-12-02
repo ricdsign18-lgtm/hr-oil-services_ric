@@ -19,6 +19,7 @@ const CalculadoraPagos = ({
 
   const [horasExtras, setHorasExtras] = useState({});
   const [deduccionesManuales, setDeduccionesManuales] = useState({});
+  const [adelantosSueldo, setAdelantosSueldo] = useState({});
   const [montoExtraBs, setMontoExtraBs] = useState({});
   const [diasPagoQuincenal, setDiasPagoQuincenal] = useState({});
   const [mitadPagoQuincenal, setMitadPagoQuincenal] = useState({});
@@ -142,6 +143,7 @@ const CalculadoraPagos = ({
     const initialObservaciones = {};
     const initialHorasExtras = {};
     const initialDeducciones = {};
+    const initialAdelantos = {};
     const initialMontoExtra = {};
 
     employees.forEach((emp) => {
@@ -156,6 +158,7 @@ const CalculadoraPagos = ({
         nocturna: 0,
       };
       initialDeducciones[emp.id] = deduccionesManuales[emp.id] || 0;
+      initialAdelantos[emp.id] = adelantosSueldo[emp.id] || 0;
       initialMontoExtra[emp.id] = montoExtraBs[emp.id] || 0;
     });
     setDiasPagoQuincenal((prev) => ({ ...prev, ...initialDias }));
@@ -175,6 +178,7 @@ const CalculadoraPagos = ({
     setObservaciones((prev) => ({ ...prev, ...newObservaciones }));
     setHorasExtras((prev) => ({ ...prev, ...initialHorasExtras }));
     setDeduccionesManuales((prev) => ({ ...prev, ...initialDeducciones }));
+    setAdelantosSueldo((prev) => ({ ...prev, ...initialAdelantos }));
     setMontoExtraBs((prev) => ({ ...prev, ...initialMontoExtra }));
   }, [employees, fechaPago]);
 
@@ -569,9 +573,13 @@ const CalculadoraPagos = ({
       deduccionesManuales[empleado.id] || 0
     );
 
-    // Subtotal en USD
+    // Adelantos de sueldo en USD
+    const adelantosUSD = parseFloat(adelantosSueldo[empleado.id] || 0);
+
+    // Subtotal en USD (Total a Pagar antes de monto extra)
+    // Se restan las deducciones y los adelantos
     const subtotalUSD =
-      salarioBase + totalHorasExtrasUSD - deduccionesManualesUSD;
+      salarioBase + totalHorasExtrasUSD - deduccionesManualesUSD - adelantosUSD;
 
     // Convertir a Bs
     const subtotalBs = subtotalUSD * parseFloat(tasaCambio || 0);
@@ -609,8 +617,9 @@ const CalculadoraPagos = ({
     // Total a pagar en Bs (SIN incluir monto extra)
     const totalPagarBs = subtotalBs - deduccionesLeyBs;
 
-    // Monto Total en USD (Total a Pagar USD + Monto Extra USD)
-    const montoTotalUSD = subtotalUSD + montoExtraUSD;
+    // Monto Total en USD (Total a Pagar USD + Monto Extra USD + Adelantos USD)
+    // Los adelantos se suman aquí porque son parte del dinero que recibe el empleado (ya recibido)
+    const montoTotalUSD = subtotalUSD + montoExtraUSD + adelantosUSD;
 
     return {
       empleado: {
@@ -621,7 +630,9 @@ const CalculadoraPagos = ({
       salarioBase,
       horasExtras: { diurna: horasDiurna, nocturna: horasNocturna },
       totalHorasExtrasUSD,
+      totalHorasExtrasUSD,
       deduccionesManualesUSD,
+      adelantosUSD,
       subtotalUSD,
       subtotalBs,
       deduccionesLeyBs,
@@ -700,6 +711,13 @@ const CalculadoraPagos = ({
 
   const handleDeduccionManualChange = (empleadoId, valor) => {
     setDeduccionesManuales((prev) => ({
+      ...prev,
+      [empleadoId]: parseFloat(valor) || 0,
+    }));
+  };
+
+  const handleAdelantoChange = (empleadoId, valor) => {
+    setAdelantosSueldo((prev) => ({
       ...prev,
       [empleadoId]: parseFloat(valor) || 0,
     }));
@@ -885,7 +903,8 @@ const CalculadoraPagos = ({
               <span>Días Asist.</span>
               <span>H. Extra D.</span>
               <span>H. Extra N.</span>
-              <span>Deduc./Adel.($)</span>
+              <span>Deduc.($)</span>
+              <span>Adel.($)</span>
               <span>Monto Extra (Bs)</span>
               <span>Banco</span>
               <span>Observaciones</span>
@@ -897,6 +916,7 @@ const CalculadoraPagos = ({
                 nocturna: 0,
               };
               const deduccionManual = deduccionesManuales[empleado.id] || 0;
+              const adelanto = adelantosSueldo[empleado.id] || 0;
               const montoExtra = montoExtraBs[empleado.id] || 0;
               const bancoPago = bancosPago[empleado.id] || "";
               const observacion = observaciones[empleado.id] || "";
@@ -979,6 +999,19 @@ const CalculadoraPagos = ({
                     />
                   </div>
 
+                  <div className="deduccion-manual-input">
+                    <input
+                      type="number"
+                      value={adelanto}
+                      onChange={(e) =>
+                        handleAdelantoChange(empleado.id, e.target.value)
+                      }
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+
                   <div className="monto-extra-input">
                     <input
                       type="number"
@@ -1054,7 +1087,8 @@ const CalculadoraPagos = ({
                 <span>Días a Pagar</span>
                 <span>H. Extra D.</span>
                 <span>H. Extra N.</span>
-                <span>Deduc./Adel. ($)</span>
+                <span>Deduc. ($)</span>
+                <span>Adel. ($)</span>
                 <span>Monto Extra (Bs)</span>
                 <span>Banco</span>
                 <span>Observaciones</span>
@@ -1069,6 +1103,7 @@ const CalculadoraPagos = ({
                   nocturna: 0,
                 };
                 const deduccionManual = deduccionesManuales[empleado.id] || 0;
+                const adelanto = adelantosSueldo[empleado.id] || 0;
                 const montoExtra = montoExtraBs[empleado.id] || 0;
                 const bancoPago = bancosPago[empleado.id] || "";
                 const observacion = observaciones[empleado.id] || "";
@@ -1219,6 +1254,19 @@ const CalculadoraPagos = ({
                       />
                     </div>
 
+                    <div className="deduccion-manual-input">
+                      <input
+                        type="number"
+                        value={adelanto}
+                        onChange={(e) =>
+                          handleAdelantoChange(empleado.id, e.target.value)
+                        }
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+
                     <div className="monto-extra-input">
                       <input
                         type="number"
@@ -1267,19 +1315,15 @@ const CalculadoraPagos = ({
         )}
 
 
-      {(empleadosPorTipo.operativaSemanal.length > 0 ||
-        empleadosPorTipo.operativaEspecialQuincenal.length > 0 ||
-        empleadosPorTipo.administrativaQuincenal.length > 0) && (
-          <div className="calculadora-actions">
-            <button
-              className="btn-primary large"
-              onClick={handleCalcular}
-              disabled={employees.length === 0 || !tasaCambio || !fechaPago}
-            >
-              🧮 Calcular Pagos
-            </button>
-          </div>
-        )}
+      <div className="calculadora-actions">
+        <button
+          className="btn-primary large"
+          onClick={handleCalcular}
+          disabled={employees.length === 0 || !tasaCambio || !fechaPago}
+        >
+          🧮 Calcular Pagos
+        </button>
+      </div>
 
       {/* Modal para agregar nuevo banco */}
       {showBancoModal && (

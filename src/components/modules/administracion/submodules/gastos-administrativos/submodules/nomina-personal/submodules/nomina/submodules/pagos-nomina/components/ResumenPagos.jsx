@@ -74,6 +74,7 @@ const ResumenPagos = ({
         "H. Extra N.": pago.horasExtras.nocturna,
         "Monto H. Extra Total ($)": pago.totalHorasExtrasUSD.toFixed(2),
         "Deducciones ($)": pago.deduccionesManualesUSD.toFixed(2),
+        "Adelantos ($)": (pago.adelantosUSD || 0).toFixed(2),
         "Total a Pagar ($)": pago.subtotalUSD.toFixed(2),
         "Monto Extra (Bs)": pago.montoExtraBs?.toFixed(2) || "0.00",
         "Monto Extra ($)": pago.montoExtraUSD?.toFixed(2) || "0.00",
@@ -138,6 +139,7 @@ const ResumenPagos = ({
         totalHorasExtras: totales.totalHorasExtras + pago.totalHorasExtrasUSD,
         totalDeduccionesManuales:
           totales.totalDeduccionesManuales + pago.deduccionesManualesUSD,
+        totalAdelantos: totales.totalAdelantos + (pago.adelantosUSD || 0),
         totalUSD: totales.totalUSD + pago.subtotalUSD,
         totalMontoExtraBs: totales.totalMontoExtraBs + (pago.montoExtraBs || 0),
         totalMontoExtraUSD: totales.totalMontoExtraUSD + (pago.montoExtraUSD || 0),
@@ -156,6 +158,7 @@ const ResumenPagos = ({
       {
         totalHorasExtras: 0,
         totalDeduccionesManuales: 0,
+        totalAdelantos: 0,
         totalUSD: 0,
         totalMontoExtraBs: 0,
         totalMontoExtraUSD: 0,
@@ -204,6 +207,7 @@ const ResumenPagos = ({
               <th>H. Extra N.</th>
               <th>Monto H. Extra Total ($)</th>
               <th>Deducciones ($)</th>
+              <th>Adelantos ($)</th>
               <th>Total a Pagar ($)</th>
               <th>Monto Extra (Bs)</th>
               <th>Monto Extra ($)</th>
@@ -248,6 +252,7 @@ const ResumenPagos = ({
                   <td className="text-center">{pago.horasExtras.nocturna}</td>
                   <td className="text-right">${pago.totalHorasExtrasUSD.toFixed(2)}</td>
                   <td className="text-right">${pago.deduccionesManualesUSD.toFixed(2)}</td>
+                  <td className="text-right">${(pago.adelantosUSD || 0).toFixed(2)}</td>
                   <td className="text-right">${pago.subtotalUSD.toFixed(2)}</td>
                   <td className="text-right">Bs {(pago.montoExtraBs || 0).toFixed(2)}</td>
                   <td className="text-right">${(pago.montoExtraUSD || 0).toFixed(2)}</td>
@@ -293,6 +298,7 @@ const ResumenPagos = ({
               <td colSpan="8" className="text-right"><strong>TOTALES:</strong></td>
               <td className="text-right"><strong>${totales.totalHorasExtras.toFixed(2)}</strong></td>
               <td className="text-right"><strong>${totales.totalDeduccionesManuales.toFixed(2)}</strong></td>
+              <td className="text-right"><strong>${totales.totalAdelantos.toFixed(2)}</strong></td>
               <td className="text-right"><strong>${totales.totalUSD.toFixed(2)}</strong></td>
               <td className="text-right"><strong>Bs {totales.totalMontoExtraBs.toFixed(2)}</strong></td>
               <td className="text-right"><strong>${totales.totalMontoExtraUSD.toFixed(2)}</strong></td>
