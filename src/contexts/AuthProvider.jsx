@@ -58,53 +58,54 @@ export const AuthProvider = ({ children }) => {
 
   // Función ASÍNCRONA para verificar permisos desde la base de datos
   const hasPermission = async (module, action = "read") => {
-    if (!userData || !userData.id) {
-      console.error("Usuario no autenticado");
-      return false;
-    }
+    // if (!userData || !userData.id) {
+    //   console.error("Usuario no autenticado");
+    //   return false;
+    // }
 
-    try {
-      // Si el usuario es admin, tiene todos los permisos
-      if (userData.role === "admin") {
-        return true;
-      }
+    // try {
+    //   // Si el usuario es admin, tiene todos los permisos
+    //   if (userData.role === "admin") {
+    //     return true;
+    //   }
 
-      // Consultar permisos desde la base de datos
-      const { data: permissions, error } = await supabase
-        .from("permissions")
-        .select("can_read, can_write, can_delete")
-        .eq("user_id", userData.id)
-        .single();
-//Es aqui donde se verifica si el usuario tiene permisos
-      if (error) {
-        console.error("Error al cargar permisos:", error);
-        return hasPermissionSync(module, action);
-      }
+    //   // Consultar permisos desde la base de datos
+    //   const { data: permissions, error } = await supabase
+    //     .from("permissions")
+    //     .select("can_read, can_write, can_delete")
+    //     .eq("user_id", userData.id)
+    //     .single();
+    // //Es aqui donde se verifica si el usuario tiene permisos
+    //   if (error) {
+    //     console.error("Error al cargar permisos:", error);
+    //     return hasPermissionSync(module, action);
+    //   }
 
-      if (!permissions) {
-        console.warn("No se encontraron permisos para el usuario");
-        return hasPermissionSync(module, action);
-      }
+    //   if (!permissions) {
+    //     console.warn("No se encontraron permisos para el usuario");
+    //     return hasPermissionSync(module, action);
+    //   }
 
-      // Mapear acciones a columnas de la base de datos
-      const actionMap = {
-        read: "can_read",
-        write: "can_write",
-        delete: "can_delete",
-      };
+    //   // Mapear acciones a columnas de la base de datos
+    //   const actionMap = {
+    //     read: "can_read",
+    //     write: "can_write",
+    //     delete: "can_delete",
+    //   };
 
-      const column = actionMap[action];
+    //   const column = actionMap[action];
 
-      if (column === undefined) {
-        console.error("Acción no válida:", action);
-        return false;
-      }
+    //   if (column === undefined) {
+    //     console.error("Acción no válida:", action);
+    //     return false;
+    //   }
 
-      return permissions[column] || false;
-    } catch (error) {
-      console.error("Error verificando permisos:", error);
-      return hasPermissionSync(module, action);
-    }
+    //   return permissions[column] || false;
+    // } catch (error) {
+    //   console.error("Error verificando permisos:", error);
+    //   return hasPermissionSync(module, action);
+    // }
+    return hasPermissionSync(module, action);
   };
 
   // Función SÍNCRONA para componentes que no pueden ser async
@@ -114,8 +115,8 @@ export const AuthProvider = ({ children }) => {
       return false;
     }
 
-    // Admin tiene todos los permisos
-    if (userData.role === "admin") return true;
+    // Admin y Editor tienen todos los permisos
+    if (userData.role === "admin" || userData.role === "editor") return true;
 
     // Mapeo básico de roles a permisos (como fallback cuando no hay permisos en BD)
     const rolePermissions = {
@@ -129,6 +130,9 @@ export const AuthProvider = ({ children }) => {
       viewer: {
         resumen: ["read"],
         administracion: ["read"],
+        contrato: ["read"],
+        coordinaciones: ["read"],
+        operaciones: ["read"],
       },
     };
 

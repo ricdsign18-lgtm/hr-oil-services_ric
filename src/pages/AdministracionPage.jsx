@@ -17,51 +17,55 @@ import IngresosComisionesMain from "../components/modules/administracion/submodu
 import IngresosPagosMain from "../components/modules/administracion/submodules/ingresos-comisiones/submodules/ingresos-pagos/IngresosPagosMain";
 import ComisionesMain from "../components/modules/administracion/submodules/ingresos-comisiones/submodules/comisiones/ComisionesMain";
 
+import { PersonalProvider } from "../contexts/PersonalContext";
+
 const AdministracionPage = () => {
   // Obtener el ID del proyecto seleccionado
   const { selectedProject } = useProjects();
   const projectId = selectedProject?.id;
   return (
     <ModulePage moduleId="administracion" showSubRoutes={true}>
-      <Routes>
-        <Route index element={<AdministracionMain />} />
-        <Route path="gastos-administrativos" element={<GastosAdminMain />} />
-        <Route
-          path="gastos-administrativos/nomina-personal"
-          element={<NominaPersonalMain />}
-        />
-        {/* Rutas para los sub-módulos de Nómina & Personal */}
-        <Route
-          path="gastos-administrativos/nomina-personal/registro-personal"
-          element={<RegistroPersonalMain />}
-        />
-        <Route
-          path="gastos-administrativos/nomina-personal/asistencia-diaria"
-          element={<AsistenciaDiariaMain />}
-        />
-        <Route
-          path="gastos-administrativos/nomina-personal/pagos-nomina"
-          element={<PagosNominaMain />}
-        />
+      <PersonalProvider>
+        <Routes>
+          <Route index element={<AdministracionMain />} />
+          <Route path="gastos-administrativos" element={<GastosAdminMain />} />
+          <Route
+            path="gastos-administrativos/nomina-personal"
+            element={<NominaPersonalMain />}
+          />
+          {/* Rutas para los sub-módulos de Nómina & Personal */}
+          <Route
+            path="gastos-administrativos/nomina-personal/registro-personal"
+            element={<RegistroPersonalMain />}
+          />
+          <Route
+            path="gastos-administrativos/nomina-personal/asistencia-diaria"
+            element={<AsistenciaDiariaMain />}
+          />
+          <Route
+            path="gastos-administrativos/nomina-personal/pagos-nomina"
+            element={<PagosNominaMain />}
+          />
 
-        {/* Nuevas rutas para Compra y Facturación */}
-        <Route
-          path="gastos-administrativos/compra-facturacion/*" // Añadir '/*' para rutas anidadas
-          element={<ComprasFacturacionMain projectId={projectId} />}
-        />
-        <Route
-          path="gastos-administrativos/compra-facturacion/compras-con-factura"
-          element={<ComprasConFacturaMain projectId={projectId} />}
-        />
-        <Route
-          path="gastos-administrativos/compra-facturacion/compras-sin-factura"
-          element={<ComprasSinFacturaMain projectId={projectId} />}
-        />
-        {/* Nuevas rutas para Ingresos y Comisiones*/}
-        <Route path="ingresos-comisiones" element={<IngresosComisionesMain />} />
-        <Route path="ingresos-comisiones/ingresos-pagos" element={<IngresosPagosMain />} />
-        <Route path="ingresos-comisiones/comisiones" element={<ComisionesMain />} />
-      </Routes>
+          {/* Nuevas rutas para Compra y Facturación */}
+          <Route
+            path="gastos-administrativos/compra-facturacion/*" // Añadir '/*' para rutas anidadas
+            element={<ComprasFacturacionMain projectId={projectId} />}
+          />
+          <Route
+            path="gastos-administrativos/compra-facturacion/compras-con-factura"
+            element={<ComprasConFacturaMain projectId={projectId} />}
+          />
+          <Route
+            path="gastos-administrativos/compra-facturacion/compras-sin-factura"
+            element={<ComprasSinFacturaMain projectId={projectId} />}
+          />
+          {/* Nuevas rutas para Ingresos y Comisiones*/}
+          <Route path="ingresos-comisiones" element={<IngresosComisionesMain />} />
+          <Route path="ingresos-comisiones/ingresos-pagos" element={<IngresosPagosMain />} />
+          <Route path="ingresos-comisiones/comisiones" element={<ComisionesMain />} />
+        </Routes>
+      </PersonalProvider>
     </ModulePage>
   );
 };

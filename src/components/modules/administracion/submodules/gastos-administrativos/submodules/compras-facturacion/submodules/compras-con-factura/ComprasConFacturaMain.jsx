@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects } from '../../../../../../../../../contexts/ProjectContext'
+import { AuthContext } from '../../../../../../../../../contexts/AuthContext'
 import ModuleDescription from '../../../../../../../_core/ModuleDescription/ModuleDescription'
 import FacturaForm from './components/FacturaForm'
 import FacturasList from './components/FacturasList'
 import ProveedoresList from './components/ProveedoresList'
-import './ComprasConFacturaMain.css'
 import { BackIcon, ClipBoardIcon, AddIcon, MultiUsersIcon, ConfigIcon, SearchIcons } from '../../../../../../../../../assets/icons/Icons'
+import './ComprasConFacturaMain.css'
 
 import Configuraciones from '../../components/Configuraciones'
 
 const ComprasConFacturaMain = ({ projectId }) => {
   const { selectedProject } = useProjects()
+  const { userData } = useContext(AuthContext)
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('lista-facturas')
   const [facturaEdit, setFacturaEdit] = useState(null)
@@ -23,6 +25,8 @@ const ComprasConFacturaMain = ({ projectId }) => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
   const [availableCategories, setAvailableCategories] = useState([]);
+
+  const isViewer = userData?.role === 'viewer'
 
   const handleFacturaSaved = () => {
     setFacturaEdit(null)
@@ -61,24 +65,31 @@ const ComprasConFacturaMain = ({ projectId }) => {
         >
           <span className="tab-icon"><ClipBoardIcon fill="white" style={{ width: '20px', height: '20px' }} /></span> Lista de Facturas
         </button>
-        <button
-          className={`ccf-tab-btn ${activeTab === 'nueva-factura' ? 'active' : ''}`}
-          onClick={() => setActiveTab('nueva-factura')}
-        >
-          <span className="tab-icon"><AddIcon fill="white" style={{ width: '20px', height: '20px' }} /></span> {facturaEdit ? 'Editar Factura' : 'Nueva Factura'}
-        </button>
+        
+        {!isViewer && (
+          <button
+            className={`ccf-tab-btn ${activeTab === 'nueva-factura' ? 'active' : ''}`}
+            onClick={() => setActiveTab('nueva-factura')}
+          >
+            <span className="tab-icon"><AddIcon fill="white" style={{ width: '20px', height: '20px' }} /></span> {facturaEdit ? 'Editar Factura' : 'Nueva Factura'}
+          </button>
+        )}
+
         <button
           className={`ccf-tab-btn ${activeTab === 'proveedores' ? 'active' : ''}`}
           onClick={() => setActiveTab('proveedores')}
         >
           <span className="tab-icon"><MultiUsersIcon fill="white" style={{ width: '20px', height: '20px' }} /></span> Proveedores y Retenciones
         </button>
-        <button
-          className={`ccf-tab-btn ${activeTab === 'configuraciones' ? 'active' : ''}`}
-          onClick={() => setActiveTab('configuraciones')}
-        >
-          <span className="tab-icon"><ConfigIcon fill="white" style={{ width: '20px', height: '20px' }} /></span> Configuraciones
-        </button>
+        
+        {!isViewer && (
+          <button
+            className={`ccf-tab-btn ${activeTab === 'configuraciones' ? 'active' : ''}`}
+            onClick={() => setActiveTab('configuraciones')}
+          >
+            <span className="tab-icon"><ConfigIcon fill="white" style={{ width: '20px', height: '20px' }} /></span> Configuraciones
+          </button>
+        )}
       </div>
 
       {(activeTab === 'lista-facturas' || activeTab === 'proveedores') && (
@@ -143,7 +154,7 @@ const ComprasConFacturaMain = ({ projectId }) => {
             onCategoriesLoaded={setAvailableCategories}
           />
         )}
-        {activeTab === 'nueva-factura' && (
+        {activeTab === 'nueva-factura' && !isViewer && (
           <FacturaForm
             projectId={projectId}
             onFacturaSaved={handleFacturaSaved}
@@ -157,7 +168,7 @@ const ComprasConFacturaMain = ({ projectId }) => {
             refreshTrigger={refreshData}
           />
         )}
-        {activeTab === 'configuraciones' && (
+        {activeTab === 'configuraciones' && !isViewer && (
           <Configuraciones projectId={projectId} />
         )}
       </div>

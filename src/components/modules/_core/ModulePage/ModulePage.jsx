@@ -11,40 +11,8 @@ const ModulePage = ({
   showSubRoutes = false,
   customContent = null,
 }) => {
-  const { hasPermission, hasPermissionSync } = useAuth();
-  const [hasAccess, setHasAccess] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkPermission = async () => {
-      try {
-        setLoading(true);
-
-        const permission = await hasPermission(moduleId, "read");
-        setHasAccess(permission);
-      } catch (error) {
-        console.error("Error verificando permisos:", error);
-        // En caso de error, usar la versión síncrona como fallback
-        const fallbackPermission = hasPermissionSync(moduleId, "read");
-        setHasAccess(fallbackPermission);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkPermission();
-  }, [moduleId, hasPermission, hasPermissionSync]);
-
-  // Mostrar loading mientras se verifican permisos
-  if (loading) {
-    return (
-      <div className="module-container">
-        <div className="module-loading">
-          <p>Verificando permisos...</p>
-        </div>
-      </div>
-    );
-  }
+  const { hasPermissionSync } = useAuth();
+  const hasAccess = hasPermissionSync(moduleId, "read");
 
   // Si no tiene permisos, mostrar mensaje de acceso denegado
   if (!hasAccess) {

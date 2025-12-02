@@ -5,12 +5,16 @@ import { useState, useEffect, useRef } from "react";
 import "./UserRegister.css";
 import { UserIcon, OutIcon, ArrowDown } from "../../../assets/icons/Icons";
 import { UserRegisterPanel } from "./UserRegisterPanel";
+import UserManagementModal from "./UserManagementModal";
+import UserPermissionsModal from "./UserPermissionsModal";
 import bcrypt from "bcryptjs";
 import supabase from "../../../api/supaBase";
 import FeedbackModal from "../../common/FeedbackModal/FeedbackModal";
 
 export const UserRegister = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isManageUsersModalOpen, setIsManageUsersModalOpen] = useState(false);
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const { registerUser, userData: currentUser, logout } = useAuth();
   
@@ -128,6 +132,8 @@ export const UserRegister = () => {
           user={currentUser}
           onLogout={logout}
           onCreateUser={handleOpenModal}
+          onManageUsers={() => setIsManageUsersModalOpen(true)}
+          onManagePermissions={() => setIsPermissionsModalOpen(true)}
         />
       )}
 
@@ -206,6 +212,16 @@ export const UserRegister = () => {
           </button>
         </form>
       </Modal>
+
+      <UserManagementModal
+        isOpen={isManageUsersModalOpen}
+        onClose={() => setIsManageUsersModalOpen(false)}
+      />
+
+      <UserPermissionsModal
+        isOpen={isPermissionsModalOpen}
+        onClose={() => setIsPermissionsModalOpen(false)}
+      />
 
       <FeedbackModal
         isOpen={feedback.isOpen}

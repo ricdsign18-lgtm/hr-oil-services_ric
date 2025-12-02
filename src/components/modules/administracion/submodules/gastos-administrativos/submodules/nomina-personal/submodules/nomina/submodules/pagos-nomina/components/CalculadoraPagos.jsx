@@ -1267,15 +1267,19 @@ const CalculadoraPagos = ({
         )}
 
 
-      <div className="calculadora-actions">
-        <button
-          className="btn-primary large"
-          onClick={handleCalcular}
-          disabled={employees.length === 0 || !tasaCambio || !fechaPago}
-        >
-          🧮 Calcular Pagos
-        </button>
-      </div>
+      {(empleadosPorTipo.operativaSemanal.length > 0 ||
+        empleadosPorTipo.operativaEspecialQuincenal.length > 0 ||
+        empleadosPorTipo.administrativaQuincenal.length > 0) && (
+          <div className="calculadora-actions">
+            <button
+              className="btn-primary large"
+              onClick={handleCalcular}
+              disabled={employees.length === 0 || !tasaCambio || !fechaPago}
+            >
+              🧮 Calcular Pagos
+            </button>
+          </div>
+        )}
 
       {/* Modal para agregar nuevo banco */}
       {showBancoModal && (

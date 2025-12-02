@@ -1,0 +1,173 @@
+/* UserPermissionsModal.css */
+
+.permissions-container {
+    padding: 0 10px;
+}
+
+.permissions-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.col-user {
+    font-weight: 600;
+    color: #888;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.col-role-header {
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #888;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.col-role-header.admin { color: #9c27b0; }
+.col-role-header.editor { color: #2196f3; }
+.col-role-header.viewer { color: #555; }
+
+.role-icon {
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.permissions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.permission-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    padding: 10px 15px;
+    background-color: #fff;
+    border-radius: 8px;
+    align-items: center;
+    border: 1px solid #f5f5f5;
+}
+
+.permission-row:hover {
+    background-color: #fafafa;
+    border-color: #eee;
+}
+
+.col-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px; /* Rounded square as per image */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.user-details-small {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name-small {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.user-email-small {
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.col-role-toggle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 32px; /* Reduced to match image */
+    height: 18px; /* Slightly smaller height */
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e0e0e0; /* Default grey for inactive */
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+}
+
+.slider.round {
+    border-radius: 18px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Admin Toggle */
+input:checked + .admin-slider {
+    background-color: #9c27b0;
+}
+
+/* Editor Toggle */
+input:checked + .editor-slider {
+    background-color: #2196f3;
+}
+
+/* Viewer Toggle */
+input:checked + .viewer-slider {
+    background-color: #757575;
+}
+
+input:checked + .slider:before {
+    transform: translateX(14px); /* Adjusted for 32px width */
+}
+
+.loading-text {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
