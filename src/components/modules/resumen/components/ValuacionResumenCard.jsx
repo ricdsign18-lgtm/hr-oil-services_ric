@@ -144,7 +144,7 @@ const ValuacionResumenCard = ({
 
   const totalPagosNominaUSD = pagosPeriodo.reduce((acc, curr) => {
     const totalPagoUSD = curr.pagos.reduce(
-      (pagoAcc, pago) => pagoAcc + parseFloat(pago.subtotalUSD || 0),
+      (pagoAcc, pago) => pagoAcc + parseFloat(pago.montoTotalUSD || 0),
       0
     );
     return acc + totalPagoUSD;
