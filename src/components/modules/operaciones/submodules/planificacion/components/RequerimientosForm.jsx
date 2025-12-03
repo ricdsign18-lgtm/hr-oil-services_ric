@@ -24,6 +24,11 @@ export const RequerimientosForm = ({ semanaId, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!window.confirm('¿Estás seguro de crear este requerimiento?')) {
+      return;
+    }
+
     setLoading(true);
 
     const validacion = validarRequerimiento(formData);
@@ -50,7 +55,7 @@ export const RequerimientosForm = ({ semanaId, onClose }) => {
 
   return (
     <div className="form-container">
-      <h3>Nuevo Requerimiento</h3>
+      {/* <h3>Nuevo Requerimiento</h3> -- Title handled by Modal */}
 
       <form onSubmit={handleSubmit}>
         <div className="form-grid cols-2">
@@ -78,7 +83,7 @@ export const RequerimientosForm = ({ semanaId, onClose }) => {
           </div>
         </div>
 
-        <div className="form-grid cols-3" style={{marginTop: '20px'}}>
+        <div className="form-grid cols-3" style={{ marginTop: '20px' }}>
           <div className="form-group">
             <label className="form-label">Unidad *</label>
             <input
@@ -116,9 +121,9 @@ export const RequerimientosForm = ({ semanaId, onClose }) => {
           </div>
         </div>
 
-        <div className="form-group" style={{marginTop: '20px', fontWeight: 'bold'}}>Monto Total: ${montoTotal.toLocaleString()}</div>
+        <div className="form-group" style={{ marginTop: '20px', fontWeight: 'bold' }}>Monto Total: ${montoTotal.toLocaleString()}</div>
 
-        <div className="form-group" style={{marginTop: '20px'}}>
+        <div className="form-group" style={{ marginTop: '20px' }}>
           <label className="form-label">Observaciones</label>
           <textarea
             value={formData.observaciones}

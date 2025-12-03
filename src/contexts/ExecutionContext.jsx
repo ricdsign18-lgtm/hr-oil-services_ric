@@ -30,20 +30,22 @@ export const ExecutionProvider = ({ children }) => {
     return data || [];
   }, []);
 
-  // Completar subactividad
-  const completarSubactividad = useCallback(async (subactividadId, observaciones = '') => {
+  // Completar/Toggle subactividad
+  const toggleSubactividad = useCallback(async (subactividadId, completada, observaciones = '') => {
     setLoading(true);
+    const updateData = {
+      completada: completada,
+      fecha_completada: completada ? new Date() : null,
+    };
+    if (observaciones) updateData.observaciones = observaciones;
+
     const { error } = await supabase
       .from('ejecucion_subactividades')
-      .update({
-        completada: true,
-        fecha_completada: new Date(),
-        observaciones
-      })
+      .update(updateData)
       .eq('id', subactividadId);
 
     if (error) {
-      console.error('Error completando subactividad:', error);
+      console.error('Error actualizando subactividad:', error);
       throw error;
     }
     setLoading(false);
@@ -95,8 +97,20 @@ export const ExecutionProvider = ({ children }) => {
       if (ejecucionError) throw ejecucionError;
 
       // 2. Crear las subactividades de ejecución basadas en la planificación
-      if (actividadPlanificada.subactividades && actividadPlanificada.subactividades.length > 0) {
-        const subactividadesParaCrear = actividadPlanificada.subactividades.map(desc => ({
+      let subactividadesArray = actividadPlanificada.subactividades;
+
+      // Robustez: asegurar que sea un array
+      if (typeof subactividadesArray === 'string') {
+        try {
+          subactividadesArray = JSON.parse(subactividadesArray);
+        } catch (e) {
+          // Si no es JSON válido, tal vez es una cadena simple, la convertimos en array de 1 elemento
+          subactividadesArray = [subactividadesArray];
+        }
+      }
+
+      if (subactividadesArray && Array.isArray(subactividadesArray) && subactividadesArray.length > 0) {
+        const subactividadesParaCrear = subactividadesArray.map(desc => ({
           ejecucion_actividad_id: ejecucionData.id,
           descripcion: desc,
         }));
@@ -147,7 +161,7 @@ export const ExecutionProvider = ({ children }) => {
         .insert(tiempoData)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     } catch (error) {
@@ -165,16 +179,15 @@ export const ExecutionProvider = ({ children }) => {
     finalizarActividad,
     getTiemposPorActividad,
     registrarTiempo,
-    // La función que faltaba:
-    completarSubactividad,
+    toggleSubactividad,
   }), [
-    loading, 
-    getSubactividades, 
-    iniciarEjecucionActividad, 
+    loading,
+    getSubactividades,
+    iniciarEjecucionActividad,
     finalizarActividad,
     getTiemposPorActividad,
     registrarTiempo,
-    completarSubactividad,
+    toggleSubactividad,
   ]);
 
   return (

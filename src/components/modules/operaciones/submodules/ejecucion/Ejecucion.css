@@ -3,15 +3,17 @@
 .ejecucion-container {
   color: var(--text-primary);
   padding: 24px;
-  background-color: #f8f9fa; /* Light background for contrast */
+  background-color: #f8f9fa;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   height: 100%;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow-y: auto;
 }
 
+/* --- Header --- */
 .ejecucion-header {
   display: flex;
   justify-content: space-between;
@@ -22,9 +24,9 @@
 }
 
 .ejecucion-header h2 {
-  font-size: 1.875rem; /* 30px */
+  font-size: 1.875rem;
   font-weight: 700;
-  color: #1e293b; /* Slate 800 */
+  color: #1e293b;
   margin: 0;
 }
 
@@ -70,21 +72,20 @@
   color: var(--text-primary);
 }
 
-/* Estilos para las semanas - Calendar Grid View */
+/* --- Week Cards (SemanasEjecucion) --- */
 .ejecucion-semanas-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-  overflow-y: auto;
-  padding: 4px; /* Prevent shadow clipping */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 4px;
 }
 
 .ejecucion-semana-item {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   cursor: pointer;
@@ -93,33 +94,32 @@
 
 .ejecucion-semana-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.15);
   border-color: var(--primary-color);
 }
 
 .ejecucion-semana-header {
-  background-color: #f8fafc;
   padding: 16px;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(to right, #f8fafc, #ffffff);
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .ejecucion-semana-header h3 {
+  margin: 0 0 4px 0;
   font-size: 1.1rem;
+  color: #1e293b;
   font-weight: 700;
-  color: #334155;
-  margin: 0;
 }
 
 .ejecucion-semana-dates {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #64748b;
-  font-weight: 500;
   background-color: #e2e8f0;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 .ejecucion-semana-financials {
@@ -138,16 +138,17 @@
 
 .ejecucion-metric-label {
   color: #64748b;
+  font-weight: 500;
 }
 
 .ejecucion-metric-value {
-  font-weight: 600;
-  color: #0f172a;
+  font-weight: 700;
+  color: #334155;
 }
 
 .ejecucion-semana-footer {
   padding: 12px 16px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #f1f5f9;
   background-color: #f8fafc;
   text-align: center;
 }
@@ -159,79 +160,267 @@
   text-decoration: none;
 }
 
-/* Estilos para los días - Weekly Calendar View */
+/* --- Days Grid View (DiasEjecucion) --- */
 .ejecucion-dias-container {
   display: grid;
-  grid-template-columns: repeat(7, 1fr); /* 7 days in a row */
+  grid-template-columns: repeat(7, 1fr);
   gap: 12px;
-  margin-top: 0;
-  overflow-x: auto; /* Allow scrolling on small screens */
+  overflow-x: auto;
   padding-bottom: 10px;
+}
+
+.ejecucion-dia-placeholder {
+  background-color: transparent;
+  border: 1px dashed #e2e8f0;
+  border-radius: 12px;
+  opacity: 0.5;
 }
 
 .ejecucion-dia-item {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 140px; /* Ensure minimum width for readability */
-  height: 100%;
-  transition: all 0.2s ease;
+  gap: 12px;
+  min-width: 140px;
+  min-height: 180px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
 }
 
 .ejecucion-dia-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: var(--primary-color);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .ejecucion-dia-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
+  flex-direction: column;
+  align-items: center;
   border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
 }
 
 .ejecucion-dia-header h4 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #334155;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
   margin: 0;
-  text-transform: capitalize;
 }
 
-/* Responsive adjustments */
+.ejecucion-dia-header span {
+  font-size: 0.9rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* --- Execution Activity List (DiaEjecucion) --- */
+.execution-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.execution-item {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.execution-item:hover {
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.execution-item.status-en_proceso {
+  border-left: 4px solid #eab308;
+  /* Yellow for in progress */
+}
+
+.execution-item.status-completada {
+  border-left: 4px solid #22c55e;
+  /* Green for completed */
+}
+
+.execution-item.status-pendiente {
+  border-left: 4px solid #94a3b8;
+  /* Slate for pending */
+}
+
+.execution-item-header {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background-color: #ffffff;
+}
+
+.execution-item-header:hover {
+  background-color: #f8fafc;
+}
+
+.execution-item-info {
+  flex: 1;
+}
+
+.execution-item-info p {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.execution-item-description {
+  color: #64748b !important;
+  font-size: 0.875rem !important;
+  margin-top: 4px !important;
+}
+
+.execution-item-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0 24px;
+  min-width: 200px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.status-pendiente {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.status-badge.status-en_proceso {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.status-badge.status-completada {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.execution-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.execution-item-details {
+  border-top: 1px solid #f1f5f9;
+  padding: 20px;
+  background-color: #f8fafc;
+  animation: slideDown 0.3s ease-out;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.details-section h4 {
+  margin: 0 0 12px 0;
+  color: #334155;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Progress Bar --- */
+.progress-bar-container {
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* --- Responsive adjustments --- */
 @media (max-width: 1200px) {
   .ejecucion-dias-container {
-    grid-template-columns: repeat(4, 1fr); /* 4 days per row on medium screens */
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (max-width: 768px) {
   .ejecucion-semanas-container {
-    grid-template-columns: 1fr; /* Stack weeks on mobile */
+    grid-template-columns: 1fr;
   }
-  
+
   .ejecucion-dias-container {
-    grid-template-columns: repeat(2, 1fr); /* 2 days per row on mobile */
+    grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .ejecucion-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
-  
-  .ejecucion-actions {
-    width: 100%;
-    justify-content: stretch;
+
+  .execution-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
-  
-  .ejecucion-actions button {
-    flex: 1;
+
+  .execution-item-status {
+    width: 100%;
+    margin: 0;
+    justify-content: space-between;
+  }
+
+  .execution-item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
   }
 }

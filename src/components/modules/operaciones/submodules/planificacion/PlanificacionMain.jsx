@@ -1,4 +1,3 @@
-// components/planificacion/PlanificacionMain.jsx
 import { useState, useEffect } from 'react';
 import { usePlanning } from '../../../../../contexts/PlanningContext';
 import { useGeneradorSemanas } from '../../../../../hooks/useGeneradorSemanas';
@@ -102,13 +101,51 @@ const PlanificacionMain = () => {
                         />
 
                         {semanas.length > 0 ? (
-                            <SemanasList
-                                semanas={semanas}
-                                onSelectSemana={setSelectedSemana}
-                            />
+                            <>
+                                {/* Project Summary Section */}
+                                <div className="planning-summary-cards">
+                                    <div className="summary-card">
+                                        <div className="summary-icon planned">📅</div>
+                                        <div className="summary-content">
+                                            <span className="summary-label">Total Planificado</span>
+                                            <span className="summary-value">
+                                                ${semanas.reduce((acc, s) => acc + (s.monto_planificado || 0), 0).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="summary-card">
+                                        <div className="summary-icon requirements">📋</div>
+                                        <div className="summary-content">
+                                            <span className="summary-label">Total Requerimientos</span>
+                                            <span className="summary-value">
+                                                ${semanas.reduce((acc, s) => acc + (s.monto_requerimientos || 0), 0).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="summary-card">
+                                        <div className="summary-icon executed">✅</div>
+                                        <div className="summary-content">
+                                            <span className="summary-label">Total Ejecutado</span>
+                                            <span className="summary-value">
+                                                ${semanas.reduce((acc, s) => acc + (s.monto_ejecutado || 0), 0).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <SemanasList
+                                    semanas={semanas}
+                                    onSelectSemana={setSelectedSemana}
+                                />
+                            </>
                         ) : (
-                            <div className="planning-no-content">
-                                <button onClick={handleGenerarPlanificacion} className="btn-primary">Generar Planificación Inicial</button>
+                            <div className="planning-empty-state">
+                                <div className="empty-state-icon">📅</div>
+                                <h3>No hay planificación generada</h3>
+                                <p>Genera las semanas de trabajo basadas en la duración del proyecto para comenzar a asignar actividades y recursos.</p>
+                                <button onClick={handleGenerarPlanificacion} className="btn-primary-large">
+                                    Generar Planificación Inicial
+                                </button>
                             </div>
                         )}
                     </>

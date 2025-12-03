@@ -101,6 +101,12 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Confirmación antes de procesar
+    if (!window.confirm(isEditMode ? '¿Estás seguro de actualizar esta actividad?' : '¿Estás seguro de crear esta actividad?')) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -160,7 +166,7 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
 
   return (
     <div className="form-container">
-      <h3>{isEditMode ? 'Editar Actividad' : 'Nueva Actividad'}</h3>
+      {/* <h3>{isEditMode ? 'Editar Actividad' : 'Nueva Actividad'}</h3> -- Title handled by Modal */}
 
       <form onSubmit={handleSubmit}>
         {/* Equipo y Tipo de Equipo */}

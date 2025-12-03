@@ -3,285 +3,576 @@
 .planning-container {
   color: var(--text-primary);
   padding: 24px;
-  background-color: #f8f9fa; /* Light background for contrast */
+  background-color: #f8f9fa;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   height: 100%;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow-y: auto;
 }
 
-.planning-header {
+/* --- Project Summary Section --- */
+.planning-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.summary-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e2e8f0;
-  margin-bottom: 0; /* Removed margin-bottom since container has gap */
+  gap: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s;
 }
 
-.planning-header h2 {
-  font-size: 1.875rem; /* 30px */
-  font-weight: 700;
-  color: #1e293b; /* Slate 800 */
-  margin: 0;
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.06);
 }
 
-.planning-actions {
+.summary-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
-  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
 }
 
-.planning-actions .btn-primary {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.summary-icon.planned {
+  background-color: #e0f2fe;
+  color: #0284c7;
 }
 
-.planning-actions .btn-primary:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.planning-actions .btn-secondary {
-  background-color: white;
-  color: var(--text-secondary);
-  border: 1px solid #cbd5e1;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.planning-actions .btn-secondary:hover {
+.summary-icon.requirements {
   background-color: #f1f5f9;
-  border-color: #94a3b8;
-  color: var(--text-primary);
+  color: #475569;
 }
 
-/* Estilos para las semanas - Calendar Grid View */
+.summary-icon.executed {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* --- Week Cards (SemanasList) --- */
 .planning-semanas-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-  overflow-y: auto;
-  padding: 4px; /* Prevent shadow clipping */
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 4px;
 }
 
-.planning-semana-item {
+.planning-semana-card {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   cursor: pointer;
   position: relative;
 }
 
-.planning-semana-item:hover {
+.planning-semana-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.15);
   border-color: var(--primary-color);
 }
 
-.planning-semana-header {
-  background-color: #f8fafc;
+.semana-card-header {
   padding: 16px;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(to right, #f8fafc, #ffffff);
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
-.planning-semana-header h3 {
+.semana-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.semana-dates {
+  font-size: 0.8rem;
+  color: #64748b;
+  background-color: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.semana-status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.semana-status-badge.success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.semana-status-badge.danger {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.semana-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.financial-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.financial-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.financial-item.right-align {
+  align-items: flex-end;
+}
+
+.financial-item .label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.financial-item .value {
   font-size: 1.1rem;
   font-weight: 700;
   color: #334155;
-  margin: 0;
 }
 
-.planning-semana-dates {
+.financial-item .value.highlight {
+  color: var(--primary-color);
+}
+
+.financial-item .value.text-danger {
+  color: #ef4444;
+}
+
+.progress-bar-container {
+  height: 6px;
+  background-color: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.progress-bar.over-budget {
+  background-color: #ef4444;
+}
+
+.financial-details {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
   font-size: 0.85rem;
   color: #64748b;
-  font-weight: 500;
-  background-color: #e2e8f0;
-  padding: 4px 8px;
-  border-radius: 4px;
 }
 
-.planning-semana-financials {
-  padding: 16px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- Detail View (SemanaDetail & DiaPlanning) --- */
+.planning-detail-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 20px;
+}
+
+.planning-detail-header {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+
+.btn-back:hover {
+  color: var(--primary-color);
+}
+
+.btn-toggle-view {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-toggle-view:hover {
+  background: #e2e8f0;
+}
+
+.btn-toggle-view.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.header-info h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.75rem;
+  color: #1e293b;
+  text-transform: capitalize;
+}
+
+.date-badge {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.planning-detail-content {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.btn-icon-nav {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.btn-icon-nav:hover:not(:disabled) {
+  background-color: #f1f5f9;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-icon-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* --- Days Grid View (DiasList) --- */
+.planning-dias-wrapper {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-.planning-financial-label {
-  font-size: 0.75rem;
+.planning-days-header-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+  padding: 0 12px;
+}
+
+.day-column-header {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94a3b8;
-  margin-bottom: 4px;
 }
 
-.planning-financial-value {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-/* Estilos para los días - Weekly Calendar View */
 .planning-dias-container {
   display: grid;
-  grid-template-columns: repeat(7, 1fr); /* 7 days in a row */
+  grid-template-columns: repeat(7, 1fr);
   gap: 12px;
-  margin-top: 0;
-  overflow-x: auto; /* Allow scrolling on small screens */
+  overflow-x: auto;
   padding-bottom: 10px;
+}
+
+.planning-dia-placeholder {
+  background-color: transparent;
+  border: 1px dashed #e2e8f0;
+  border-radius: 12px;
+  opacity: 0.5;
 }
 
 .planning-dia-item {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 140px; /* Ensure minimum width for readability */
-  height: 100%;
-  transition: all 0.2s ease;
+  gap: 12px;
+  min-width: 140px;
+  min-height: 180px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
 }
 
 .planning-dia-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: var(--primary-color);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.planning-dia-item.is-today {
+  border-color: var(--primary-color);
+  background-color: #f0f9ff;
 }
 
 .planning-dia-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
+  flex-direction: column;
+  align-items: center;
   border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
 }
 
-.planning-dia-header h4 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #334155;
-  margin: 0;
-  text-transform: capitalize;
-}
-
-.planning-dia-add-btn {
-  background-color: transparent;
-  border: none;
-  color: var(--primary-color);
-  cursor: pointer;
-  font-size: 1.2rem;
-  padding: 0;
+.dia-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
   line-height: 1;
-  opacity: 0.7;
-  transition: opacity 0.2s;
 }
 
-.planning-dia-add-btn:hover {
-  opacity: 1;
+.dia-month {
+  font-size: 0.9rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
-/* Estilos para las actividades */
-.planning-actividades-container {
+.dia-content {
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  flex-grow: 1;
+  justify-content: center;
 }
 
-.planning-actividad-item {
-  background-color: #f8fafc;
-  border-left: 3px solid var(--accent-color);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-  transition: transform 0.1s;
-  cursor: pointer;
+.dia-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.planning-actividad-item:hover {
-  background-color: #f1f5f9;
-  transform: translateX(2px);
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
 }
 
-.planning-actividad-item p {
-  margin: 0;
-  color: #475569;
-  line-height: 1.3;
+.stat-icon {
+  font-size: 1rem;
 }
 
-.planning-actividad-item strong {
-  color: #1e293b;
-  display: block;
-  margin-bottom: 2px;
+.stat-value {
+  font-weight: 600;
+  color: #334155;
 }
 
-.planning-no-content {
+.dia-hover-action {
   text-align: center;
-  padding: 60px 20px;
-  color: #64748b;
-  background-color: #ffffff;
-  border-radius: 12px;
-  border: 2px dashed #cbd5e1;
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.2s;
+}
+
+.planning-dia-item:hover .dia-hover-action {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Empty State --- */
+.planning-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  padding: 60px 20px;
+  text-align: center;
+  background: white;
+  border-radius: 16px;
+  border: 2px dashed #cbd5e1;
+  color: #64748b;
 }
 
-/* Responsive adjustments */
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.planning-empty-state h3 {
+  margin: 0 0 8px 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+}
+
+.planning-empty-state p {
+  max-width: 400px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.btn-primary-large {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.btn-primary-large:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* --- Utility Buttons --- */
+.btn-info-circle,
+.btn-icon-danger,
+.btn-icon-info {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon-danger {
+  color: #ef4444;
+  border-color: #fecaca;
+  background-color: #fef2f2;
+}
+
+.btn-icon-danger:hover {
+  background-color: #fee2e2;
+}
+
+.btn-icon-info {
+  color: #3b82f6;
+  border-color: #bfdbfe;
+  background-color: #eff6ff;
+}
+
+.btn-icon-info:hover {
+  background-color: #dbeafe;
+}
+
+/* --- Responsive adjustments --- */
 @media (max-width: 1200px) {
-  .planning-dias-container {
-    grid-template-columns: repeat(4, 1fr); /* 4 days per row on medium screens */
+
+  .planning-dias-container,
+  .planning-days-header-row {
+    grid-template-columns: repeat(4, 1fr);
   }
+
+  /* Hide headers on smaller screens if they don't align well or switch to list view logic */
 }
 
 @media (max-width: 768px) {
   .planning-semanas-container {
-    grid-template-columns: 1fr; /* Stack weeks on mobile */
+    grid-template-columns: 1fr;
   }
-  
-  .planning-dias-container {
-    grid-template-columns: repeat(2, 1fr); /* 2 days per row on mobile */
+
+  .planning-dias-container,
+  .planning-days-header-row {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .planning-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
-  }
-  
-  .planning-actions {
-    width: 100%;
-    justify-content: stretch;
-  }
-  
-  .planning-actions button {
-    flex: 1;
   }
 }

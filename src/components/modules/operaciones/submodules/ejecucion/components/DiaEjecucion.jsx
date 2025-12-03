@@ -36,24 +36,27 @@ export const DiaEjecucion = ({ dia, onBack }) => {
   }, [dia, getActividadesPorDia]);
 
   return (
-    <>
+    <div className="planning-detail-container">
       {/* Header */}
-      <div className="planning-header">
-        <div className="planning-semana-header" style={{ marginBottom: 0, cursor: 'default' }}>
-          <button onClick={onBack} className="btn-secondary">
-            ← Volver
+      <div className="planning-detail-header">
+        <div className="header-top">
+          <button onClick={onBack} className="btn-back">
+            ← Volver a la semana
           </button>
+        </div>
+
+        <div className="header-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div>
-            <h2>
-              {new Date(dia.fecha).toLocaleDateString('es-ES', { 
-                weekday: 'long', 
-                month: 'long', 
-                day: 'numeric' 
+            <h2 style={{ margin: 0 }}>
+              {new Date(dia.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
               })}
             </h2>
-            <p className="planning-semana-dates" style={{ marginTop: '5px' }}>
-              Ejecución de {actividades.length} actividades
-            </p>
+            <div className="date-badge" style={{ marginTop: '8px' }}>
+              {actividades.length} actividades programadas
+            </div>
           </div>
         </div>
       </div>
@@ -64,17 +67,19 @@ export const DiaEjecucion = ({ dia, onBack }) => {
           <div className="planning-no-content">Cargando actividades...</div>
         ) : actividades.length > 0 ? (
           actividades.map(actividad => (
-            <ActividadEjecucion 
-              key={actividad.id} 
-              actividadPlanificada={actividad} 
+            <ActividadEjecucion
+              key={actividad.id}
+              actividadPlanificada={actividad}
               onFinalizar={() => getActividadesPorDia(dia.id)}
               onUpdate={() => getActividadesPorDia(dia.id)}
             />
           ))
         ) : (
-          <div className="planning-no-content">No hay actividades planificadas para este día.</div>
+          <div className="planning-no-content">
+            <p>No hay actividades planificadas para este día.</p>
+          </div>
         )}
       </div>
-    </>
+    </div>
   );
 };

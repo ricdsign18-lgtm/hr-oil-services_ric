@@ -6,6 +6,7 @@ import { useBudget } from '../../../../../../contexts/BudgetContext';
 import { useNotification } from '../../../../../../contexts/NotificationContext';
 import { ActividadForm } from './ActividadForm';
 import { ActividadesList } from './ActividadesList';
+import Modal from '../../../../../common/Modal/Modal';
 
 export const DiaPlanning = ({ dia, onBack, allDias, onNavigate }) => {
     const { getSemanaById, recalcularMontosSemana, deleteActividad } = usePlanning();
@@ -106,82 +107,87 @@ export const DiaPlanning = ({ dia, onBack, allDias, onNavigate }) => {
     };
 
     return (
-        <>
+        <div className="planning-detail-container">
             {/* Header */}
-            <div className="planning-header">
-                <div className="planning-semana-header" style={{ marginBottom: 0, cursor: 'default', flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="planning-detail-header">
+                <div className="header-top">
+                    <button
+                        onClick={onBack}
+                        className="btn-back"
+                    >
+                        ← Volver a la semana
+                    </button>
+                    <div className="header-actions">
                         <button
-                            onClick={onBack}
-                            className="btn-secondary"
-                            title="Volver a la lista de días"
+                            onClick={() => setShowActividadForm(true)}
+                            disabled={!budget?.items?.length}
+                            className="btn-primary"
                         >
-                            ← Volver
+                            + Agregar Actividad
                         </button>
+                    </div>
+                </div>
 
-                        {/* Navegación de días */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: '10px' }}>
+                <div className="header-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <button
                                 onClick={handlePrevDia}
                                 disabled={!prevDia}
-                                className="btn-icon"
-                                style={{ opacity: !prevDia ? 0.3 : 1, cursor: !prevDia ? 'default' : 'pointer' }}
+                                className="btn-icon-nav"
                                 title="Día anterior"
                             >
                                 ◀
                             </button>
-                            <div style={{ textAlign: 'center', minWidth: '200px' }}>
-                                <h2 style={{ margin: 0, fontSize: '1.2rem' }}>
-                                    {new Date(currentDia.fecha).toLocaleDateString('es-ES', {
-                                        weekday: 'long',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}
-                                </h2>
-                            </div>
+                            <h2 style={{ margin: 0 }}>
+                                {new Date(currentDia.fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+                                    weekday: 'long',
+                                    day: 'numeric',
+                                    month: 'long'
+                                })}
+                            </h2>
                             <button
                                 onClick={handleNextDia}
                                 disabled={!nextDia}
-                                className="btn-icon"
-                                style={{ opacity: !nextDia ? 0.3 : 1, cursor: !nextDia ? 'default' : 'pointer' }}
+                                className="btn-icon-nav"
                                 title="Día siguiente"
                             >
                                 ▶
                             </button>
                         </div>
+                        <div className="date-badge" style={{ marginTop: '8px' }}>
+                            {currentDia.cantidad_actividades || 0} actividades planificadas
+                        </div>
                     </div>
-
-                    <p className="planning-semana-dates" style={{ marginTop: '5px', marginLeft: '100px' }}>
-                        {currentDia.cantidad_actividades || 0} actividades • ${currentDia.monto_planificado?.toLocaleString() || 0}
-                    </p>
-                </div>
-                <div className="planning-actions">
-                    <button
-                        onClick={() => setShowActividadForm(true)}
-                        disabled={!budget?.items?.length}
-                        className="btn-primary"
-                    >
-                        + Agregar Actividad
-                    </button>
+                    <div className="summary-value" style={{ fontSize: '1.5rem' }}>
+                        ${(currentDia.monto_planificado || 0).toLocaleString()}
+                    </div>
                 </div>
             </div>
 
-            {/* Formulario o Lista */}
-            {showActividadForm ? (
-                <ActividadForm
-                    diaId={currentDia.id}
-                    actividadAEditar={actividadParaEditar}
-                    onClose={() => { setShowActividadForm(false); setActividadParaEditar(null); }}
-                    onSuccess={handleSuccess}
-                />
-            ) : (
+            {/* Lista de Actividades */}
+            <div className="planning-detail-content">
                 <ActividadesList
                     loading={loading}
                     actividades={actividades}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                 />
-            )}
-        </>
+            </div>
+
+            {/* Modal de Formulario */}
+            <Modal
+                isOpen={showActividadForm}
+                onClose={() => { setShowActividadForm(false); setActividadParaEditar(null); }}
+                title={actividadParaEditar ? "Editar Actividad" : "Nueva Actividad"}
+            >
+                <ActividadForm
+                    diaId={currentDia.id}
+                    actividadAEditar={actividadParaEditar}
+                    onClose={() => { setShowActividadForm(false); setActividadParaEditar(null); }}
+                    onSuccess={handleSuccess}
+                />
+            </Modal>
+        </div>
     );
 };

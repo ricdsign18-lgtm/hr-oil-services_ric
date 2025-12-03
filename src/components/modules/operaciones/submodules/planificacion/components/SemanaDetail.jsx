@@ -5,12 +5,14 @@ import { usePlanning } from '../../../../../../contexts/PlanningContext';
 import { DiasList } from './DiasList';
 import { RequerimientosForm } from './RequerimientosForm';
 import { RequerimientosList } from './RequerimientosList';
+import Modal from '../../../../../common/Modal/Modal';
 
 export const SemanaDetail = ({ semana, onBack }) => {
   const { getSemanaById, recalcularMontoRequerimientosSemana } = usePlanning();
   const [showRequerimientos, setShowRequerimientos] = useState(false);
   const [requerimientos, setRequerimientos] = useState([]);
   const [loadingReq, setLoadingReq] = useState(false);
+  const [showReqForm, setShowReqForm] = useState(false);
 
   const getRequerimientosPorSemana = useCallback(async () => {
     if (!semana.id) return;
@@ -34,6 +36,7 @@ export const SemanaDetail = ({ semana, onBack }) => {
   }, [getRequerimientosPorSemana]);
 
   const handleCloseRequerimientosForm = async (refrescar) => {
+    setShowReqForm(false);
     if (refrescar) {
       await getRequerimientosPorSemana();
       await recalcularMontoRequerimientosSemana(semana.id);
@@ -42,47 +45,63 @@ export const SemanaDetail = ({ semana, onBack }) => {
   };
 
   return (
-    <>
+    <div className="planning-detail-container">
       {/* Header */}
-      <div className="planning-header">
-        <div className="planning-semana-header-content">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-            <button 
-              onClick={onBack}
-              className="btn-secondary"
-              style={{ padding: '6px 12px', fontSize: '0.9rem' }}
-            >
-              ← Volver
-            </button>
-            <h2 style={{ margin: 0 }}>Semana {semana.numero_semana}</h2>
-          </div>
-          <p className="planning-semana-dates" style={{ marginLeft: '0' }}>
-            {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
-          </p>
-        </div>
-        
-        <div className="planning-actions">
+      <div className="planning-detail-header">
+        <div className="header-top">
           <button
-            onClick={() => setShowRequerimientos(!showRequerimientos)}
-            className={showRequerimientos ? "btn-secondary" : "btn-primary"}>
-            {showRequerimientos ? 'Ver Calendario Semanal' : 'Ver Requerimientos'}
+            onClick={onBack}
+            className="btn-back"
+          >
+            ← Volver a Planificación
           </button>
+          <div className="header-actions">
+            {showRequerimientos && (
+              <button
+                onClick={() => setShowReqForm(true)}
+                className="btn-primary"
+                style={{ marginRight: '10px' }}
+              >
+                + Agregar Requerimiento
+              </button>
+            )}
+            <button
+              onClick={() => setShowRequerimientos(!showRequerimientos)}
+              className={`btn-toggle-view ${showRequerimientos ? 'active' : ''}`}>
+              {showRequerimientos ? '📅 Ver Calendario' : '📋 Ver Requerimientos'}
+            </button>
+          </div>
+        </div>
+
+        <div className="header-info">
+          <h2>Semana {semana.numero_semana}</h2>
+          <div className="date-badge">
+            {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
+          </div>
         </div>
       </div>
 
       {/* Contenido */}
-      {showRequerimientos ? (
-        <>
+      <div className="planning-detail-content">
+        {showRequerimientos ? (
           <RequerimientosList requerimientos={requerimientos} loading={loadingReq} />
-          <RequerimientosForm 
-            semanaId={semana.id} 
-            onClose={handleCloseRequerimientosForm} 
-          />
-        </>
-      ) : (
-        <DiasList semanaId={semana.id} />
-      )}
-    </>
+        ) : (
+          <DiasList semanaId={semana.id} />
+        )}
+      </div>
+
+      {/* Modal Requerimientos */}
+      <Modal
+        isOpen={showReqForm}
+        onClose={() => setShowReqForm(false)}
+        title="Nuevo Requerimiento"
+      >
+        <RequerimientosForm
+          semanaId={semana.id}
+          onClose={handleCloseRequerimientosForm}
+        />
+      </Modal>
+    </div>
   );
 };
 
