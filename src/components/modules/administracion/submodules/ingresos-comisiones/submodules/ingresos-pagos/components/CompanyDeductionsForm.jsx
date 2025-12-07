@@ -1,13 +1,31 @@
 // src/components/modules/administracion/submodules/ingresos-comisiones/submodules/ingresos-pagos/components/CompanyDeductionsForm.jsx
 import React, { useState } from 'react'
+import { useIncome } from '../../../../../../../../contexts/IncomeContext'
 import { useNotification } from '../../../../../../../../contexts/NotificationContext'
 import './CompanyDeductionsForm.css'
 
 const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit }) => {
+  const { companyDeductions, deleteCompanyDeduction } = useIncome()
   const { showToast } = useNotification()
   const [deductions, setDeductions] = useState([{ description: '', percentage: '' }])
   const [deductionDate, setDeductionDate] = useState(selectedDate)
   const [saving, setSaving] = useState(false)
+
+  // Filtrar deducciones existentes para la fecha seleccionada
+  const existingDeductions = companyDeductions.filter(
+    d => d.deduction_date === deductionDate
+  )
+
+  const handleDeleteExisting = async (id) => {
+    if (window.confirm('¿Estás seguro de eliminar esta deducción?')) {
+      try {
+        await deleteCompanyDeduction(id)
+        showToast('Deducción eliminada', 'success')
+      } catch (error) {
+        showToast('Error al eliminar', 'error')
+      }
+    }
+  }
 
   const addDeduction = () => {
     setDeductions([...deductions, { description: '', percentage: '' }])
@@ -67,9 +85,9 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     // Filtrar deducciones válidas
-    const validDeductions = deductions.filter(deduction => 
+    const validDeductions = deductions.filter(deduction =>
       deduction.description && deduction.percentage
     )
 
@@ -93,10 +111,10 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
       }
 
       showToast('✅ Deducciones de empresa guardadas exitosamente', 'success')
-      
+
       // Limpiar formulario después de guardar
       setDeductions([{ description: '', percentage: '' }])
-      
+
     } catch (error) {
       console.error('Error al guardar deducciones:', error)
       showToast('❌ Error al guardar las deducciones: ' + error.message, 'error')
@@ -107,7 +125,7 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
 
   const isFormValid = () => {
     return deductions.some(deduction => deduction.description && deduction.percentage) &&
-           calculateTotalDeductionsBs() <= dailyTotals.totalTaxableBase
+      calculateTotalDeductionsBs() <= dailyTotals.totalTaxableBase
   }
 
   return (
@@ -146,6 +164,30 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
           />
         </div>
 
+        {/* Lista de Deducciones Existentes */}
+        {existingDeductions.length > 0 && (
+          <div className="existing-deductions">
+            <h3>Deducciones Existentes ({deductionDate})</h3>
+            <div className="existing-list">
+              {existingDeductions.map(deduction => (
+                <div key={deduction.id} className="existing-item">
+                  <div className="info">
+                    <strong>{deduction.description}</strong>
+                    <span>{deduction.percentage}% - Bs {parseFloat(deduction.amount).toFixed(2)}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="delete-btn-small"
+                    onClick={() => handleDeleteExisting(deduction.id)}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="deductions-section">
           <div className="section-header">
             <h3>Deducciones de la Empresa</h3>
@@ -183,8 +225,8 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
                 </span>
               </div>
               {deductions.length > 1 && (
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => removeDeduction(index)}
                   className="remove-button"
                 >
@@ -224,7 +266,7 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
           </div>
 
           <div className="save-section">
-            <button 
+            <button
               type="submit"
               disabled={!isFormValid() || saving}
               className="submit-button"
@@ -233,8 +275,8 @@ const CompanyDeductionsForm = ({ dailyTotals, selectedDate, onDeductionSubmit })
             </button>
             {!isFormValid() && (
               <p className="validation-message">
-                {!deductions.some(d => d.description && d.percentage) 
-                  ? 'Agrega al menos una deducción válida' 
+                {!deductions.some(d => d.description && d.percentage)
+                  ? 'Agrega al menos una deducción válida'
                   : 'Las deducciones no pueden ser mayores a la sumatoria de bases imponibles'
                 }
               </p>

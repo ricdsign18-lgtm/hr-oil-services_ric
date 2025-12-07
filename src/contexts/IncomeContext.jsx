@@ -32,7 +32,7 @@ export const IncomeProvider = ({ children }) => {
 
   const loadInvoices = async () => {
     if (!selectedProject) return;
-    
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -55,7 +55,7 @@ export const IncomeProvider = ({ children }) => {
 
   const loadCompanyDeductions = async () => {
     if (!selectedProject) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("income_company_deductions")
@@ -88,6 +88,8 @@ export const IncomeProvider = ({ children }) => {
         iva_amount: parseFloat(invoiceData.ivaAmount),
         exchange_rate: parseFloat(invoiceData.exchangeRate),
         total_amount: parseFloat(invoiceData.totalAmount),
+        valuation_id: invoiceData.valuationId || null,
+        status: invoiceData.status || 'por_cobrar', // Nuevo campo
       };
 
       console.log("Enviando factura:", newInvoice);
@@ -107,6 +109,63 @@ export const IncomeProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.error("Error adding invoice:", error);
+      throw error;
+    }
+  };
+
+  // Actualizar factura
+  const updateInvoice = async (id, invoiceData) => {
+    try {
+      const updatedInvoice = {
+        invoice_date: invoiceData.invoiceDate,
+        client_name: invoiceData.clientName,
+        client_rif: invoiceData.clientRif,
+        client_address: invoiceData.clientAddress,
+        description: invoiceData.description,
+        exempt_amount: parseFloat(invoiceData.exemptAmount) || 0,
+        taxable_base: parseFloat(invoiceData.taxableBase),
+        subtotal: parseFloat(invoiceData.subtotal),
+        iva_amount: parseFloat(invoiceData.ivaAmount),
+        exchange_rate: parseFloat(invoiceData.exchangeRate),
+        total_amount: parseFloat(invoiceData.totalAmount),
+        valuation_id: invoiceData.valuationId || null,
+        status: invoiceData.status || 'por_cobrar', // Nuevo campo
+      };
+
+      const { data, error } = await supabase
+        .from("income_invoices")
+        .update(updatedInvoice)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await loadInvoices();
+      return data;
+    } catch (error) {
+      console.error("Error updating invoice:", error);
+      throw error;
+    }
+  };
+
+  // Eliminar factura
+  const deleteInvoice = async (id) => {
+    try {
+      // Primero eliminar deducciones asociadas (si no hay cascade delete)
+      await supabase.from("income_client_deductions").delete().eq("invoice_id", id);
+
+      const { error } = await supabase
+        .from("income_invoices")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await loadInvoices();
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
       throw error;
     }
   };
@@ -141,7 +200,7 @@ export const IncomeProvider = ({ children }) => {
 
       // Recargar las facturas para obtener los datos actualizados
       await loadInvoices();
-      
+
       return { success: true };
     } catch (error) {
       console.error("Error adding client deductions:", error);
@@ -179,9 +238,27 @@ export const IncomeProvider = ({ children }) => {
     }
   };
 
-  // Calcular totales por fecha - CORREGIDO
+  // Eliminar deducción de empresa
+  const deleteCompanyDeduction = async (id) => {
+    try {
+      const { error } = await supabase
+        .from("income_company_deductions")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await loadCompanyDeductions();
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting company deduction:", error);
+      throw error;
+    }
+  };
+
+  // Calcular totales por fecha
   const getDailyTotals = (date) => {
-    const dailyInvoices = invoices.filter(invoice => 
+    const dailyInvoices = invoices.filter(invoice =>
       invoice.invoice_date === date
     );
 
@@ -199,20 +276,20 @@ export const IncomeProvider = ({ children }) => {
         (deductionSum, deduction) => deductionSum + parseFloat(deduction.amount),
         0
       ) || 0;
-      
+
       return sum + (parseFloat(invoice.taxable_base) - clientDeductionsTotal);
     }, 0);
 
-    // CORREGIDO: Calcular USD usando la tasa de cambio de cada factura
+    // Calcular USD usando la tasa de cambio de cada factura
     const totalReceivedUsd = dailyInvoices.reduce((sum, invoice) => {
       const clientDeductionsTotal = invoice.income_client_deductions?.reduce(
         (deductionSum, deduction) => deductionSum + parseFloat(deduction.amount),
         0
       ) || 0;
-      
+
       const netAmountBs = parseFloat(invoice.taxable_base) - clientDeductionsTotal;
       const netAmountUsd = netAmountBs / parseFloat(invoice.exchange_rate);
-      
+
       return sum + netAmountUsd;
     }, 0);
 
@@ -230,8 +307,11 @@ export const IncomeProvider = ({ children }) => {
     companyDeductions,
     loading,
     addInvoice,
+    updateInvoice,
+    deleteInvoice,
     addClientDeductions,
     addCompanyDeduction,
+    deleteCompanyDeduction,
     loadInvoices,
     loadCompanyDeductions,
     getDailyTotals,

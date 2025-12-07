@@ -1,8 +1,11 @@
 // src/components/modules/administracion/submodules/ingresos-comisiones/submodules/ingresos-pagos/components/InvoiceForm.jsx
 import React, { useState, useEffect } from 'react'
+import { useValuation } from '../../../../../../../../contexts/ValuationContext'
 import './InvoiceForm.css'
 
-const InvoiceForm = ({ onSubmit }) => {
+const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel }) => {
+  const { valuations } = useValuation()
+
   const [formData, setFormData] = useState({
     invoiceDate: new Date().toISOString().split('T')[0],
     clientName: '',
@@ -11,7 +14,9 @@ const InvoiceForm = ({ onSubmit }) => {
     description: '',
     exemptAmount: '',
     taxableBase: '',
-    exchangeRate: ''
+    exchangeRate: '',
+    valuationId: '',
+    status: 'por_cobrar' // Nuevo campo por defecto
   })
 
   const [calculatedValues, setCalculatedValues] = useState({
@@ -19,6 +24,24 @@ const InvoiceForm = ({ onSubmit }) => {
     ivaAmount: 0,
     totalAmount: 0
   })
+
+  // Cargar datos iniciales si estamos editando
+  useEffect(() => {
+    if (initialData && isEditing) {
+      setFormData({
+        invoiceDate: initialData.invoice_date,
+        clientName: initialData.client_name,
+        clientRif: initialData.client_rif,
+        clientAddress: initialData.client_address || '',
+        description: initialData.description || '',
+        exemptAmount: initialData.exempt_amount,
+        taxableBase: initialData.taxable_base,
+        exchangeRate: initialData.exchange_rate,
+        valuationId: initialData.valuation_id || '',
+        status: initialData.status || 'por_cobrar'
+      })
+    }
+  }, [initialData, isEditing])
 
   // Calcular valores automáticamente
   useEffect(() => {
@@ -47,7 +70,7 @@ const InvoiceForm = ({ onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+
     const invoiceData = {
       ...formData,
       exemptAmount: parseFloat(formData.exemptAmount) || 0,
@@ -55,7 +78,9 @@ const InvoiceForm = ({ onSubmit }) => {
       exchangeRate: parseFloat(formData.exchangeRate),
       subtotal: calculatedValues.subtotal,
       ivaAmount: calculatedValues.ivaAmount,
-      totalAmount: calculatedValues.totalAmount
+      totalAmount: calculatedValues.totalAmount,
+      valuationId: formData.valuationId || null,
+      status: formData.status
     }
 
     onSubmit(invoiceData)
@@ -63,8 +88,15 @@ const InvoiceForm = ({ onSubmit }) => {
 
   return (
     <div className="invoice-form">
-      <h2>📄 Nueva Factura</h2>
-      
+      <div className="form-header">
+        <h2>{isEditing ? '✏️ Editar Factura' : '📄 Nueva Factura'}</h2>
+        {isEditing && (
+          <button type="button" onClick={onCancel} className="cancel-button">
+            Cancelar Edición
+          </button>
+        )}
+      </div>
+
       <form onSubmit={handleSubmit}>
         <div className="form-grid">
           <div className="form-group">
@@ -76,6 +108,37 @@ const InvoiceForm = ({ onSubmit }) => {
               onChange={handleChange}
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label>Estado de la Factura *</label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className={`status-select ${formData.status}`}
+              required
+            >
+              <option value="por_cobrar">⏳ Por Cobrar</option>
+              <option value="cobrada">✅ Cobrada</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>Vincular Valuación (Opcional)</label>
+            <select
+              name="valuationId"
+              value={formData.valuationId}
+              onChange={handleChange}
+              className="valuation-select"
+            >
+              <option value="">-- Seleccionar Valuación --</option>
+              {valuations.map(val => (
+                <option key={val.id} value={val.id}>
+                  {val.numero} - {val.periodoInicio} al {val.periodoFin}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">
@@ -184,7 +247,7 @@ const InvoiceForm = ({ onSubmit }) => {
         </div>
 
         <button type="submit" className="submit-button">
-          Guardar Factura y Continuar
+          {isEditing ? '💾 Actualizar Factura' : '💾 Guardar Factura y Continuar'}
         </button>
       </form>
     </div>

@@ -630,7 +630,6 @@ const CalculadoraPagos = ({
       salarioBase,
       horasExtras: { diurna: horasDiurna, nocturna: horasNocturna },
       totalHorasExtrasUSD,
-      totalHorasExtrasUSD,
       deduccionesManualesUSD,
       adelantosUSD,
       subtotalUSD,

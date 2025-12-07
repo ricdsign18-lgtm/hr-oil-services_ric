@@ -15,18 +15,20 @@ const IngresosPagosMain = () => {
   const navigate = useNavigate()
   const { selectedProject } = useProjects()
   const { showToast } = useNotification()
-  const { 
-    invoices, 
-    companyDeductions, 
-    addInvoice, 
+  const {
+    invoices,
+    companyDeductions,
+    addInvoice,
+    updateInvoice,
     addCompanyDeduction,
-    getDailyTotals 
+    getDailyTotals
   } = useIncome()
 
   const [activeSection, setActiveSection] = useState('invoice')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [dailyTotals, setDailyTotals] = useState({ totalReceivedBs: 0, totalReceivedUsd: 0 })
   const [exchangeRate, setExchangeRate] = useState(0)
+  const [editingInvoice, setEditingInvoice] = useState(null)
 
   useEffect(() => {
     if (selectedDate) {
@@ -42,13 +44,29 @@ const IngresosPagosMain = () => {
 
   const handleInvoiceSubmit = async (invoiceData) => {
     try {
-      await addInvoice(invoiceData)
+      if (editingInvoice) {
+        await updateInvoice(editingInvoice.id, invoiceData)
+        showToast('Factura actualizada exitosamente', 'success')
+        setEditingInvoice(null)
+      } else {
+        await addInvoice(invoiceData)
+        showToast('Factura agregada exitosamente', 'success')
+      }
       setActiveSection('client-deductions')
-      showToast('Factura agregada exitosamente', 'success')
     } catch (error) {
-      console.error('Error al agregar factura:', error)
+      console.error('Error al guardar factura:', error)
       showToast('Error al guardar la factura', 'error')
     }
+  }
+
+  const handleEditInvoice = (invoice) => {
+    setEditingInvoice(invoice)
+    setActiveSection('invoice')
+  }
+
+  const handleCancelEdit = () => {
+    setEditingInvoice(null)
+    // Opcional: cambiar de sección si se desea
   }
 
   const handleCompanyDeductionSubmit = async (deductionData) => {
@@ -73,31 +91,34 @@ const IngresosPagosMain = () => {
       </div>
 
       <div className="navigation-tabs">
-        <button 
+        <button
           className={`tab ${activeSection === 'invoice' ? 'active' : ''}`}
-          onClick={() => setActiveSection('invoice')}
+          onClick={() => {
+            setActiveSection('invoice')
+            if (activeSection !== 'invoice') setEditingInvoice(null) // Reset edit if clicking tab manually
+          }}
         >
-          📄 Nueva Factura
+          {editingInvoice ? '✏️ Editando Factura' : '📄 Nueva Factura'}
         </button>
-        <button 
+        <button
           className={`tab ${activeSection === 'client-deductions' ? 'active' : ''}`}
           onClick={() => setActiveSection('client-deductions')}
         >
           💰 Deducciones Cliente
         </button>
-        <button 
+        <button
           className={`tab ${activeSection === 'company-deductions' ? 'active' : ''}`}
           onClick={() => setActiveSection('company-deductions')}
         >
           🏢 Deducciones Empresa
         </button>
-        <button 
+        <button
           className={`tab ${activeSection === 'summary' ? 'active' : ''}`}
           onClick={() => setActiveSection('summary')}
         >
           📊 Resumen Diario
         </button>
-        <button 
+        <button
           className={`tab ${activeSection === 'list' ? 'active' : ''}`}
           onClick={() => setActiveSection('list')}
         >
@@ -107,18 +128,23 @@ const IngresosPagosMain = () => {
 
       <div className="content-section">
         {activeSection === 'invoice' && (
-          <InvoiceForm onSubmit={handleInvoiceSubmit} />
+          <InvoiceForm
+            onSubmit={handleInvoiceSubmit}
+            initialData={editingInvoice}
+            isEditing={!!editingInvoice}
+            onCancel={handleCancelEdit}
+          />
         )}
 
         {activeSection === 'client-deductions' && (
-          <ClientDeductionsForm 
+          <ClientDeductionsForm
             invoices={invoices}
             selectedDate={selectedDate}
           />
         )}
 
         {activeSection === 'company-deductions' && (
-          <CompanyDeductionsForm 
+          <CompanyDeductionsForm
             dailyTotals={dailyTotals}
             selectedDate={selectedDate}
             onDeductionSubmit={handleCompanyDeductionSubmit}
@@ -126,7 +152,7 @@ const IngresosPagosMain = () => {
         )}
 
         {activeSection === 'summary' && (
-          <DailySummary 
+          <DailySummary
             dailyTotals={dailyTotals}
             companyDeductions={companyDeductions}
             selectedDate={selectedDate}
@@ -136,11 +162,12 @@ const IngresosPagosMain = () => {
         )}
 
         {activeSection === 'list' && (
-          <InvoicesList 
+          <InvoicesList
             invoices={invoices}
             companyDeductions={companyDeductions} // Pasar deducciones de empresa
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
+            onEdit={handleEditInvoice}
           />
         )}
       </div>

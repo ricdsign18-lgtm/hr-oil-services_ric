@@ -55,7 +55,6 @@ export const PersonalProvider = ({ children }) => {
         montoBaseParoForzoso: parseFloat(emp.monto_base_paro_forzoso),
         montoBaseFaov: parseFloat(emp.monto_base_faov),
         montoBaseIslr: parseFloat(emp.monto_base_islr),
-        montoBaseIslr: parseFloat(emp.monto_base_islr),
         estado: emp.estado || "Activo",
         fechaInactivo: emp.fecha_inactivo,
         fechaReactivacion: emp.fecha_reactivacion,
@@ -107,8 +106,7 @@ export const PersonalProvider = ({ children }) => {
             ),
             monto_base_faov: parseFloat(employeeData.montoBaseFaov || 0),
             monto_base_islr: parseFloat(employeeData.montoBaseIslr || 0),
-            monto_base_faov: parseFloat(employeeData.montoBaseFaov || 0),
-            monto_base_islr: parseFloat(employeeData.montoBaseIslr || 0),
+
             estado: employeeData.estado || "Activo",
             fecha_inactivo: employeeData.fechaInactivo,
             fecha_reactivacion: employeeData.fechaReactivacion,
@@ -139,7 +137,7 @@ export const PersonalProvider = ({ children }) => {
         montoBaseParoForzoso: parseFloat(data.monto_base_paro_forzoso),
         montoBaseFaov: parseFloat(data.monto_base_faov),
         montoBaseIslr: parseFloat(data.monto_base_islr),
-        montoBaseIslr: parseFloat(data.monto_base_islr),
+
         estado: data.estado || "Activo",
         fechaInactivo: data.fecha_inactivo,
         fechaReactivacion: data.fecha_reactivacion,
@@ -183,7 +181,7 @@ export const PersonalProvider = ({ children }) => {
             employeeData.montoBaseParoForzoso || 0
           ),
           monto_base_faov: parseFloat(employeeData.montoBaseFaov || 0),
-          monto_base_faov: parseFloat(employeeData.montoBaseFaov || 0),
+
           monto_base_islr: parseFloat(employeeData.montoBaseIslr || 0),
           estado: employeeData.estado,
           fecha_inactivo: employeeData.fechaInactivo,
@@ -216,7 +214,7 @@ export const PersonalProvider = ({ children }) => {
         montoBaseParoForzoso: parseFloat(data.monto_base_paro_forzoso),
         montoBaseFaov: parseFloat(data.monto_base_faov),
         montoBaseIslr: parseFloat(data.monto_base_islr),
-        montoBaseIslr: parseFloat(data.monto_base_islr),
+
         estado: data.estado || "Activo",
         fechaInactivo: data.fecha_inactivo,
         fechaReactivacion: data.fecha_reactivacion,
@@ -282,7 +280,7 @@ export const PersonalProvider = ({ children }) => {
         montoBaseParoForzoso: parseFloat(data.monto_base_paro_forzoso),
         montoBaseFaov: parseFloat(data.monto_base_faov),
         montoBaseIslr: parseFloat(data.monto_base_islr),
-        montoBaseIslr: parseFloat(data.monto_base_islr),
+
         estado: data.estado || "Activo",
         fechaInactivo: data.fecha_inactivo,
         fechaReactivacion: data.fecha_reactivacion,

@@ -58,7 +58,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
     if (compraEdit) {
       setFormData({
         categoria: '',
-        subcategorias: [''],
+
         proveedor: '',
         tipoRif: 'J-',
         rif: '',

@@ -108,7 +108,7 @@ export const OperacionesProvider = ({ children }) => {
 
   const getInventorySummary = useCallback(async () => {
     if (!selectedProject) return;
-    
+
     const { data, error } = await supabase
       .from('inventario')
       .select(`
@@ -155,8 +155,8 @@ export const OperacionesProvider = ({ children }) => {
     // Insertar el requerimiento principal
     const { data: newRequerimiento, error: reqError } = await supabase
       .from('requerimientos')
-      .insert([{ 
-        ...reqHeader, 
+      .insert([{
+        ...reqHeader,
         project_id: selectedProject.id,
         status: 'pendiente'
       }])
@@ -238,7 +238,7 @@ export const OperacionesProvider = ({ children }) => {
       return;
     }
 
-   
+
     if (item.cantidad_disponible < cantidad_retirada) {
       showToast('No hay suficiente stock para retirar.', 'error');
       setLoading(false);
@@ -248,10 +248,10 @@ export const OperacionesProvider = ({ children }) => {
     // Insertar en retiros_inventario
     const { error: withdrawalError } = await supabase
       .from('retiros_inventario')
-      .insert([{ 
-        inventario_id, 
-        cantidad_retirada, 
-        retirado_por, 
+      .insert([{
+        inventario_id,
+        cantidad_retirada,
+        retirado_por,
         observaciones,
         fecha_retiro: new Date(),
         project_id: selectedProject.id
@@ -341,16 +341,16 @@ export const OperacionesProvider = ({ children }) => {
 
     // Actualizar o insertar en inventario
     if (existingItem) {
-            const newQuantity = Number(existingItem.cantidad_disponible) + Number(purchaseData.cantidad);
-            const { error: updateError } = await supabase
-              .from('inventario')
-              .update({
-                cantidad_disponible: newQuantity,
-                last_updated: new Date(),
-                unidad: unidad,
-                precio_unitario_usd_aprox: precio_unitario_usd_aprox.toFixed(2)
-              })
-              .eq('id', existingItem.id);
+      const newQuantity = Number(existingItem.cantidad_disponible) + Number(purchaseData.cantidad);
+      const { error: updateError } = await supabase
+        .from('inventario')
+        .update({
+          cantidad_disponible: newQuantity,
+          last_updated: new Date(),
+          unidad: unidad,
+          precio_unitario_usd_aprox: precio_unitario_usd_aprox.toFixed(2)
+        })
+        .eq('id', existingItem.id);
       if (updateError) {
         console.error('Error updating inventory:', updateError);
       }
@@ -393,7 +393,7 @@ export const OperacionesProvider = ({ children }) => {
         if (purchasedAmount > 0) {
           const newCantidadComprada = reqItem.cantidad_comprada + purchasedAmount;
           let newStatus = reqItem.status;
-          
+
           if (newCantidadComprada >= reqItem.cantidad_requerida) {
             newStatus = 'completado';
           } else if (newCantidadComprada > 0) {
@@ -402,9 +402,9 @@ export const OperacionesProvider = ({ children }) => {
 
           const { error: updateReqItemError } = await supabase
             .from('requerimiento_items')
-            .update({ 
-              cantidad_comprada: newCantidadComprada, 
-              status: newStatus 
+            .update({
+              cantidad_comprada: newCantidadComprada,
+              status: newStatus
             })
             .eq('id', reqItem.id);
 
@@ -422,14 +422,14 @@ export const OperacionesProvider = ({ children }) => {
     await getCompras();
     await getProductos();
     await getRequerimientos();
-    
+
     setLoading(false);
   }, [selectedProject, getInventory, getCompras, getProductos, getRequerimientos]);
 
   const updateCompra = useCallback(async (compraId, updatedData) => {
     if (!selectedProject) return;
     setLoading(true);
-    
+
     const { id, created_at, ...updatePayload } = updatedData;
     const { error } = await supabase
       .from('compras')
@@ -536,7 +536,6 @@ export const OperacionesProvider = ({ children }) => {
     updateRequerimientoItem,
     cancelRequerimientoItem,
     getInventorySummary,
-    getLowStockItems,
     getLowStockItems,
     updateInventoryItem,
     facturas,
