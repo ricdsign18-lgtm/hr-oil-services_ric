@@ -22,43 +22,8 @@ export const ValuationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [globalValuationCount, setGlobalValuationCount] = useState(0);
-
-  // Cargar conteo global de valuaciones del año actual
-  const loadGlobalValuationCount = async () => {
-    try {
-      const currentYear = new Date().getFullYear();
-      const startOfYear = new Date(currentYear, 0, 1).toISOString();
-      const endOfYear = new Date(currentYear, 11, 31, 23, 59, 59).toISOString();
-
-      const { count, error } = await supabase
-        .from("valuations")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", startOfYear)
-        .lte("created_at", endOfYear);
-
-      if (error) throw error;
-
-      // If count is 0, avoid division by zero later by setting to 1 or handling it in UI
-      // But logically if there are 0 valuations, the app wouldn't be showing any valuation card to subtract from.
-      // So setting raw count is fine.
-      setGlobalValuationCount(count || 0);
-
-    } catch (err) {
-      console.error("Error loading global valuation count:", err);
-      // Fallback or silent fail
-    }
-  };
-
   // Cargar valuaciones del proyecto
   const loadValuations = async () => {
-    // ... (existing loadValuations logic) ...
-    // Trigger global load as well when loading project valuations
-    loadGlobalValuationCount();
-
-    if (!selectedProject?.id) return;
-    // ... rest of existing function
-
     if (!selectedProject?.id) return;
 
     setLoading(true);

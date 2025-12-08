@@ -333,38 +333,131 @@ const ValuacionResumenCard = ({
 
         {/* Resultados */}
         <div className="financial-section-full resultados">
-          <h5>Resultados</h5>
-          <div className="resultados-grid">
-            <div className="resultado-principal">
-              <div className="resultado-label">UTILIDAD NETA</div>
-              <div className="resultado-value">
-                {formatCurrency(utilidadNeta, "USD")}
-              </div>
+          <h5>Proyección de Ganancias</h5>
+          <div className="resultados-grid-detailed">
+
+            {/* 1. Monto a Recibir en Banco */}
+            <div className="resultado-row main">
+              <span className="label">Monto a Recibir en Banco (Subtotal - 8.1%)</span>
+              <span className="value">{formatCurrency(subtotalValuacionUSD * (1 - 0.081), "USD")}</span>
             </div>
-            <div className="indicadores-grid">
-              <div className="indicador ganancia">
-                <div className="indicador-icon">📈</div>
-                <div className="indicador-content">
-                  <span className="indicador-label">% Ganancia</span>
-                  <span className="indicador-value">
-                    {subtotalValuacionUSD > 0
-                      ? ((utilidadNeta / subtotalValuacionUSD) * 100).toFixed(2)
-                      : 0}%
+
+            {/* 2. Deducciones Gubernamentales */}
+            <div className="resultado-group">
+              <div className="group-header">Deducciones Gubernamentales</div>
+              <div className="group-items">
+                <div className="item-row">
+                  <span className="label">Alcaldía (3%)</span>
+                  <span className="value negative">
+                    - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.03, "USD")}
+                  </span>
+                </div>
+                <div className="item-row">
+                  <span className="label">Anticipo ISLR (1%)</span>
+                  <span className="value negative">
+                    - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.01, "USD")}
+                  </span>
+                </div>
+                <div className="item-row">
+                  <span className="label">SENIAT (10%)</span>
+                  <span className="value negative">
+                    - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.10, "USD")}
                   </span>
                 </div>
               </div>
-              <div className="indicador gastos">
-                <div className="indicador-icon">📉</div>
-                <div className="indicador-content">
-                  <span className="indicador-label">% Gastos</span>
-                  <span className="indicador-value">
-                    {subtotalValuacionUSD > 0
-                      ? ((totalGastosUSD / subtotalValuacionUSD) * 100).toFixed(2)
-                      : 0}%
-                  </span>
-                </div>
-              </div>
             </div>
+
+            {/* Calculations Constants for easier reuse in render */}
+            {(() => {
+              const montoBanco = subtotalValuacionUSD * (1 - 0.081);
+              const dedAlcaldia = montoBanco * 0.03;
+              const dedISLR = montoBanco * 0.01;
+              const dedSENIAT = montoBanco * 0.10;
+              const totalDedGov = dedAlcaldia + dedISLR + dedSENIAT;
+
+              const baseComisiones = montoBanco - totalDedGov;
+
+              const comisionCobro = baseComisiones * 0.15;
+              const d25 = baseComisiones * 0.25;
+
+              const baseOtras = baseComisiones - d25; // As per check: (Monto - Gov - D25) * %
+              // Re-reading user request carefully:
+              // "Otras Comisiones: P: (Monto a recibir en banco – Deducciones Gubernamentales - D25%)*8%"
+              // This implies the base for P, R, L is indeed (Neto - D25)
+
+              const comisionP = baseOtras * 0.08;
+              const comisionR = baseOtras * 0.02;
+              const comisionL = baseOtras * 0.02;
+
+              const totalComisiones = comisionCobro + d25 + comisionP + comisionR + comisionL;
+
+              // Utilidad final = Banco - Gov - Comisiones - Gastos
+              const utilidadFinal = montoBanco - totalDedGov - totalComisiones - totalGastosUSD;
+
+              return (
+                <>
+                  {/* 3. Comisiones */}
+                  <div className="resultado-group">
+                    <div className="group-header">Comisiones y Deducciones</div>
+                    <div className="group-items">
+                      <div className="item-row">
+                        <span className="label">Comisión por Cobro (15%)</span>
+                        <span className="value negative">
+                          - {formatCurrency(comisionCobro, "USD")}
+                        </span>
+                      </div>
+                      <div className="item-row">
+                        <span className="label">D25%</span>
+                        <span className="value negative">
+                          - {formatCurrency(d25, "USD")}
+                        </span>
+                      </div>
+                      <div className="item-row">
+                        <span className="label">Otras (P:8%, R:2%, L:2%)</span>
+                        <span className="value negative">
+                          - {formatCurrency(comisionP + comisionR + comisionL, "USD")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4. Gastos Realizados */}
+                  <div className="resultado-group">
+                    <div className="group-header">Gastos Operativos</div>
+                    <div className="group-items">
+                      <div className="item-row">
+                        <span className="label">Total Gastos Registrados</span>
+                        <span className="value negative">
+                          - {formatCurrency(totalGastosUSD, "USD")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5. Utilidad Final */}
+                  <div className="resultado-principal final">
+                    <div className="resultado-label">UTILIDAD PROYECTADA</div>
+                    <div className={`resultado-value ${utilidadFinal >= 0 ? 'positive' : 'negative'}`}>
+                      {formatCurrency(utilidadFinal, "USD")}
+                    </div>
+                  </div>
+
+                  <div className="indicadores-grid">
+                    <div className="indicador ganancia">
+                      <div className="indicador-icon">�</div>
+                      <div className="indicador-content">
+                        <span className="indicador-label">% Margen</span>
+                        <span className="indicador-value">
+                          {montoBanco > 0
+                            ? ((utilidadFinal / montoBanco) * 100).toFixed(2)
+                            : 0}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div >
