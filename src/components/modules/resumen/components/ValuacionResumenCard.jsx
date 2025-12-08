@@ -3,6 +3,8 @@ import { useCurrency } from "../../../../contexts/CurrencyContext";
 import { useOperaciones } from "../../../../contexts/OperacionesContext";
 import { usePersonal } from "../../../../contexts/PersonalContext";
 import supabase from "../../../../api/supaBase";
+import { createPortal } from "react-dom";
+import { CartShoppingIcon, MultiUsersIcon, SackDollarIcon, BankIcon } from "../../../../assets/icons/Icons";
 import "./ValuacionResumenCard.css";
 
 const ValuacionResumenCard = ({
@@ -352,32 +354,41 @@ const ValuacionResumenCard = ({
         </div>
 
         {/* Resumen de Gastos */}
+        {/* Resumen de Gastos */}
         <div className="financial-section-full compact-summary">
           <h5>Resumen de Gastos</h5>
-          <div className="summary-cards">
-            <div className="summary-card">
-              <div className="summary-icon">🛒</div>
-              <div className="summary-content">
-                <span className="summary-label">Total Compras</span>
-                <span className="summary-value">
+          <div className="valuacion-totales-grid">
+            <div className="valuacion-total-card orange">
+              <div className="valuacion-card-icon">
+                <CartShoppingIcon width={32} height={32} fill="#ea580c" />
+              </div>
+              <div className="valuacion-card-content">
+                <span className="valuacion-card-label">Total Compras</span>
+                <span className="valuacion-card-value-main text-xl text-orange-700">
                   {formatCurrency(totalGastosComprasUSD, "USD")}
                 </span>
               </div>
             </div>
-            <div className="summary-card">
-              <div className="summary-icon">👥</div>
-              <div className="summary-content">
-                <span className="summary-label">Nómina</span>
-                <span className="summary-value">
+
+            <div className="valuacion-total-card orange">
+              <div className="valuacion-card-icon">
+                <MultiUsersIcon width={32} height={32} fill="#ea580c" />
+              </div>
+              <div className="valuacion-card-content">
+                <span className="valuacion-card-label">Nómina</span>
+                <span className="valuacion-card-value-main text-xl text-orange-700">
                   {formatCurrency(totalPagosNominaUSD, "USD")}
                 </span>
               </div>
             </div>
-            <div className="summary-card total">
-              <div className="summary-icon">💰</div>
-              <div className="summary-content">
-                <span className="summary-label">Total Gastos</span>
-                <span className="summary-value">
+
+            <div className="valuacion-total-card red">
+              <div className="valuacion-card-icon">
+                 <SackDollarIcon width={32} height={32} fill="#dc2626" />
+              </div>
+              <div className="valuacion-card-content">
+                <span className="valuacion-card-label">Total Gastos</span>
+                <span className="valuacion-card-value-main text-red-700">
                   {formatCurrency(totalGastosUSD, "USD")}
                 </span>
               </div>
@@ -385,17 +396,21 @@ const ValuacionResumenCard = ({
           </div>
           
            {/* SENIAT Info */}
-           <div className="summary-cards" style={{ marginTop: '1rem', justifyContent: 'center' }}>
-            <div className="summary-card" style={{ background: '#f8f9fa', border: '1px dashed #dee2e6' }}>
-              <div className="summary-icon">🏛️</div>
-              <div className="summary-content">
-                <span className="summary-label">Monto Anual SENIAT</span>
-                <span className="summary-value" style={{ color: '#6c757d' }}>
-                  - {formatCurrency(seniatAmount, "USD")}
-                </span>
-                <span className="resumen-subtitle" style={{ fontSize: '0.7rem' }}>
-                  (60k / {Math.round(60000/seniatAmount) || 0} val. en {new Date(valuacion.periodoInicio).getFullYear()})
-                </span>
+           <div className="valuacion-totales-grid seniat-grid">
+            <div className="valuacion-total-card gray seniat-card-dashed">
+               <div className="valuacion-card-content seniat-content-row">
+                <div className="seniat-icon-wrapper">
+                  <BankIcon width={28} height={28} fill="#4b5563" />
+                </div>
+                <div>
+                  <span className="valuacion-card-label seniat-label-block">Monto Anual SENIAT</span>
+                  <span className="valuacion-card-value-main text-lg text-gray-600">
+                    - {formatCurrency(seniatAmount, "USD")}
+                  </span>
+                  <span className="valuacion-card-value-secondary text-xs">
+                     (60k / {Math.round(60000/seniatAmount) || 0} val. en {new Date(valuacion.periodoInicio).getFullYear()})
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -540,10 +555,10 @@ const ValuacionResumenCard = ({
 
       {/* Modal de Detalle */}
       {/* Modal de Detalle */}
-      {selectedCategory && (
-        <div className="category-detail-modal-overlay">
-          <div className="category-detail-modal">
-            <div className="modal-header">
+      {selectedCategory && createPortal(
+        <div className="category-detail-modal-overlay" onClick={handleCloseModal}>
+          <div className="category-detail-modal" onClick={e => e.stopPropagation()}>
+            <div className="valuacion-modal-header">
               <div className="nav-controls">
                 <button
                   onClick={handlePrevCategory}
@@ -566,11 +581,11 @@ const ValuacionResumenCard = ({
               <button onClick={handleCloseModal} className="close-btn" title="Cerrar">×</button>
             </div>
 
-            <div className="modal-content">
+            <div className="valuacion-modal-content">
               {/* Vista de Tabla (Desktop) */}
-              <div className="desktop-view">
-                <div className="table-responsive">
-                  <table className="detail-table">
+              <div className="valuacion-desktop-view">
+                <div className="valuacion-table-wrapper">
+                  <table className="valuacion-detail-table">
                     <thead>
                       <tr>
                         <th className="th-date">Fecha</th>
@@ -636,321 +651,18 @@ const ValuacionResumenCard = ({
               </div>
             </div>
 
-            <div className="modal-footer">
+            <div className="valuacion-modal-footer">
               <div className="total-label">Total Categoría</div>
               <div className="total-amount">
                 $ {new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2 }).format(gastosPorCategoria[selectedCategory]?.total || 0)}
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      <style jsx>{`
-        /* Animations */
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
 
-        .category-detail-modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: rgba(0, 0, 0, 0.6);
-          backdrop-filter: blur(5px);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 9999;
-          animation: fadeIn 0.2s ease-out;
-          padding: 1rem;
-        }
-
-        .category-detail-modal {
-          background: #ffffff;
-          border-radius: 12px;
-          width: 95vw;
-          max-width: 1100px;
-          max-height: 85vh;
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-          animation: slideUp 0.3s ease-out;
-          overflow: hidden;
-          position: relative;
-        }
-
-        .modal-header {
-          padding: 1rem 1.5rem;
-          border-bottom: 1px solid #f0f0f0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: #fff;
-          z-index: 10;
-        }
-
-        .modal-header h3 {
-          margin: 0;
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #1a1a1a;
-          text-align: center;
-          flex: 1;
-        }
-
-        .nav-controls {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .nav-btn {
-          background: #f8f9fa;
-          border: 1px solid #e9ecef;
-          border-radius: 8px;
-          width: 36px;
-          height: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          color: #495057;
-          transition: all 0.2s;
-        }
-
-        .nav-btn:hover:not(:disabled) {
-          background: #e9ecef;
-          color: #000;
-          transform: translateY(-1px);
-        }
-
-        .nav-btn:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-          border-color: #f0f0f0;
-        }
-
-        .close-btn {
-          background: #fff0f0;
-          border: none;
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          font-size: 1.5rem;
-          line-height: 1;
-          cursor: pointer;
-          color: #dc3545;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-
-        .close-btn:hover {
-          background: #ffe6e6;
-          transform: rotate(90deg);
-        }
-
-        .modal-content {
-          padding: 0;
-          overflow-y: auto;
-          flex: 1;
-          background: #f8f9fa;
-        }
-
-        /* Desktop View - Table */
-        .desktop-view {
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          overflow: hidden;
-        }
-        
-        .table-responsive {
-          flex: 1;
-          overflow: auto;
-          width: 100%;
-        }
-        
-        .detail-table {
-          width: 100%;
-          border-collapse: separate;
-          border-spacing: 0;
-          background: white;
-        }
-
-        .detail-table th {
-          background: #f8fafc;
-          padding: 1rem;
-          font-weight: 600;
-          color: #475569;
-          text-transform: uppercase;
-          font-size: 0.75rem;
-          letter-spacing: 0.5px;
-          border-bottom: 2px solid #e2e8f0;
-          position: sticky;
-          top: 0;
-          z-index: 10;
-          white-space: nowrap;
-          box-shadow: 0 1px 0 #e2e8f0;
-        }
-
-        .detail-table td {
-          padding: 1rem;
-          border-bottom: 1px solid #f0f0f0;
-          color: #333;
-          font-size: 0.9rem;
-          vertical-align: top;
-        }
-        
-        .detail-table td:first-child { /* Fecha */
-            white-space: nowrap;
-            color: #64748b;
-        }
-
-        .detail-table td:nth-child(3) { /* Estilo para Descripción */
-            min-width: 300px; 
-            max-width: 400px;
-            white-space: normal;
-        }
-        
-        .detail-table td:last-child { /* Monto */
-            white-space: nowrap;
-        }
-
-        .detail-table tr:hover td {
-          background-color: #f8f9fa;
-        }
-
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .text-muted { color: #868e96; font-size: 0.85rem; }
-        .font-medium { font-weight: 500; }
-        .font-bold { font-weight: 700; color: #1a1a1a; }
-
-        .badge {
-          display: inline-block;
-          padding: 0.25rem 0.75rem;
-          background: #e7f5ff;
-          color: #007bff;
-          border-radius: 50px;
-          font-size: 0.75rem;
-          font-weight: 600;
-        }
-
-        /* Mobile View - Cards */
-        .mobile-view {
-          display: none;
-          padding: 1rem;
-          gap: 1rem;
-        }
-
-        .mobile-card {
-          background: white;
-          border-radius: 8px;
-          padding: 1rem;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-          border: 1px solid #f0f0f0;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .mobile-card-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-bottom: 0.5rem;
-          border-bottom: 1px solid #f0f0f0;
-        }
-
-        .mobile-date {
-          font-size: 0.85rem;
-          color: #868e96;
-        }
-
-        .mobile-amount {
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: #28a745;
-        }
-
-        .mobile-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.9rem;
-        }
-        
-        .mobile-row.column {
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .mobile-row .label {
-          color: #868e96;
-          font-size: 0.8rem;
-          text-transform: uppercase;
-        }
-
-        .badge.small {
-          padding: 0.15rem 0.5rem;
-          font-size: 0.7rem;
-        }
-
-        .modal-footer {
-          padding: 1.25rem 1.5rem;
-          border-top: 1px solid #e9ecef;
-          background: #fff;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .total-label {
-          font-size: 1rem;
-          color: #6c757d;
-        }
-
-        .total-amount {
-          font-size: 1.5rem;
-          font-weight: 800;
-          color: #28a745;
-          letter-spacing: -0.5px;
-        }
-
-        /* Responsive Breakpoints */
-        @media (max-width: 768px) {
-          .desktop-view {
-            display: none !important;
-          }
-          .mobile-view {
-            display: flex !important;
-            flex-direction: column;
-          }
-          
-          .category-detail-modal {
-            max-height: 90vh;
-            border-radius: 12px 12px 0 0;
-            position: absolute;
-            bottom: 0;
-            margin-bottom: 0;
-            animation: slideUp 0.3s ease-out;
-            max-width: 100%;
-          }
-          
-          .category-detail-modal-overlay {
-            align-items: flex-end;
-            padding: 0;
-          }
-        }
-      `}</style>
     </div >
   );
 };

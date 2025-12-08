@@ -228,9 +228,10 @@
 }
 
 /* Resumen compacto con tarjetas */
+/* Resumen compacto con tarjetas */
 .financial-section-full.compact-summary {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #fbbf24;
+  background: #fff; /* Removed yellow background to clean up UI */
+  border: 1px solid #e2e8f0;
 }
 
 .financial-section-full.compact-summary h5 {
@@ -664,8 +665,8 @@
 /* New Card Styles matching ResumenPresupuesto */
 .valuacion-totales-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* Reduced min-width for mobile */
+  gap: 1rem;
   margin-bottom: 0.5rem;
 }
 
@@ -700,6 +701,9 @@
 .valuacion-total-card.blue::before { background: #3b82f6; }
 .valuacion-total-card.indigo::before { background: #6366f1; }
 .valuacion-total-card.teal::before { background: #14b8a6; }
+.valuacion-total-card.orange::before { background: #f97316; }
+.valuacion-total-card.red::before { background: #ef4444; }
+.valuacion-total-card.gray::before { background: #9ca3af; }
 
 .valuacion-card-icon {
   font-size: 1.5rem;
@@ -771,4 +775,380 @@
   background: linear-gradient(90deg, #14b8a6, #0d9488);
   border-radius: 4px;
   transition: width 0.5s ease;
+}
+
+@media (max-width: 480px) {
+  .valuacion-totales-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .valuacion-total-card {
+    padding: 1rem;
+    min-height: auto;
+  }
+
+  .valuacion-card-value-main {
+    font-size: 1.5rem;
+  }
+
+  .valuacion-card-label {
+    font-size: 0.75rem;
+  }
+  
+  .valuacion-card-value-secondary {
+    font-size: 0.85rem;
+  }
+}
+
+/* Text Colors */
+.text-orange-700 { color: #c2410c; }
+.text-red-700 { color: #b91c1c; }
+.text-gray-600 { color: #4b5563; }
+
+/* Font Sizes */
+.text-xl { font-size: 1.5rem; }
+.text-lg { font-size: 1.2rem; }
+.text-xs { font-size: 0.75rem; }
+
+/* SENIAT Section Specifics */
+.seniat-grid {
+  margin-top: 0.5rem;
+  grid-template-columns: 1fr;
+}
+
+.seniat-card-dashed {
+  border-style: dashed;
+}
+
+.seniat-content-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.seniat-icon-wrapper {
+  opacity: 0.5;
+}
+
+.seniat-label-block {
+  display: block;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.category-detail-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease-out;
+  padding: 1rem;
+}
+
+.category-detail-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 90vw;
+  max-width: 1000px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+  position: relative;
+  margin: auto; /* Center in overlay */
+}
+
+.valuacion-modal-header {
+  padding: 1rem 1.5rem;
+  /* border-bottom: 1px solid #f0f0f0;  Removed to avoid delimitation with table */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  z-index: 20;
+  flex-shrink: 0; /* Don't shrink header */
+}
+
+.valuacion-modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-align: center;
+  flex: 1;
+}
+
+.nav-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-btn {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #495057;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #e9ecef;
+  color: #000;
+  transform: translateY(-1px);
+}
+
+.nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #f0f0f0;
+}
+
+.close-btn {
+  background: #fff0f0;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #dc3545;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #ffe6e6;
+  transform: rotate(90deg);
+}
+
+.valuacion-modal-content {
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  background: #ffffff;
+  width: 100%; /* Force full width */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Desktop View - Table */
+.valuacion-desktop-view {
+  display: flex; /* Flex to fill vertical space */
+  flex-direction: column;
+  width: 100%;
+  height: 100%; /* Fill modal content */
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.valuacion-table-wrapper {
+  flex: 1;
+  overflow: auto; /* Handle both scrolls here */
+  width: 100%;
+  height: 100%;
+}
+
+.valuacion-detail-table {
+  width: 100%;
+  display: table;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  /* table-layout: fixed; Removed to ensure it fills width naturally */
+  box-sizing: border-box;
+}
+
+.valuacion-detail-table th {
+  background: #ffffff; /* Match modal header */
+  padding: 1rem 1.5rem; /* Match modal header side padding */
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+  /* box-shadow removed for cleaner look */
+}
+
+.valuacion-detail-table td {
+  padding: 1rem 1.5rem; /* Match modal header side padding */
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+  font-size: 0.9rem;
+  vertical-align: top;
+}
+
+.valuacion-detail-table td:first-child { /* Fecha */
+    white-space: nowrap;
+    color: #64748b;
+    width: 120px; /* Fixed width for date */
+}
+
+.valuacion-detail-table td:nth-child(3) { /* Estilo para Descripción */
+    white-space: normal;
+    /* Removed min/max width to allow expansion */
+}
+
+.valuacion-detail-table td:last-child { /* Monto */
+    white-space: nowrap;
+    width: 150px; /* Fixed width for amount */
+}
+
+.valuacion-detail-table tr:hover td {
+  background-color: #f8f9fa;
+}
+
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-muted { color: #868e96; font-size: 0.85rem; }
+.font-medium { font-weight: 500; }
+.font-bold { font-weight: 700; color: #1a1a1a; }
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #e7f5ff;
+  color: #007bff;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Mobile View - Cards */
+.mobile-view {
+  display: none;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.mobile-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  border: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mobile-date {
+  font-size: 0.85rem;
+  color: #868e96;
+}
+
+.mobile-amount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #28a745;
+}
+
+.mobile-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.mobile-row.column {
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-row .label {
+  color: #868e96;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.badge.small {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+}
+
+.valuacion-modal-footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #e9ecef;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-label {
+  font-size: 1rem;
+  color: #6c757d;
+}
+
+.total-amount {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #28a745;
+  letter-spacing: -0.5px;
+}
+
+/* Responsive Breakpoints - Updated to switch to mobile view earlier */
+@media (max-width: 1024px) {
+  .valuacion-desktop-view {
+    display: none !important;
+  }
+  .mobile-view {
+    display: flex !important;
+    flex-direction: column;
+  }
+  
+  .category-detail-modal {
+    max-height: 90vh;
+    border-radius: 12px 12px 0 0;
+    position: absolute;
+    bottom: 0;
+    margin-bottom: 0;
+    animation: slideUp 0.3s ease-out;
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .category-detail-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
 }
