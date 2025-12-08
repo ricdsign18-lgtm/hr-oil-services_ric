@@ -16,6 +16,7 @@ import ComprasSinFacturaMain from "../components/modules/administracion/submodul
 import IngresosComisionesMain from "../components/modules/administracion/submodules/ingresos-comisiones/IngresosComisionesMain";
 import IngresosPagosMain from "../components/modules/administracion/submodules/ingresos-comisiones/submodules/ingresos-pagos/IngresosPagosMain";
 import ComisionesMain from "../components/modules/administracion/submodules/ingresos-comisiones/submodules/comisiones/ComisionesMain";
+import GestionUsariosPage from "./GestionUsariosPage";
 
 import { PersonalProvider } from "../contexts/PersonalContext";
 
@@ -64,6 +65,9 @@ const AdministracionPage = () => {
           <Route path="ingresos-comisiones" element={<IngresosComisionesMain />} />
           <Route path="ingresos-comisiones/ingresos-pagos" element={<IngresosPagosMain />} />
           <Route path="ingresos-comisiones/comisiones" element={<ComisionesMain />} />
+          
+          {/* Ruta para Gestión de Usuarios */}
+          <Route path="gestion-usuarios/*" element={<GestionUsariosPage />} />
         </Routes>
       </PersonalProvider>
     </ModulePage>

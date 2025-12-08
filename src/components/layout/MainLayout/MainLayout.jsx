@@ -6,6 +6,7 @@ import { PortfolioIcon } from "/src/assets/icons/Icons.jsx";
 import { AgreementIcon } from "/src/assets/icons/Icons.jsx";
 import { ConfigIcon } from "/src/assets/icons/Icons.jsx";
 import { ContractIcon } from "/src/assets/icons/Icons.jsx";
+import { MultiUsersIcon } from "/src/assets/icons/Icons.jsx";
 import Sidebar from "../../common/Sidebar/Sidebar";
 // import AppHeader from "../AppHeader/AppHeader";
 import { Header } from "../AppHeader/Header";
@@ -65,12 +66,14 @@ const MainLayout = ({ children }) => {
       icon: <AgreementIcon className="sidebar-action-icon" />,
       path: "/coordinaciones",
     },
+
   ];
 
   const filteredSidebarItems = sidebarItems.filter(item => {
     if (userData?.role === 'editor') {
       return item.id === 'administracion';
     }
+
     return true;
   });
 

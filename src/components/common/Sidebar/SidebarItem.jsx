@@ -1,12 +1,14 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
-const SidebarItem = ({ item, onItemClick }) => {
+const SidebarItem = ({ item, onItemClick, isActive: propIsActive }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const isActive =
-    location.pathname === item.path ||
-    location.pathname.startsWith(`${item.path}/`);
+  
+  // Use prop if provided, otherwise calculate locally (legacy behavior)
+  const isActive = propIsActive !== undefined 
+    ? propIsActive 
+    : (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
 
   const handleClick = () => {
     navigate(item.path);

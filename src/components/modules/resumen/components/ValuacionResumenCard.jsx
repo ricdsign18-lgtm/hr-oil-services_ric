@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useCurrency } from "../../../../contexts/CurrencyContext";
 import { useOperaciones } from "../../../../contexts/OperacionesContext";
 import { usePersonal } from "../../../../contexts/PersonalContext";
+import supabase from "../../../../api/supaBase";
 import "./ValuacionResumenCard.css";
 
 const ValuacionResumenCard = ({
@@ -17,6 +18,7 @@ const ValuacionResumenCard = ({
   const [pagos, setPagos] = useState([]);
   const [loadingPagos, setLoadingPagos] = useState(true);
   const [showCategories, setShowCategories] = useState(false);
+  const [seniatAmount, setSeniatAmount] = useState(0);
 
   useEffect(() => {
     const fetchPagos = async () => {
@@ -29,6 +31,38 @@ const ValuacionResumenCard = ({
     };
     fetchPagos();
   }, [valuacion.projectId, getPagosByProject]);
+
+  useEffect(() => {
+    const calculateSeniatAmount = async () => {
+      if (!valuacion.periodoInicio) return;
+
+      const date = new Date(valuacion.periodoInicio);
+      const year = date.getFullYear();
+      
+      const startOfYear = `${year}-01-01`;
+      const endOfYear = `${year}-12-31`;
+
+      try {
+        const { count, error } = await supabase
+          .from("valuations")
+          .select("*", { count: "exact", head: true })
+          .gte("period_start", startOfYear)
+          .lte("period_start", endOfYear);
+
+        if (error) {
+          console.error("Error calculating SENIAT amount:", error);
+          return;
+        }
+
+        const calculatedAmount = count > 0 ? 60000 / count : 0;
+        setSeniatAmount(calculatedAmount);
+      } catch (err) {
+        console.error("Error calculating SENIAT amount:", err);
+      }
+    };
+
+    calculateSeniatAmount();
+  }, [valuacion.periodoInicio]);
 
   if (!valuacion) {
     return (
@@ -134,11 +168,10 @@ const ValuacionResumenCard = ({
   const totalGastosComprasUSD = totalComprasConFacturaUSD + totalComprasSinFacturaUSD;
   const totalGastosUSD = totalGastosComprasUSD + totalPagosNominaUSD;
 
-  // Ordenar categorías por total (descendente)
   const categoriasOrdenadas = Object.entries(gastosPorCategoria)
     .sort((a, b) => b[1].total - a[1].total);
 
-  const utilidadNeta = subtotalValuacionUSD - totalGastosUSD;
+  const utilidadNeta = subtotalValuacionUSD - totalGastosUSD - seniatAmount;
 
   // State para el modal
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -325,6 +358,22 @@ const ValuacionResumenCard = ({
                 <span className="summary-label">Total Gastos</span>
                 <span className="summary-value">
                   {formatCurrency(totalGastosUSD, "USD")}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+           {/* SENIAT Info */}
+           <div className="summary-cards" style={{ marginTop: '1rem', justifyContent: 'center' }}>
+            <div className="summary-card" style={{ background: '#f8f9fa', border: '1px dashed #dee2e6' }}>
+              <div className="summary-icon">🏛️</div>
+              <div className="summary-content">
+                <span className="summary-label">Monto Anual SENIAT</span>
+                <span className="summary-value" style={{ color: '#6c757d' }}>
+                  - {formatCurrency(seniatAmount, "USD")}
+                </span>
+                <span className="resumen-subtitle" style={{ fontSize: '0.7rem' }}>
+                  (60k / Valuaciones del Año)
                 </span>
               </div>
             </div>

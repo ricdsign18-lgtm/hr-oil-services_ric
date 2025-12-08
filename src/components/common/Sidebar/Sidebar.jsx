@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { ArrowIcon, ConfigIcon } from "../../../assets/icons/Icons.jsx";
 import { OutIcon } from "../../../assets/icons/Icons.jsx";
@@ -9,6 +9,7 @@ const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
   const { hasPermissionSync, logout, userData: currentUser } = useAuth();
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Lógica de filtrado ajustada según el rol del usuario
   const getMenuItems = () => {
@@ -91,13 +92,27 @@ const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
 
           <nav className="sidebar-nav" aria-label="Navegación principal">
             <ul className="sidebar-menu">
-              {filteredItems.map((item) => (
-                <SidebarItem
-                  key={item.id}
-                  item={item}
-                  onItemClick={handleItemClick}
-                />
-              ))}
+              {filteredItems.map((item) => {
+                const isActive =
+                  location.pathname === item.path ||
+                  (location.pathname.startsWith(item.path) &&
+                    item.path !== "/" &&
+                    // Ensure we don't match if there's a longer matching path in the list
+                    !filteredItems.some(
+                      (otherItem) =>
+                        otherItem.path.length > item.path.length &&
+                        location.pathname.startsWith(otherItem.path)
+                    ));
+
+                return (
+                  <SidebarItem
+                    key={item.id}
+                    item={item}
+                    isActive={isActive}
+                    onItemClick={handleItemClick}
+                  />
+                );
+              })}
 
               {/* Admin Section */}
               {currentUser?.role === "editor" && (
@@ -108,6 +123,7 @@ const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
                     path: "/admin/permissions",
                     icon: <ConfigIcon />,
                   }}
+                  isActive={location.pathname.startsWith("/admin/permissions")}
                   onItemClick={handleItemClick}
                 />
               )}

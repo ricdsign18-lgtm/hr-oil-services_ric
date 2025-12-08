@@ -8,6 +8,7 @@ import {
   BudgetIcon,
   DashboarddIcon,
   SackDollarIcon,
+  MultiUsersIcon,
 } from "../../../assets/icons/Icons";
 const AdministracionMain = ({ projectId }) => {
   const navigate = useNavigate();
@@ -35,6 +36,13 @@ const AdministracionMain = ({ projectId }) => {
       description: "Conciliación bancaria y control de gastos financieros",
       icon: <BankIcon />,
       path: "gastos-financieros",
+    },
+    {
+      id: "gestion-usuarios",
+      title: "GESTIÓN DE USUARIOS",
+      description: "Administración de usuarios, roles y permisos",
+      icon: <MultiUsersIcon />,
+      path: "gestion-usuarios",
     },
   ];
 
