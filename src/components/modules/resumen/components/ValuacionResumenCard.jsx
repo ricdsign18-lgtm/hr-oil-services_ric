@@ -40,7 +40,7 @@ const ValuacionResumenCard = ({
       const year = date.getFullYear();
       
       const startOfYear = `${year}-01-01`;
-      const endOfYear = `${year}-12-31`;
+      const endOfYear = `${year}-12-31T23:59:59`;
 
       try {
         const { count, error } = await supabase
@@ -93,8 +93,8 @@ const ValuacionResumenCard = ({
     budgetTotalUSD > 0 ? (cumulativeProgressUSD / budgetTotalUSD) * 100 : 0;
 
   // Filter by valuation NUMBER instead of date range
-  const facturasValuacion = facturas ? facturas.filter(item => item.valuacion === numero_valuacion) : [];
-  const comprasSinFacturaValuacion = comprasSinFactura ? comprasSinFactura.filter(item => item.valuacion === numero_valuacion) : [];
+  const facturasValuacion = facturas ? facturas.filter(item => String(item.valuacion) === String(numero_valuacion)) : [];
+  const comprasSinFacturaValuacion = comprasSinFactura ? comprasSinFactura.filter(item => String(item.valuacion) === String(numero_valuacion)) : [];
 
   // Pagos remain filtered by period as they are payroll related
   const filterDataByPeriod = (data, dateField) => {
@@ -250,31 +250,52 @@ const ValuacionResumenCard = ({
         {/* Totales de Valuación */}
         <div className="financial-section-full">
           <h5>Totales Valuación</h5>
-          <div className="financial-grid-inline">
-            <div className="financial-item subtotal">
-              <span className="financial-item-label">Subtotal Original</span>
-              <span className="financial-item-value">
-                {formatCurrency(subtotalValuacion, currencyValuacion)}
-              </span>
+          <div className="valuacion-totales-grid">
+            {/* Subtotal Original Card */}
+            <div className="valuacion-total-card blue">
+              <div className="valuacion-card-content">
+                <span className="valuacion-card-label">Subtotal Original ({currencyValuacion})</span>
+                <span className="valuacion-card-value-main">
+                  {formatCurrency(subtotalValuacion, currencyValuacion)}
+                </span>
+                {currencyValuacion !== 'USD' && (
+                  <span className="valuacion-card-value-secondary">
+                    ≈ {formatCurrency(subtotalValuacionUSD, "USD")}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="financial-item subtotal">
-              <span className="financial-item-label">Subtotal (USD)</span>
-              <span className="financial-item-value">
-                {formatCurrency(subtotalValuacionUSD, "USD")}
-              </span>
+
+            {/* Subtotal USD Card */}
+            <div className="valuacion-total-card indigo">
+              <div className="valuacion-card-content">
+                <span className="valuacion-card-label">Subtotal Equivalente (USD)</span>
+                <span className="valuacion-card-value-main">
+                   {formatCurrency(subtotalValuacionUSD, "USD")}
+                </span>
+                 <span className="valuacion-card-value-secondary">
+                    Base de cálculo
+                  </span>
+              </div>
             </div>
-            <div className="financial-item">
-              <span className="financial-item-label">Progreso</span>
-              <span className="financial-item-value">
-                {porcentajeEjecutado.toFixed(1)}%
-              </span>
+
+            {/* Progreso Card */}
+             <div className="valuacion-total-card teal">
+              <div className="valuacion-card-content">
+                <span className="valuacion-card-label">Progreso Ejecutado</span>
+                <span className="valuacion-card-value-main">
+                  {porcentajeEjecutado.toFixed(1)}%
+                </span>
+                <div className="progress-section">
+                   <div className="custom-progress-bar">
+                    <div
+                      className="custom-progress-fill"
+                      style={{ width: `${Math.min(porcentajeEjecutado, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="progress-bar-full">
-            <div
-              className="progress-fill"
-              style={{ width: `${Math.min(porcentajeEjecutado, 100)}%` }}
-            ></div>
           </div>
         </div>
 
@@ -373,7 +394,7 @@ const ValuacionResumenCard = ({
                   - {formatCurrency(seniatAmount, "USD")}
                 </span>
                 <span className="resumen-subtitle" style={{ fontSize: '0.7rem' }}>
-                  (60k / Valuaciones del Año)
+                  (60k / {Math.round(60000/seniatAmount) || 0} val. en {new Date(valuacion.periodoInicio).getFullYear()})
                 </span>
               </div>
             </div>
@@ -413,6 +434,12 @@ const ValuacionResumenCard = ({
                     - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.10, "USD")}
                   </span>
                 </div>
+                <div className="item-row">
+                  <span className="label">SENIAT (Cuota Anual)</span>
+                  <span className="value negative">
+                    - {formatCurrency(seniatAmount, "USD")}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -440,8 +467,8 @@ const ValuacionResumenCard = ({
 
               const totalComisiones = comisionCobro + d25 + comisionP + comisionR + comisionL;
 
-              // Utilidad final = Banco - Gov - Comisiones - Gastos
-              const utilidadFinal = montoBanco - totalDedGov - totalComisiones - totalGastosUSD;
+              // Utilidad final = Banco - Gov - Comisiones - Gastos - SeniatAnual
+              const utilidadFinal = montoBanco - totalDedGov - totalComisiones - totalGastosUSD - seniatAmount;
 
               return (
                 <>
