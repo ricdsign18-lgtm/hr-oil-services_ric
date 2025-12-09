@@ -115,18 +115,18 @@
   background-color: rgba(255, 255, 255, 0.02);
 }
 
-/* Semanal Grid Template (8 Columns) */
-/* Empleado | Días | HE D | HE N | Ded | Monto Extra | Banco | Obs */
+/* Semanal Grid Template (10 Columns) */
+/* Empleado | Días | Solo Extras | HE D | HE N | Ded | Adel | Monto Extra | Banco | Obs */
 .employees-pagos-list.semanal .list-header-pagos-nomina,
 .employees-pagos-list.semanal .pago-row {
-  grid-template-columns: minmax(250px, 2.5fr) minmax(80px, 0.8fr) minmax(80px, 0.8fr) minmax(80px, 0.8fr) minmax(100px, 1fr) minmax(110px, 1.1fr) minmax(120px, 1.2fr) minmax(150px, 2fr);
+  grid-template-columns: minmax(200px, 2fr) minmax(60px, 0.6fr) minmax(60px, 0.5fr) minmax(70px, 0.7fr) minmax(70px, 0.7fr) minmax(80px, 0.8fr) minmax(80px, 0.8fr) minmax(100px, 1fr) minmax(120px, 1.2fr) minmax(150px, 1.5fr);
 }
 
-/* Quincenal Grid Template (10 Columns) */
-/* Empleado | Tipo | Mitad | Días | HE D | HE N | Ded | Monto Extra | Banco | Obs */
+/* Quincenal Grid Template (12 Columns) */
+/* Empleado | Tipo | Mitad | Días | Solo Extras | HE D | HE N | Ded | Adel | Monto Extra | Banco | Obs */
 .employees-pagos-list.quincenal .list-header-pagos-nomina,
 .employees-pagos-list.quincenal .pago-row {
-  grid-template-columns: minmax(250px, 2.2fr) minmax(180px, 1.8fr) minmax(110px, 1fr) minmax(70px, 0.7fr) minmax(70px, 0.7fr) minmax(70px, 0.7fr) minmax(90px, 0.9fr) minmax(110px, 1.1fr) minmax(110px, 1.1fr) minmax(150px, 1.5fr);
+  grid-template-columns: minmax(200px, 2fr) minmax(120px, 1.2fr) minmax(100px, 1fr) minmax(60px, 0.6fr) minmax(60px, 0.5fr) minmax(60px, 0.6fr) minmax(60px, 0.6fr) minmax(70px, 0.7fr) minmax(70px, 0.7fr) minmax(90px, 0.9fr) minmax(110px, 1.1fr) minmax(130px, 1.3fr);
 }
 
 .employee-info {

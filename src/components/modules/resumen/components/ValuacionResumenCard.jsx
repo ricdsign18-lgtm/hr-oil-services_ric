@@ -40,7 +40,7 @@ const ValuacionResumenCard = ({
 
       const date = new Date(valuacion.periodoInicio);
       const year = date.getFullYear();
-      
+
       const startOfYear = `${year}-01-01`;
       const endOfYear = `${year}-12-31T23:59:59`;
 
@@ -273,23 +273,23 @@ const ValuacionResumenCard = ({
               <div className="valuacion-card-content">
                 <span className="valuacion-card-label">Subtotal Equivalente (USD)</span>
                 <span className="valuacion-card-value-main">
-                   {formatCurrency(subtotalValuacionUSD, "USD")}
+                  {formatCurrency(subtotalValuacionUSD, "USD")}
                 </span>
-                 <span className="valuacion-card-value-secondary">
-                    Base de cálculo
-                  </span>
+                <span className="valuacion-card-value-secondary">
+                  Base de cálculo
+                </span>
               </div>
             </div>
 
             {/* Progreso Card */}
-             <div className="valuacion-total-card teal">
+            <div className="valuacion-total-card teal">
               <div className="valuacion-card-content">
                 <span className="valuacion-card-label">Progreso Ejecutado</span>
                 <span className="valuacion-card-value-main">
                   {porcentajeEjecutado.toFixed(1)}%
                 </span>
                 <div className="progress-section">
-                   <div className="custom-progress-bar">
+                  <div className="custom-progress-bar">
                     <div
                       className="custom-progress-fill"
                       style={{ width: `${Math.min(porcentajeEjecutado, 100)}%` }}
@@ -384,7 +384,7 @@ const ValuacionResumenCard = ({
 
             <div className="valuacion-total-card red">
               <div className="valuacion-card-icon">
-                 <SackDollarIcon width={32} height={32} fill="#dc2626" />
+                <SackDollarIcon width={32} height={32} fill="#dc2626" />
               </div>
               <div className="valuacion-card-content">
                 <span className="valuacion-card-label">Total Gastos</span>
@@ -394,11 +394,11 @@ const ValuacionResumenCard = ({
               </div>
             </div>
           </div>
-          
-           {/* SENIAT Info */}
-           <div className="valuacion-totales-grid seniat-grid">
+
+          {/* SENIAT Info */}
+          <div className="valuacion-totales-grid seniat-grid">
             <div className="valuacion-total-card gray seniat-card-dashed">
-               <div className="valuacion-card-content seniat-content-row">
+              <div className="valuacion-card-content seniat-content-row">
                 <div className="seniat-icon-wrapper">
                   <BankIcon width={28} height={28} fill="#4b5563" />
                 </div>
@@ -408,7 +408,7 @@ const ValuacionResumenCard = ({
                     - {formatCurrency(seniatAmount, "USD")}
                   </span>
                   <span className="valuacion-card-value-secondary text-xs">
-                     (60k / {Math.round(60000/seniatAmount) || 0} val. en {new Date(valuacion.periodoInicio).getFullYear()})
+                    (60k / {Math.round(60000 / seniatAmount) || 0} val. en {new Date(valuacion.periodoInicio).getFullYear()})
                   </span>
                 </div>
               </div>
@@ -443,12 +443,12 @@ const ValuacionResumenCard = ({
                     - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.01, "USD")}
                   </span>
                 </div>
-                <div className="item-row">
+                {/* <div className="item-row">
                   <span className="label">SENIAT (10%)</span>
                   <span className="value negative">
                     - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.10, "USD")}
                   </span>
-                </div>
+                </div> */}
                 <div className="item-row">
                   <span className="label">SENIAT (Cuota Anual)</span>
                   <span className="value negative">
@@ -463,8 +463,8 @@ const ValuacionResumenCard = ({
               const montoBanco = subtotalValuacionUSD * (1 - 0.081);
               const dedAlcaldia = montoBanco * 0.03;
               const dedISLR = montoBanco * 0.01;
-              const dedSENIAT = montoBanco * 0.10;
-              const totalDedGov = dedAlcaldia + dedISLR + dedSENIAT;
+              // const dedSENIAT = montoBanco * 0.10;
+              const totalDedGov = dedAlcaldia + dedISLR; // + dedSENIAT;
 
               const baseComisiones = montoBanco - totalDedGov;
 

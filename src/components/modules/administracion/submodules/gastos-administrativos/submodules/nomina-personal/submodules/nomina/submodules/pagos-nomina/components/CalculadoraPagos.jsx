@@ -30,7 +30,9 @@ const CalculadoraPagos = ({
 
   const [diasRealesMes, setDiasRealesMes] = useState(0);
   const [incluirQuincenal, setIncluirQuincenal] = useState(false);
+
   const [incluirSemanal, setIncluirSemanal] = useState(true);
+  const [soloHorasExtras, setSoloHorasExtras] = useState({});
 
   // Estado para bancos dinámicos
   // Estado para bancos dinámicos
@@ -144,7 +146,9 @@ const CalculadoraPagos = ({
     const initialHorasExtras = {};
     const initialDeducciones = {};
     const initialAdelantos = {};
+
     const initialMontoExtra = {};
+    const initialSoloExtras = {};
 
     employees.forEach((emp) => {
       if (emp.frecuenciaPago === "Quincenal") {
@@ -160,6 +164,7 @@ const CalculadoraPagos = ({
       initialDeducciones[emp.id] = deduccionesManuales[emp.id] || 0;
       initialAdelantos[emp.id] = adelantosSueldo[emp.id] || 0;
       initialMontoExtra[emp.id] = montoExtraBs[emp.id] || 0;
+      initialSoloExtras[emp.id] = soloHorasExtras[emp.id] || false;
     });
     setDiasPagoQuincenal((prev) => ({ ...prev, ...initialDias }));
     setMitadPagoQuincenal((prev) => ({ ...prev, ...initialMitad }));
@@ -180,6 +185,7 @@ const CalculadoraPagos = ({
     setDeduccionesManuales((prev) => ({ ...prev, ...initialDeducciones }));
     setAdelantosSueldo((prev) => ({ ...prev, ...initialAdelantos }));
     setMontoExtraBs((prev) => ({ ...prev, ...initialMontoExtra }));
+    setSoloHorasExtras((prev) => ({ ...prev, ...initialSoloExtras }));
   }, [employees, fechaPago]);
 
   // CORRECCIÓN: Función auxiliar para formatear fecha de forma segura
@@ -543,9 +549,16 @@ const CalculadoraPagos = ({
 
   // Calcular pago para un empleado
   const calcularPagoEmpleado = (empleado) => {
-    const diasTrabajados = calcularDiasTrabajados(empleado, fechaPago);
+
+    // VERIFICAR OPCIÓN "SOLO HORAS EXTRAS"
+    const soloExtras = soloHorasExtras[empleado.id] || false;
+
+    // Si solo es extras, forzamos días trabajados a 0 para el cálculo financiero
+    const diasTrabajados = soloExtras ? 0 : calcularDiasTrabajados(empleado, fechaPago);
     const montoDiario = calcularMontoDiario(empleado);
-    console.log(`Calculando para ${empleado.nombre}: montoDiario = ${montoDiario}`);
+
+    console.log(`Calculando para ${empleado.nombre}: montoDiario = ${montoDiario} (Solo Extras: ${soloExtras})`);
+
     const valorHora = calcularValorHora(empleado);
     const mitadPago =
       empleado.frecuenciaPago === "Quincenal"
@@ -553,7 +566,8 @@ const CalculadoraPagos = ({
         : "primera";
 
     // Calcular salario base
-    let salarioBase = montoDiario * diasTrabajados;
+    // Si es solo extras, el salario base es 0
+    let salarioBase = soloExtras ? 0 : (montoDiario * diasTrabajados);
 
     // Calcular horas extras
     const horasExtrasEmpleado = horasExtras[empleado.id] || {
@@ -589,7 +603,8 @@ const CalculadoraPagos = ({
     let deduccionesLeyBs = 0;
     let desgloseDeduccionesLey = {};
 
-    if (["Administrativa", "Ejecucion"].includes(empleado.tipoNomina)) {
+    // Solo calcular deducciones y monto ley si NO es "solo extras"
+    if (!soloExtras && ["Administrativa", "Ejecucion"].includes(empleado.tipoNomina)) {
       // CORRECCIÓN: Para nóminas con ley, calcular monto ley proporcional según frecuencia
       let montoLeyDiario = 0;
       if (empleado.frecuenciaPago === "Semanal") {
@@ -651,6 +666,7 @@ const CalculadoraPagos = ({
       diasHabilesMes: diasHabilesMes,
       diasRealesMes: diasRealesMes,
       montoDiarioCalculado: montoDiario,
+      soloExtras: soloExtras,
     };
   };
 
@@ -772,6 +788,13 @@ const CalculadoraPagos = ({
         [empleadoId]: diasRealesMes - 15,
       }));
     }
+  };
+
+  const handleSoloExtrasChange = (empleadoId, checked) => {
+    setSoloHorasExtras((prev) => ({
+      ...prev,
+      [empleadoId]: checked,
+    }));
   };
 
   // Handlers para banco y observaciones
@@ -900,6 +923,7 @@ const CalculadoraPagos = ({
             <div className="list-header-pagos-nomina">
               <span>Empleado</span>
               <span>Días Asist.</span>
+              <span>Solo Extras</span>
               <span>H. Extra D.</span>
               <span>H. Extra N.</span>
               <span>Deduc.($)</span>
@@ -917,8 +941,10 @@ const CalculadoraPagos = ({
               const deduccionManual = deduccionesManuales[empleado.id] || 0;
               const adelanto = adelantosSueldo[empleado.id] || 0;
               const montoExtra = montoExtraBs[empleado.id] || 0;
+
               const bancoPago = bancosPago[empleado.id] || "";
               const observacion = observaciones[empleado.id] || "";
+              const soloExtras = soloHorasExtras[empleado.id] || false;
               const diasTrabajados = calcularDiasTrabajados(
                 empleado,
                 fechaPago
@@ -950,6 +976,18 @@ const CalculadoraPagos = ({
                   </div>
 
                   <div className="dias-trabajados">{diasTrabajados}</div>
+
+                  <div className="solo-extras-input" style={{ display: "flex", justifyContent: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={soloExtras}
+                      onChange={(e) =>
+                        handleSoloExtrasChange(empleado.id, e.target.checked)
+                      }
+                      style={{ width: "1.2rem", height: "1.2rem", cursor: "pointer" }}
+                      title="Pagar solo horas extras (No paga días trabajados ni deducciones ley)"
+                    />
+                  </div>
 
                   <div className="horas-extra-input">
                     <input
@@ -1084,6 +1122,7 @@ const CalculadoraPagos = ({
                 <span>Tipo Nómina</span>
                 <span>Mitad</span>
                 <span>Días a Pagar</span>
+                <span>Solo Extras</span>
                 <span>H. Extra D.</span>
                 <span>H. Extra N.</span>
                 <span>Deduc. ($)</span>
@@ -1104,11 +1143,13 @@ const CalculadoraPagos = ({
                 const deduccionManual = deduccionesManuales[empleado.id] || 0;
                 const adelanto = adelantosSueldo[empleado.id] || 0;
                 const montoExtra = montoExtraBs[empleado.id] || 0;
+
                 const bancoPago = bancosPago[empleado.id] || "";
                 const observacion = observaciones[empleado.id] || "";
                 const diasPago = diasPagoQuincenal[empleado.id] || 15;
                 const mitadPago = mitadPagoQuincenal[empleado.id] || "primera";
                 const montoDiario = calcularMontoDiario(empleado);
+                const soloExtras = soloHorasExtras[empleado.id] || false;
 
                 // Calcular total mensual para mostrar
                 let totalMensual = 0;
@@ -1203,6 +1244,18 @@ const CalculadoraPagos = ({
                         }
                         min="1"
                         max={diasRealesMes}
+                      />
+                    </div>
+
+                    <div className="solo-extras-input" style={{ display: "flex", justifyContent: "center" }}>
+                      <input
+                        type="checkbox"
+                        checked={soloExtras}
+                        onChange={(e) =>
+                          handleSoloExtrasChange(empleado.id, e.target.checked)
+                        }
+                        style={{ width: "1.2rem", height: "1.2rem", cursor: "pointer" }}
+                        title="Pagar solo horas extras (No paga días trabajados ni deducciones ley)"
                       />
                     </div>
 
