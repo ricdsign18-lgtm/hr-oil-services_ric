@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ArrowIcon, BackIcon, XIcon, AddIcon, EditIcon } from "../../../../../../../../../../../../assets/icons/Icons";
 import "./PersonalForm.css";
 
 const PersonalForm = ({ employee, onSubmit, onCancel }) => {
@@ -582,16 +583,7 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
         )}
 
         <div className="form-actions">
-          {currentStep > 1 && (
-            <button
-              type="button"
-              className="btn-outline"
-              onClick={prevStep}
-              disabled={submitting}
-            >
-              Atrás
-            </button>
-          )}
+
           
           {currentStep < 3 ? (
             <button
@@ -599,7 +591,7 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
               className="btn-primary"
               onClick={nextStep}
             >
-              Continuar
+              Continuar <ArrowIcon style={{ width: '16px', height: '16px', fill: 'currentColor', transform: 'rotate(-180deg)' }} />
             </button>
           ) : (
             <button 
@@ -611,19 +603,10 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
               {submitting
                 ? "Guardando..."
                 : employee
-                  ? "Actualizar Empleado"
-                  : "Registrar Empleado"}
+                  ? <><EditIcon style={{ width: '16px', height: '16px', fill: 'currentcolor' }} /> Actualizar Empleado</>
+                  : <><AddIcon style={{ width: '16px', height: '16px', fill: 'currentcolor' }} /> Registrar Empleado</>}
             </button>
           )}
-          
-          <button
-            type="button"
-            className="btn-text"
-            onClick={onCancel}
-            disabled={submitting}
-          >
-            Cancelar
-          </button>
         </div>
       </form>
     </div>

@@ -44,6 +44,7 @@
 
 .card-header h4 {
   margin: 0;
+  text-transform: uppercase;
   font-size: 1.25rem;
   font-weight: 700;
   color: #1e293b;
@@ -53,7 +54,8 @@
 }
 
 .card-header h4::before {
-  content: '📊';
+  /* content: '📊'; Removed to use Icon in JSX */
+  content: none;
   font-size: 1.1em;
 }
 
@@ -111,7 +113,7 @@
   color: #1e293b;
   margin: 0;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #3b82f6;
+  /* border-bottom: 2px solid #3b82f6; Removed to match clean design */
   display: flex;
   align-items: center;
   gap: 0.5rem;

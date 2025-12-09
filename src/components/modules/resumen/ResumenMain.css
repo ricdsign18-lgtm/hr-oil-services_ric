@@ -171,3 +171,36 @@
     width: 100%;
   }
 }
+
+@media (max-width: 768px) {
+  .valuaciones-carousel-viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+  
+  .valuaciones-carousel-viewport::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Webkit */
+  }
+
+  /* Override JS transform on mobile to allow native scroll */
+  .valuaciones-carousel-grid {
+    transform: none !important;
+    width: auto;
+    gap: 1rem;
+    padding-bottom: 1rem; /* Space for shadow */
+  }
+
+  .valuacion-card-carousel {
+    scroll-snap-align: center;
+    flex: 0 0 90%; /* Show a bit of the next card */
+    max-width: 90%;
+  }
+
+  /* Hide JS controls on mobile since we use swipe */
+  .carousel-controls {
+    display: none;
+  }
+}

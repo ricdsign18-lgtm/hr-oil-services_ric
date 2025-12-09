@@ -283,7 +283,85 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
         </div>
       ) : (
         <div className="facturas-table">
-          <table>
+            {/* Mobile View - Cards */}
+            <div className="mobile-facturas-list">
+              {facturasFiltradas.map((factura) => {
+                const initials = factura.proveedor
+                  ? factura.proveedor.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
+                  : "?";
+                
+                return (
+                  <div className="mobile-factura-card" key={factura.id}>
+                    {/* Header */}
+                    <div className="card-header-dark">
+                      <div className="provider-avatar">
+                        <span>{initials}</span>
+                      </div>
+                      <div className="provider-info">
+                        <h4>{factura.proveedor}</h4>
+                        <span className="provider-rif">
+                          <i className="fa-regular fa-user"></i> {factura.tipoRif}{factura.rif}
+                        </span>
+                      </div>
+                      <div className="valuacion-tag">
+                        {factura.valuacion || 'SIN VALUACIÓN'}
+                      </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="card-body-white">
+                      <div className="status-row">
+                        <div className="date-info">
+                          <i className="fa-regular fa-calendar"></i>
+                          <div className="date-text">
+                            <span className="label">FECHA</span>
+                            <span className="value">{factura.fechaFactura}</span>
+                          </div>
+                        </div>
+                        <span className="category-pill">
+                          <i className="fa-solid fa-truck-fast"></i> {factura.categoria}
+                        </span>
+                      </div>
+
+                      <div className="details-box">
+                        <div className="details-header">
+                          <i className="fa-regular fa-file-lines"></i> DETALLE DEL SERVICIO
+                        </div>
+                        <p className="details-text">
+                          {factura.descripcion || "Sin descripción"}
+                        </p>
+                        <div className="subcategory-text">
+                           Subcategoría: <strong>{formatSubcategorias(factura)}</strong>
+                        </div>
+                      </div>
+
+                      <div className="card-footer-row">
+                        <div className="rate-info">
+                          <span className="label">TARIFA / UNITARIO</span>
+                          <span className="value">Bs. {factura.tasaPago?.toFixed(2) || "0.00"}</span>
+                        </div>
+                        <div className="total-box-green">
+                          <span className="label">TOTAL A PAGAR</span>
+                          <span className="value">
+                            Bs. {factura.totalPagar?.toLocaleString('es-VE', { minimumFractionDigits: 2 }) || "0.00"}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="card-actions-bottom">
+                         <button className="btn-details-link" onClick={() => onEditFactura(factura)}>
+                           Ver detalles completos <i className="fa-solid fa-chevron-right"></i>
+                         </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop View - Table */}
+            <div className="desktop-facturas-table">
+            <table>
             <thead>
               <tr>
                 <th>Fecha Factura</th>
@@ -362,6 +440,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

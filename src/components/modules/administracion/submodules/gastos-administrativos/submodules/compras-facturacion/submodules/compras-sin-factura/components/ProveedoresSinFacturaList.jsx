@@ -1,11 +1,13 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/compra-facturacion/submodules/compras-sin-factura/components/ProveedoresSinFacturaList.jsx
 import { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
+import { MultiUsersIcon, ClipBoardIcon, SackDollarIcon } from '../../../../../../../../../../assets/icons/Icons'
 
-const ProveedoresSinFacturaList = ({ projectId, refreshTrigger }) => {
+const ProveedoresSinFacturaList = ({ projectId, refreshTrigger, parentFilters }) => {
   const [compras, setCompras] = useState([])
   const [proveedores, setProveedores] = useState([])
-  const [filtroProveedor, setFiltroProveedor] = useState('')
+  
+  const { filtroProveedor = '' } = parentFilters || {};
 
   useEffect(() => {
     cargarCompras()
@@ -68,44 +70,52 @@ const ProveedoresSinFacturaList = ({ projectId, refreshTrigger }) => {
   }
 
   const proveedoresFiltrados = proveedores.filter(proveedor =>
+    !filtroProveedor ||
     proveedor.proveedor.toLowerCase().includes(filtroProveedor.toLowerCase()) ||
-    proveedor.rif.includes(filtroProveedor)
+    (proveedor.rif && proveedor.rif.includes(filtroProveedor))
   )
 
   return (
-    <div className="proveedores-sin-factura-list">
-      <div className="section-header">
-        <h3>Proveedores - Compras Sin Factura</h3>
-        <div className="filtros">
-          <input
-            type="text"
-            placeholder="Buscar por proveedor o RIF..."
-            value={filtroProveedor}
-            onChange={(e) => setFiltroProveedor(e.target.value)}
-            className="search-input"
-          />
-        </div>
-      </div>
+    <div className="proveedores-sin-factura-list"> {/* Keeps generic wrapper */}
+       {/* Removed internal header with search */}
 
       <div className="resumen-totales">
-        <div className="resumen-card">
-          <h4>Resumen General</h4>
-          <div className="resumen-grid">
-            <div className="resumen-item">
-              <span>Total Proveedores:</span>
-              <strong>{proveedores.length}</strong>
+        <h3 className="section-title">Resumen General</h3>
+        <div className="resumen-grid">
+          <div className="resumen-card-item">
+            <div className="card-icon">
+              <MultiUsersIcon />
             </div>
-            <div className="resumen-item">
-              <span>Total Compras:</span>
-              <strong>{compras.length}</strong>
+            <div className="card-content">
+              <span className="card-label">Total Proveedores</span>
+              <strong className="card-value">{proveedores.length}</strong>
             </div>
-            <div className="resumen-item">
-              <span>Total en Dólares:</span>
-              <strong>$ {proveedores.reduce((sum, p) => sum + p.totalDolares, 0).toFixed(2)}</strong>
+          </div>
+          <div className="resumen-card-item">
+            <div className="card-icon">
+               <ClipBoardIcon />
             </div>
-            <div className="resumen-item">
-              <span>Total en Bolívares:</span>
-              <strong>Bs {proveedores.reduce((sum, p) => sum + p.totalBolivares, 0).toFixed(2)}</strong>
+             <div className="card-content">
+              <span className="card-label">Total Compras</span>
+              <strong className="card-value">{compras.length}</strong>
+            </div>
+          </div>
+          <div className="resumen-card-item">
+             <div className="card-icon">
+               <SackDollarIcon />
+            </div>
+            <div className="card-content">
+              <span className="card-label">Total en Dólares</span>
+              <strong className="card-value">$ {proveedores.reduce((sum, p) => sum + p.totalDolares, 0).toFixed(2)}</strong>
+            </div>
+          </div>
+          <div className="resumen-card-item">
+             <div className="card-icon">
+               <SackDollarIcon />
+            </div>
+            <div className="card-content">
+              <span className="card-label">Total en Bolívares</span>
+              <strong className="card-value">Bs {proveedores.reduce((sum, p) => sum + p.totalBolivares, 0).toFixed(2)}</strong>
             </div>
           </div>
         </div>
@@ -134,24 +144,26 @@ const ProveedoresSinFacturaList = ({ projectId, refreshTrigger }) => {
             <div className="proveedor-totales">
               <h5>Totales del Proveedor</h5>
 
-              <div className="total-item">
-                <span>Total Compras:</span>
-                <span>{proveedor.totalCompras}</span>
-              </div>
+              <div className="proveedor-totales-grid">
+                <div className="total-item-card">
+                  <span>Total Compras</span>
+                  <span>{proveedor.totalCompras}</span>
+                </div>
 
-              <div className="total-item">
-                <span>Total en Dólares:</span>
-                <span>$ {proveedor.totalDolares.toFixed(2)}</span>
-              </div>
+                <div className="total-item-card">
+                  <span>Total en Dólares</span>
+                  <span>$ {proveedor.totalDolares.toFixed(2)}</span>
+                </div>
 
-              <div className="total-item">
-                <span>Total en Bolívares:</span>
-                <span>Bs {proveedor.totalBolivares.toFixed(2)}</span>
-              </div>
+                <div className="total-item-card">
+                  <span>Total en Bolívares</span>
+                  <span>Bs {proveedor.totalBolivares.toFixed(2)}</span>
+                </div>
 
-              <div className="total-item">
-                <span>Promedio por Compra ($):</span>
-                <span>$ {(proveedor.totalDolares / proveedor.totalCompras).toFixed(2)}</span>
+                <div className="total-item-card">
+                  <span>Promedio ($)</span>
+                  <span>$ {(proveedor.totalDolares / proveedor.totalCompras).toFixed(2)}</span>
+                </div>
               </div>
             </div>
 

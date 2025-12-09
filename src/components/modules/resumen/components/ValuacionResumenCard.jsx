@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useCurrency } from "../../../../contexts/CurrencyContext";
 import { useOperaciones } from "../../../../contexts/OperacionesContext";
 import { usePersonal } from "../../../../contexts/PersonalContext";
 import supabase from "../../../../api/supaBase";
 import { createPortal } from "react-dom";
-import { CartShoppingIcon, MultiUsersIcon, SackDollarIcon, BankIcon } from "../../../../assets/icons/Icons";
+import { CartShoppingIcon, MultiUsersIcon, SackDollarIcon, BankIcon, InventoryIcon, CashIcon } from "../../../../assets/icons/Icons";
 import "./ValuacionResumenCard.css";
 
 const ValuacionResumenCard = ({
@@ -236,7 +236,13 @@ const ValuacionResumenCard = ({
   return (
     <div className="valuacion-resumen-card">
       <div className="card-header">
-        <h4>{numero_valuacion}</h4>
+        <h4>
+          <div className="header-icon-wrapper">
+             {/* Using InventoryIcon as a placeholder for the chart icon in the image */}
+             <InventoryIcon width={24} height={24} fill="currentColor" />
+          </div>
+          {numero_valuacion}
+        </h4>
         <div className="header-details">
           <span className="periodo">
             {new Date(periodo_inicio).toLocaleDateString()} -{" "}
@@ -305,9 +311,9 @@ const ValuacionResumenCard = ({
         <div className="financial-section-full">
           <h5
             onClick={() => setShowCategories(!showCategories)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
+            className="accordion-header"
           >
-            <span style={{ marginRight: '0.5rem' }}>
+            <span className="accordion-arrow">
               {showCategories ? '▼' : '▶'}
             </span>
             Gastos por Categoría
@@ -324,9 +330,8 @@ const ValuacionResumenCard = ({
                     return (
                       <div
                         key={categoria}
-                        className="categoria-item clickable"
+                        className="categoria-item clickable cursor-pointer"
                         onClick={() => handleCategoryClick(categoria)}
-                        style={{ cursor: 'pointer' }}
                         title="Ver detalle"
                       >
                         <div className="categoria-header-simple">
@@ -535,7 +540,9 @@ const ValuacionResumenCard = ({
 
                   <div className="indicadores-grid">
                     <div className="indicador ganancia">
-                      <div className="indicador-icon">�</div>
+                      <div className="indicador-icon">
+                         <CashIcon width={28} height={28} fill="#166534" />
+                      </div>
                       <div className="indicador-content">
                         <span className="indicador-label">% Margen</span>
                         <span className="indicador-value">
@@ -553,7 +560,6 @@ const ValuacionResumenCard = ({
         </div>
       </div >
 
-      {/* Modal de Detalle */}
       {/* Modal de Detalle */}
       {selectedCategory && createPortal(
         <div className="category-detail-modal-overlay" onClick={handleCloseModal}>

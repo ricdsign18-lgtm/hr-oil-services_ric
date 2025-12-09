@@ -239,12 +239,12 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
     retenciones.retencionIva === 'IVA 100%' ? (formData?.iva || 0) : 0
 
   return (
-    <div className="retenciones-calculator">
-      <div className="form-section">
+    <div className="ccf-retenciones-calculator">
+      <div className="ccf-form-section">
         <h3>Cálculo de Retenciones (Montos en Bolívares)</h3>
 
-        <div className="form-grid">
-          <div className="form-group">
+        <div className="ccf-form-grid">
+          <div className="ccf-form-group">
             <label>RETENCIÓN DEL IVA</label>
             <select
               value={retenciones.retencionIva}
@@ -256,7 +256,7 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
             </select>
           </div>
 
-          <div className="form-group">
+          <div className="ccf-form-group">
             <label>CONCEPTO ISLR ({esPersonaNatural ? 'NATURAL' : 'JURÍDICA'})</label>
             <select
               value={retenciones.conceptoIslr}
@@ -271,28 +271,28 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
             </select>
           </div>
 
-          <div className="form-group">
+          <div className="ccf-form-group">
             <label>RETENCIÓN IVA (Bs)</label>
-            <div className="readonly-value">
+            <div className="ccf-readonly-value">
               {retencionIvaActual.toFixed(2)}
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="ccf-form-group">
             <label>RETENCIÓN ISLR (Bs)</label>
-            <div className="readonly-value">
+            <div className="ccf-readonly-value">
               {retenciones.retencionIslr.toFixed(2)}
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="ccf-form-group">
             <label>TOTAL A PAGAR (Bs)</label>
-            <div className="readonly-value total-importante">
+            <div className="ccf-readonly-value ccf-total-importante">
               {retenciones.totalPagar.toFixed(2)}
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="ccf-form-group">
             <label>PAGADO</label>
             <select
               value={retenciones.pagado}
@@ -305,21 +305,21 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
             </select>
           </div>
 
-          <div className="form-group">
+          <div className="ccf-form-group">
             <label>MONTO PAGADO (Bs)</label>
-            <div className="readonly-value">
+            <div className="ccf-readonly-value">
               {retenciones.montoPagado.toFixed(2)}
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="ccf-form-group">
             <label>PAGADO EN DÓLARES ($)</label>
-            <div className="readonly-value">
+            <div className="ccf-readonly-value">
               {retenciones.pagadoDolares.toFixed(2)}
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="ccf-form-group">
             <label>UNIDAD TRIBUTARIA (Bs)</label>
             <input
               type="number"
@@ -330,18 +330,18 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
           </div>
 
           {/* Detalle de retenciones por tipo */}
-          <div className="form-group full-width">
+          <div className="ccf-form-group full-width">
             <label>DETALLE DE RETENCIONES</label>
-            <div className="retenciones-detalle-grid">
-              <div className="retencion-tipo">
+            <div className="ccf-retenciones-detalle-grid">
+              <div className="ccf-retencion-tipo">
                 <h4>IVA</h4>
-                <div className="retencion-item">
+                <div className="ccf-retencion-item">
                   <span>Por Cobrar:</span>
                   <span className="estado-pendiente">
                     Bs {retenciones.retencionIvaPendiente.toFixed(2)}
                   </span>
                 </div>
-                <div className="retencion-item">
+                <div className="ccf-retencion-item">
                   <span>Cobrado:</span>
                   <span className="estado-bueno">
                     Bs {retenciones.retencionIvaCobrada.toFixed(2)}
@@ -349,15 +349,15 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
                 </div>
               </div>
 
-              <div className="retencion-tipo">
+              <div className="ccf-retencion-tipo">
                 <h4>ISLR</h4>
-                <div className="retencion-item">
+                <div className="ccf-retencion-item">
                   <span>Por Cobrar:</span>
                   <span className="estado-pendiente">
                     Bs {retenciones.retencionIslrPendiente.toFixed(2)}
                   </span>
                 </div>
-                <div className="retencion-item">
+                <div className="ccf-retencion-item">
                   <span>Cobrado:</span>
                   <span className="estado-bueno">
                     Bs {retenciones.retencionIslrCobrada.toFixed(2)}
@@ -365,7 +365,7 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
                 </div>
               </div>
 
-              <div className="retencion-total">
+              <div className="ccf-retencion-total">
                 <div className="total-item">
                   <strong>Total por Cobrar:</strong>
                   <strong className="estado-pendiente">

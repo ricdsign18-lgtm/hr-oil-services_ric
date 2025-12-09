@@ -5,13 +5,17 @@ import { useNotification } from '../../../../../../../../../../contexts/Notifica
 import FeedbackModal from '../../../../../../../../../common/FeedbackModal/FeedbackModal'
 import { ClipBoardIcon } from '../../../../../../../../../../assets/icons/Icons'
 
-const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
+const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger, parentFilters, onCategoriesLoaded }) => {
   const { showToast } = useNotification();
   const [compras, setCompras] = useState([])
-  const [filtroProveedor, setFiltroProveedor] = useState('')
-  const [filtroCategoria, setFiltroCategoria] = useState('')
-  const [fechaInicio, setFechaInicio] = useState('')
-  const [fechaFin, setFechaFin] = useState('')
+  
+  // Destructure parent filters with default values to avoid crashes
+  const { 
+    filtroCategoria = '', 
+    filtroProveedor = '', 
+    fechaInicio = '', 
+    fechaFin = '' 
+  } = parentFilters || {};
 
   const [feedback, setFeedback] = useState({
     isOpen: false,
@@ -23,6 +27,13 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
   useEffect(() => {
     cargarCompras()
   }, [projectId, refreshTrigger])
+
+  useEffect(() => {
+    if (compras.length > 0 && onCategoriesLoaded) {
+      const uniqueCategories = [...new Set(compras.map(c => c.categoria))].filter(Boolean).sort();
+      onCategoriesLoaded(uniqueCategories);
+    }
+  }, [compras, onCategoriesLoaded]);
 
   const cargarCompras = async () => {
     if (!projectId) return; // Prevent query if projectId is undefined
@@ -40,18 +51,19 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
     }
   }
 
-  const comprasFiltradas = compras.filter(compra => {
+  const comprasFiltrados = compras.filter(compra => {
     const cumpleProveedor = !filtroProveedor ||
-      compra.proveedor.toLowerCase().includes(filtroProveedor.toLowerCase()) ||
-      compra.rif.includes(filtroProveedor)
+      (compra.proveedor && compra.proveedor.toLowerCase().includes(filtroProveedor.toLowerCase())) ||
+      (compra.rif && compra.rif.includes(filtroProveedor))
+    
+    // Exact match for category unless it's empty ("Todas")
     const cumpleCategoria = !filtroCategoria || compra.categoria === filtroCategoria
+    
     const cumpleFechaInicio = !fechaInicio || compra.fechaCompra >= fechaInicio
     const cumpleFechaFin = !fechaFin || compra.fechaCompra <= fechaFin
 
     return cumpleProveedor && cumpleCategoria && cumpleFechaInicio && cumpleFechaFin
   })
-
-  const categoriasUnicas = [...new Set(compras.map(c => c.categoria))]
 
   // Función para formatear subcategorías
   const formatSubcategorias = (compra) => {
@@ -96,48 +108,9 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
 
   return (
     <div className="compras-sin-factura-list">
-      <div className="section-header">
-        <h3>Lista de Compras Sin Factura</h3>
-
-        <div className="filtros">
-          <select
-            value={filtroCategoria}
-            onChange={(e) => setFiltroCategoria(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Todas las categorías</option>
-            {categoriasUnicas.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-
-          <input
-            type="text"
-            placeholder="Buscar por proveedor o RIF..."
-            value={filtroProveedor}
-            onChange={(e) => setFiltroProveedor(e.target.value)}
-            className="search-input"
-          />
-          <label htmlFor="fechaInicio" style={{ color: 'red' }}>Desde</label>
-          <input
-            type="date"
-            placeholder="Fecha inicio"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-            className="date-input"
-          />
-          <label htmlFor="fechaFin" style={{ color: 'red' }}>Hasta</label>
-          <input
-            type="date"
-            placeholder="Fecha fin"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-            className="date-input"
-          />
-        </div>
-      </div>
-
-      <div className="compras-table">
+      {/* Removed local section header with filters */}
+      
+      <div className="facturas-table"> {/* Updated class to match new CSS */}
         <table>
           <thead>
             <tr>
@@ -160,14 +133,14 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
             </tr>
           </thead>
           <tbody>
-            {comprasFiltradas.length === 0 ? (
+            {comprasFiltrados.length === 0 ? (
               <tr>
                 <td colSpan="16" style={{ textAlign: 'center', padding: '20px' }}>
                   No hay datos registrados
                 </td>
               </tr>
             ) : (
-              comprasFiltradas.map((compra, index) => (
+              comprasFiltrados.map((compra, index) => (
                 <tr key={compra.id}>
                   <td>{compra.fechaCompra}</td>
                   <td>{compra.fechaRecibida || '-'}</td>
@@ -177,7 +150,7 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
                   <td>{compra.descripcion || '-'}</td>
                   <td>{compra.categoria}</td>
                   <td>{formatSubcategorias(compra)}</td>
-                  <td>$ {compra.totalDolares?.toFixed(2) || '0.00'}</td>
+                  <td className="total-importante">$ {compra.totalDolares?.toFixed(2) || '0.00'}</td>
                   <td>Bs {compra.tasaPago?.toFixed(2) || '0.00'}</td>
                   <td>Bs {compra.pagoBolivares?.toFixed(2) || '0.00'}</td>
                   <td>{compra.modoPago || '-'}</td>
@@ -187,7 +160,7 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
                     {compra.observaciones ? (
                       <div className="observaciones-tooltip">
                         <span className="observaciones-icon">
-                          <ClipBoardIcon style={{ width: '20px', height: '20px' }} />
+                          <ClipBoardIcon fill="var(--primary-color)" style={{ width: '20px', height: '20px' }} />
                         </span>
                         <div className="observaciones-content">
                           {compra.observaciones}
@@ -196,18 +169,20 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger }) => {
                     ) : '-'}
                   </td>
                   <td>
-                    <button
-                      className="btn-edit"
-                      onClick={() => onEditCompra(compra)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="btn-delete"
-                      onClick={() => handleDelete(compra.id)}
-                    >
-                      Eliminar
-                    </button>
+                    <div style={{ display: 'flex' }}>
+                        <button
+                        className="btn-edit"
+                        onClick={() => onEditCompra(compra)}
+                        >
+                        Editar
+                        </button>
+                        <button
+                        className="btn-delete"
+                        onClick={() => handleDelete(compra.id)}
+                        >
+                        Eliminar
+                        </button>
+                    </div>
                   </td>
                 </tr>
               ))

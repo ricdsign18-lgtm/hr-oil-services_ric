@@ -58,6 +58,26 @@ const ComprasConFacturaMain = ({ projectId }) => {
         description={`Gestión de compras formales con factura para el proyecto ${selectedProject?.name || ''}`}
       />
 
+      <div className="csf-mobile-dropdown" style={{ marginBottom: '24px', display: 'none' }}>
+        <label htmlFor="mobile-tab-select" className="csf-mobile-label" style={{ display: 'block', marginBottom: '8px', color: 'var(--gray-400)', fontSize: '0.9rem' }}>Ver:</label>
+        <select
+          id="mobile-tab-select"
+          className="csf-mobile-select"
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value)}
+          style={{ width: '100%', padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--gray-700)', backgroundColor: 'var(--gray-900)', color: 'var(--gray-200)', fontSize: '1rem', height: '48px' }}
+        >
+          <option value="lista-facturas">Lista de Facturas</option>
+          {!isViewer && (
+            <option value="nueva-factura">{facturaEdit ? 'Editar Factura' : 'Nueva Factura'}</option>
+          )}
+          <option value="proveedores">Proveedores y Retenciones</option>
+          {!isViewer && (
+            <option value="configuraciones">Configuraciones</option>
+          )}
+        </select>
+      </div>
+
       <div className="ccf-tabs-container">
         <button
           className={`ccf-tab-btn ${activeTab === 'lista-facturas' ? 'active' : ''}`}

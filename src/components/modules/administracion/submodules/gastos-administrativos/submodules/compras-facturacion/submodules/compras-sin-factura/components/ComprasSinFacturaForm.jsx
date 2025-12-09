@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
 import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
 import FeedbackModal from '../../../../../../../../../common/FeedbackModal/FeedbackModal'
-import MultiBancoModal from '../../../components/MultiBancoModal'
-import '../ComprasSinFacturaMain.css'
+import MultiBancoModal from '../../../components/MultiBancoModal';
 import { AddIcon, DelateIcon, XIcon } from '../../../../../../../../../../assets/icons/Icons'
 
 const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelEdit }) => {
@@ -449,8 +448,8 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
   }
 
   return (
-    <div className="compra-sin-factura-form">
-      <div className="form-header">
+    <div className="csf-form-card">
+      <div className="csf-form-header">
         <h3>{compraEdit ? 'Editar Compra' : 'Nueva Compra Sin Factura'}</h3>
         {compraEdit && (
           <button type="button" className="btn-secondary" onClick={onCancelEdit}>
@@ -460,10 +459,10 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-section">
+        <div className="csf-form-section">
           <h3>Información General</h3>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="csf-form-grid">
+            <div className="csf-form-group">
               <label>VALUACIÓN ASOCIADA</label>
               <input
                 type="text"
@@ -480,9 +479,9 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               </datalist>
             </div>
 
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>CATEGORÍA *</label>
-              <div className="input-with-button">
+              <div className="csf-input-group">
                 <select
                   name="categoria"
                   value={formData.categoria}
@@ -500,15 +499,15 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                   className="btn-add-inline"
                   title="Agregar nueva categoría"
                 >
-                  <AddIcon style={{ width: '20px', height: '20px' }} />
+                  <AddIcon fill="white" style={{ width: '20px', height: '20px' }} />
                 </button>
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>SUBCATEGORÍAS (DESTINO DE COMPRA)</label>
               {formData.subcategorias.map((sub, index) => (
-                <div key={index} className="subcategoria-input-group" style={{ display: 'flex', gap: '5px', alignItems: 'center', marginBottom: '10px' }}>
+                <div key={index} className="csf-input-group">
                   <input
                     type="text"
                     value={sub}
@@ -523,7 +522,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                       className="btn-remove-subcategory"
                       title="Eliminar subcategoría"
                     >
-                      <DelateIcon style={{ width: '20px', height: '20px' }} />
+                      <DelateIcon fill="var(--danger-color)" style={{ width: '20px', height: '20px' }} />
                     </button>
                   )}
                   {index === formData.subcategorias.length - 1 && (
@@ -533,7 +532,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                       className="btn-add-inline"
                       title="Añadir Subcategoría"
                     >
-                      <AddIcon style={{ width: '20px', height: '20px' }} />
+                      <AddIcon fill="white" style={{ width: '20px', height: '20px' }} />
                     </button>
                   )}
                 </div>
@@ -545,9 +544,9 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               </datalist>
             </div>
 
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>PROVEEDOR *</label>
-              <div className="input-with-button">
+              <div className="csf-input-group">
                 <input
                   type="text"
                   list="proveedores-list"
@@ -558,25 +557,25 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                   placeholder="Nombre del proveedor"
                   autoComplete="off"
                 />
-                <datalist id="proveedores-list">
-                  {proveedores.map((prov, index) => (
-                    <option key={index} value={prov.nombre} />
-                  ))}
-                </datalist>
                 <button
                   type="button"
                   onClick={() => setShowProveedorModal(true)}
                   className="btn-add-inline"
                   title="Agregar nuevo proveedor"
                 >
-                  <AddIcon style={{ width: '20px', height: '20px' }} />
+                   <AddIcon fill="white" style={{ width: '20px', height: '20px' }} />
                 </button>
               </div>
+              <datalist id="proveedores-list">
+                {proveedores.map((prov, index) => (
+                  <option key={index} value={prov.nombre} />
+                ))}
+              </datalist>
             </div>
 
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>RIF</label>
-              <div className="rif-input">
+              <div className="csf-rif-input">
                 <select
                   name="tipoRif"
                   value={formData.tipoRif}
@@ -596,7 +595,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               </div>
             </div>
 
-            <div className="form-group full-width">
+            <div className="csf-form-group full-width">
               <label>DIRECCIÓN</label>
               <input
                 type="text"
@@ -609,10 +608,10 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
           </div>
         </div>
 
-        <div className="form-section">
+        <div className="csf-form-section">
           <h3>Datos de la Compra</h3>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="csf-form-grid">
+            <div className="csf-form-group">
               <label>FECHA DE COMPRA *</label>
               <input
                 type="date"
@@ -623,7 +622,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               />
             </div>
 
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>FECHA DE RECIBIDA</label>
               <input
                 type="date"
@@ -633,7 +632,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               />
             </div>
 
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>Nº NOTA DE ENTREGA</label>
               <input
                 type="text"
@@ -644,7 +643,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               />
             </div>
 
-            <div className="form-group full-width">
+            <div className="csf-form-group full-width">
               <label>DESCRIPCIÓN COMPRA</label>
               <textarea
                 name="descripcion"
@@ -655,7 +654,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               />
             </div>
 
-            <div className="form-group full-width">
+            <div className="csf-form-group full-width">
               <label>OBSERVACIONES</label>
               <textarea
                 name="observaciones"
@@ -668,10 +667,10 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
           </div>
         </div>
 
-        <div className="form-section">
+        <div className="csf-form-section">
           <h3>Valores de la Compra</h3>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="csf-form-grid">
+            <div className="csf-form-group">
               <label>TASA DE PAGO (Bs/$)</label>
               <input
                 type="number"
@@ -683,7 +682,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               />
             </div>
 
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>PAGO EN BOLÍVARES (Bs) *</label>
               <input
                 type="number"
@@ -695,19 +694,19 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>TOTAL A PAGAR ($)</label>
               <div className="readonly-value">{formData.totalDolares.toFixed(2)}</div>
             </div>
           </div>
         </div>
 
-        <div className="form-section">
+        <div className="csf-form-section">
           <h3>Información de Pago</h3>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="csf-form-grid">
+            <div className="csf-form-group">
               <label>MODO DE PAGO</label>
-              <div className="input-with-button">
+              <div className="csf-input-with-button">
                 <select
                   name="modoPago"
                   value={formData.modoPago.startsWith('Multi-Banco') ? 'Multi-Banco' : formData.modoPago}
@@ -727,7 +726,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                   className="btn-add-inline"
                   title="Agregar nuevo modo de pago"
                 >
-                  <AddIcon style={{ width: '20px', height: '20px' }} />
+                  <AddIcon fill="white" style={{ width: '20px', height: '20px' }} />
                 </button>
               </div>
               {/* Vista previa de Multi-Banco */}
@@ -746,7 +745,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               )}
             </div>
 
-            <div className="form-group">
+            <div className="csf-form-group">
               <label>CONTRATO</label>
               <input
                 type="text"
@@ -759,7 +758,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
           </div>
         </div>
 
-        <div className="form-actions">
+        <div className="csf-form-actions">
           <button type="submit" className="btn-primary">
             {compraEdit ? 'Actualizar Compra' : 'Guardar Compra'}
           </button>
@@ -823,19 +822,11 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
               </div>
             </div>
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={agregarProveedor}
-              >
-                Guardar Proveedor
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setShowProveedorModal(false)}
-              >
+              <button type="button" className="btn-secondary" onClick={() => setShowProveedorModal(false)}>
                 Cancelar
+              </button>
+              <button type="button" className="btn-primary" onClick={agregarProveedor}>
+                Guardar Proveedor
               </button>
             </div>
           </div>
@@ -845,7 +836,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
       {/* Modal Agregar Categoría */}
       {showCategoriaModal && (
         <div className="modal-overlay" onClick={() => setShowCategoriaModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Agregar Nueva Categoría</h3>
               <button
@@ -858,30 +849,21 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>NOMBRE DE LA CATEGORÍA *</label>
+                <label>NOMBRE DE LA CATEGORÍA</label>
                 <input
                   type="text"
                   value={nuevaCategoria}
                   onChange={(e) => setNuevaCategoria(e.target.value)}
-                  placeholder="Nombre de la categoría"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), agregarCategoria())}
+                  placeholder="Escriba el nombre de la nueva categoría"
                 />
               </div>
             </div>
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={agregarCategoria}
-              >
-                Guardar Categoría
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setShowCategoriaModal(false)}
-              >
+              <button type="button" className="btn-secondary" onClick={() => setShowCategoriaModal(false)}>
                 Cancelar
+              </button>
+              <button type="button" className="btn-primary" onClick={agregarCategoria}>
+                Guardar Categoría
               </button>
             </div>
           </div>
@@ -891,9 +873,9 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
       {/* Modal Agregar Modo de Pago */}
       {showModoPagoModal && (
         <div className="modal-overlay" onClick={() => setShowModoPagoModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Agregar Nuevo Modo de Pago</h3>
+              <h3>Agregar Modo de Pago</h3>
               <button
                 type="button"
                 className="btn-close"
@@ -904,35 +886,35 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>NOMBRE DEL MODO DE PAGO *</label>
+                <label>NOMBRE DEL MODO DE PAGO</label>
                 <input
                   type="text"
                   value={nuevoModoPago}
                   onChange={(e) => setNuevoModoPago(e.target.value)}
-                  placeholder="Nombre del modo de pago"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), agregarModoPago())}
+                  placeholder="Escriba el nombre del nuevo modo de pago"
                 />
               </div>
             </div>
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={agregarModoPago}
-              >
-                Guardar Modo de Pago
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setShowModoPagoModal(false)}
-              >
+              <button type="button" className="btn-secondary" onClick={() => setShowModoPagoModal(false)}>
                 Cancelar
+              </button>
+              <button type="button" className="btn-primary" onClick={agregarModoPago}>
+                Guardar Modo de Pago
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Modal Multi-Banco */}
+      <MultiBancoModal
+        isOpen={showMultiBancoModal}
+        onClose={() => setShowMultiBancoModal(false)}
+        onConfirm={handleMultiBancoConfirm}
+        totalAmount={formData.pagoBolivares}
+        currentMode={formData.modoPago}
+      />
 
       <FeedbackModal
         isOpen={feedback.isOpen}
@@ -940,14 +922,6 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
         type={feedback.type}
         title={feedback.title}
         message={feedback.message}
-      />
-      {/* Modal Multi-Banco */}
-      <MultiBancoModal
-        isOpen={showMultiBancoModal}
-        onClose={() => setShowMultiBancoModal(false)}
-        onConfirm={handleMultiBancoConfirm}
-        montoTotal={formData.pagoBolivares}
-        montoLabel="Pago en Bolívares"
       />
     </div>
   )

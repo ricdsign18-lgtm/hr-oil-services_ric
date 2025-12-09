@@ -148,16 +148,15 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
       if (modoError) console.error('Error cargando modos de pago:', modoError)
       else setModosPago(modoData.map(m => m.nombre))
 
-      // Cargar Proveedores
+      // Cargar Proveedores (Globales para sugerencias)
+      const { data: provData, error: provError } = await supabase
+        .from('proveedores')
+        .select('*')
+      
+      if (provError) console.error('Error cargando proveedores:', provError)
+      else setProveedores(provData)
+
       if (projectId) {
-        const { data: provData, error: provError } = await supabase
-          .from('proveedores')
-          .select('*')
-          .eq('projectid', projectId)
-
-        if (provError) console.error('Error cargando proveedores:', provError)
-        else setProveedores(provData)
-
         // Cargar Valuaciones
         const { data: valData, error: valError } = await supabase
           .from('valuations')
@@ -583,13 +582,13 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                   onChange={handleProveedorChange}
                   required
                   placeholder="Nombre del proveedor"
-                  autoComplete="off"
                 />
                 <datalist id="proveedores-list">
                   {proveedores.map((prov, index) => (
                     <option key={index} value={prov.nombre} />
                   ))}
                 </datalist>
+
                 <button
                   type="button"
                   onClick={() => setIsProveedorModalOpen(true)}
