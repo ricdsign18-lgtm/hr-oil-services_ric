@@ -85,6 +85,8 @@ const ResumenMain = () => {
     totalGastosTodasValuaciones_USD,
     totalUtilidadProyectadaGlobal_USD,
     totalComisionesYDeduccionesGlobal_USD,
+    budgetChartData,
+    valuationsChartData,
   } = useMemo(() => {
     const subtotales = {
       USD: { conIVA: 0, sinIVA: 0 },
@@ -145,10 +147,34 @@ const ResumenMain = () => {
     let totalUtilidadProyectadaGlobal_USD = 0; // Renamed from totalUtilidadNeta
     let totalComisionesYDeduccionesGlobal_USD = 0; // New accumulator
 
+    // 1. Calculate Global Expenses (Project-wide, not just within valuation periods)
+    const totalComprasConFacturaGlobal_USD = facturas
+      ? facturas.reduce((acc, curr) => acc + parseFloat(curr.pagadoDolares || 0), 0)
+      : 0;
+
+    const totalComprasSinFacturaGlobal_USD = comprasSinFactura
+      ? comprasSinFactura.reduce((acc, curr) => acc + parseFloat(curr.totalDolares || 0), 0)
+      : 0;
+
+    const totalPagosNominaGlobal_USD = allPagos
+      ? allPagos.reduce((acc, curr) => {
+        const totalPagoUSD = curr.pagos.reduce(
+          (pagoAcc, pago) => pagoAcc + parseFloat(pago.montoTotalUSD || 0),
+          0
+        );
+        return acc + totalPagoUSD;
+      }, 0)
+      : 0;
+
+    totalGastosTodasValuaciones_USD =
+      totalComprasConFacturaGlobal_USD +
+      totalComprasSinFacturaGlobal_USD +
+      totalPagosNominaGlobal_USD;
+
+    let totalIngresosNetos_USD = 0;
+
     valuations?.forEach((valuacion) => {
       const {
-        periodoInicio: periodo_inicio,
-        periodoFin: periodo_fin,
         totales,
       } = valuacion;
 
@@ -159,45 +185,6 @@ const ResumenMain = () => {
         currencyValuacion
       );
 
-      const filterDataByPeriod = (data, dateField) => {
-        if (!data) return [];
-        const startDate = new Date(periodo_inicio);
-        startDate.setHours(0, 0, 0, 0);
-
-        const endDate = new Date(periodo_fin);
-        endDate.setHours(23, 59, 59, 999);
-
-        return data.filter((item) => {
-          const itemDate = new Date(item[dateField]);
-          return itemDate >= startDate && itemDate <= endDate;
-        });
-      };
-
-      // Usar facturas y comprasSinFactura e inventario
-      const facturasPeriodo = filterDataByPeriod(facturas, "fechaFactura");
-      const comprasSinFacturaPeriodo = filterDataByPeriod(comprasSinFactura, "fechaCompra");
-      const pagosPeriodo = filterDataByPeriod(allPagos, "fechaPago");
-
-      const totalComprasConFacturaUSD = facturasPeriodo
-        .reduce((acc, curr) => acc + parseFloat(curr.pagadoDolares || 0), 0);
-
-      const totalComprasSinFacturaUSD = comprasSinFacturaPeriodo
-        .reduce((acc, curr) => acc + parseFloat(curr.totalDolares || 0), 0);
-
-      const totalPagosNominaUSD = pagosPeriodo.reduce((acc, curr) => {
-        const totalPagoUSD = curr.pagos.reduce(
-          (pagoAcc, pago) => pagoAcc + parseFloat(pago.montoTotalUSD || 0),
-          0
-        );
-        return acc + totalPagoUSD;
-      }, 0);
-
-      const totalGastosUSD =
-        totalComprasConFacturaUSD +
-        totalComprasSinFacturaUSD +
-        totalPagosNominaUSD;
-      totalGastosTodasValuaciones_USD += totalGastosUSD;
-
       // New Deduction Logic (Mirroring ValuacionResumenCard)
       const montoBanco = subtotalValuacionUSD * (1 - 0.081); // Subtotal - 8.1%
       const diffSubtotalBanco = subtotalValuacionUSD - montoBanco; // The 8.1% deducted initially
@@ -205,8 +192,8 @@ const ResumenMain = () => {
       // Gov Deductions
       const dedAlcaldia = montoBanco * 0.03;
       const dedISLR = montoBanco * 0.01;
-      const dedSENIAT = montoBanco * 0.10;
-      const totalDedGov = dedAlcaldia + dedISLR + dedSENIAT;
+      // const dedSENIAT = montoBanco * 0.10; // REMOVED as per updated requirements
+      const totalDedGov = dedAlcaldia + dedISLR; // + dedSENIAT;
 
       // Commissions
       const baseComisiones = montoBanco - totalDedGov;
@@ -226,11 +213,26 @@ const ResumenMain = () => {
       // Total Deductions & Commissions = The 8.1% initial cut + Gov Deductions + All Commissions
       totalComisionesYDeduccionesGlobal_USD += (diffSubtotalBanco + totalDedGov + totalComisiones);
 
-      // Utilidad Proyectada = MontoBanco - Gov - Comisiones - Gastos
-      const utilidadProyectada = montoBanco - totalDedGov - totalComisiones - totalGastosUSD;
-
-      totalUtilidadProyectadaGlobal_USD += utilidadProyectada;
+      // Accumulate "Net Income" available to cover expenses
+      // Net Income = AmountInBank - GovDeductions - Commissions
+      totalIngresosNetos_USD += (montoBanco - totalDedGov - totalComisiones);
     });
+
+    // Final Global Utility = Total Net Income - Total Global Expenses
+    totalUtilidadProyectadaGlobal_USD = totalIngresosNetos_USD - totalGastosTodasValuaciones_USD;
+
+    // PREPARE CHART DATA
+    const budgetChartData = [
+      { name: 'Ejecutado', value: totalEjecutado_USD, color: '#3b82f6', formattedValue: formatCurrency(convertFromUSD(totalEjecutado_USD), mainCurrency) },
+      { name: 'Disponible', value: Math.max(0, totalPresupuesto_USD - totalEjecutado_USD), color: '#e2e8f0', formattedValue: formatCurrency(convertFromUSD(Math.max(0, totalPresupuesto_USD - totalEjecutado_USD)), mainCurrency) }
+    ];
+
+    const valuationsChartData = [
+      { name: 'Gastos', value: totalGastosTodasValuaciones_USD, color: '#ef4444', formattedValue: formatCurrency(convertFromUSD(totalGastosTodasValuaciones_USD), mainCurrency) },
+      { name: 'Comisiones', value: totalComisionesYDeduccionesGlobal_USD, color: '#f59e0b', formattedValue: formatCurrency(convertFromUSD(totalComisionesYDeduccionesGlobal_USD), mainCurrency) },
+      { name: 'Utilidad', value: Math.max(0, totalUtilidadProyectadaGlobal_USD), color: '#10b981', formattedValue: formatCurrency(convertFromUSD(Math.max(0, totalUtilidadProyectadaGlobal_USD)), mainCurrency) }
+    ];
+
 
     const presupuestoItems = [
       {
@@ -252,6 +254,7 @@ const ResumenMain = () => {
         value: formatCurrency(convertFromUSD(subtotalSinIVA_USD), mainCurrency),
         equivalentValue: generarConversiones(subtotalSinIVA_USD),
       },
+      // Legend items for Chart removed as per user request
     ];
 
     const valuacionesItems = [
@@ -267,6 +270,7 @@ const ResumenMain = () => {
           mainCurrency
         ),
         equivalentValue: generarConversiones(totalGastosTodasValuaciones_USD),
+        color: '#ef4444'
       },
       {
         label: "Total Comisiones y Deducciones",
@@ -275,7 +279,8 @@ const ResumenMain = () => {
           mainCurrency
         ),
         equivalentValue: generarConversiones(totalComisionesYDeduccionesGlobal_USD),
-        isNegative: true, // Helper for styling if needed, implies red usually
+        isNegative: true,
+        color: '#f59e0b'
       },
       {
         label: "Utilidad Proyectada",
@@ -285,6 +290,7 @@ const ResumenMain = () => {
         ),
         equivalentValue: generarConversiones(totalUtilidadProyectadaGlobal_USD),
         highlight: true,
+        color: '#10b981'
       },
       {
         label: "Progreso Global",
@@ -303,6 +309,8 @@ const ResumenMain = () => {
       totalGastosTodasValuaciones_USD,
       totalUtilidadProyectadaGlobal_USD,
       totalComisionesYDeduccionesGlobal_USD,
+      budgetChartData,
+      valuationsChartData
     };
   }, [
     budget,
@@ -351,11 +359,15 @@ const ResumenMain = () => {
             title="Resumen de Presupuesto"
             items={presupuestoItems}
             icon={<SackDollarIcon />}
+            chartData={budgetChartData.map(d => ({ ...d, formattedValue: `${((d.value / totalPresupuesto_USD) * 100).toFixed(1)}%` }))}
+            chartConfig={{ centerLabel: `${porcentajeTotalEjecutado.toFixed(0)}%` }}
+            chartType="donut"
           />
           <ResumeCard
             title="Resumen de Valuaciones"
             items={valuacionesItems}
             icon={<DashboarddIcon />}
+            chartData={valuationsChartData}
           />
         </aside>
 
