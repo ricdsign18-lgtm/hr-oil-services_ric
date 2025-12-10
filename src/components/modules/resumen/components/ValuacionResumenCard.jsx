@@ -5,6 +5,7 @@ import { usePersonal } from "../../../../contexts/PersonalContext";
 import supabase from "../../../../api/supaBase";
 import { createPortal } from "react-dom";
 import { CartShoppingIcon, MultiUsersIcon, SackDollarIcon, BankIcon } from "../../../../assets/icons/Icons";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import "./ValuacionResumenCard.css";
 
 const ValuacionResumenCard = ({
@@ -20,6 +21,7 @@ const ValuacionResumenCard = ({
   const [pagos, setPagos] = useState([]);
   const [loadingPagos, setLoadingPagos] = useState(true);
   const [showCategories, setShowCategories] = useState(false);
+  const [showProfitDetails, setShowProfitDetails] = useState(false);
   const [seniatAmount, setSeniatAmount] = useState(0);
 
   useEffect(() => {
@@ -418,7 +420,7 @@ const ValuacionResumenCard = ({
 
         {/* Resultados */}
         <div className="financial-section-full resultados">
-          <h5>Proyección de Ganancias</h5>
+          <h5>Proyección de Pérdidas y Ganancias</h5>
           <div className="resultados-grid-detailed">
 
             {/* 1. Monto a Recibir en Banco */}
@@ -427,55 +429,20 @@ const ValuacionResumenCard = ({
               <span className="value">{formatCurrency(subtotalValuacionUSD * (1 - 0.081), "USD")}</span>
             </div>
 
-            {/* 2. Deducciones Gubernamentales */}
-            <div className="resultado-group">
-              <div className="group-header">Deducciones Gubernamentales</div>
-              <div className="group-items">
-                <div className="item-row">
-                  <span className="label">Alcaldía (3%)</span>
-                  <span className="value negative">
-                    - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.03, "USD")}
-                  </span>
-                </div>
-                <div className="item-row">
-                  <span className="label">Anticipo ISLR (1%)</span>
-                  <span className="value negative">
-                    - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.01, "USD")}
-                  </span>
-                </div>
-                {/* <div className="item-row">
-                  <span className="label">SENIAT (10%)</span>
-                  <span className="value negative">
-                    - {formatCurrency((subtotalValuacionUSD * (1 - 0.081)) * 0.10, "USD")}
-                  </span>
-                </div> */}
-                <div className="item-row">
-                  <span className="label">SENIAT (Cuota Anual)</span>
-                  <span className="value negative">
-                    - {formatCurrency(seniatAmount, "USD")}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Calculations Constants for easier reuse in render */}
+            {/* Calculations Constants */}
             {(() => {
               const montoBanco = subtotalValuacionUSD * (1 - 0.081);
               const dedAlcaldia = montoBanco * 0.03;
               const dedISLR = montoBanco * 0.01;
-              // const dedSENIAT = montoBanco * 0.10;
-              const totalDedGov = dedAlcaldia + dedISLR; // + dedSENIAT;
+              const dedSENIAT = montoBanco * 0.10;
+              const totalDedGov = dedAlcaldia + dedISLR + dedSENIAT;
 
               const baseComisiones = montoBanco - totalDedGov;
 
               const comisionCobro = baseComisiones * 0.15;
               const d25 = baseComisiones * 0.25;
 
-              const baseOtras = baseComisiones - d25; // As per check: (Monto - Gov - D25) * %
-              // Re-reading user request carefully:
-              // "Otras Comisiones: P: (Monto a recibir en banco – Deducciones Gubernamentales - D25%)*8%"
-              // This implies the base for P, R, L is indeed (Neto - D25)
-
+              const baseOtras = baseComisiones - d25;
               const comisionP = baseOtras * 0.08;
               const comisionR = baseOtras * 0.02;
               const comisionL = baseOtras * 0.02;
@@ -487,62 +454,212 @@ const ValuacionResumenCard = ({
 
               return (
                 <>
-                  {/* 3. Comisiones */}
-                  <div className="resultado-group">
-                    <div className="group-header">Comisiones y Deducciones</div>
-                    <div className="group-items">
-                      <div className="item-row">
-                        <span className="label">Comisión por Cobro (15%)</span>
-                        <span className="value negative">
-                          - {formatCurrency(comisionCobro, "USD")}
-                        </span>
+                  <div className="valuacion-totales-grid">
+                    {/* Deducciones Gubernamentales Card */}
+                    <div className="valuacion-total-card red">
+                      <div className="valuacion-card-icon">
+                        <BankIcon width={32} height={32} fill="#ef4444" />
                       </div>
-                      <div className="item-row">
-                        <span className="label">D25%</span>
-                        <span className="value negative">
-                          - {formatCurrency(d25, "USD")}
+                      <div className="valuacion-card-content">
+                        <span className="valuacion-card-label">Deducciones Gov.</span>
+                        <span className="valuacion-card-value-main text-red-700">
+                          - {formatCurrency(totalDedGov, "USD")}
                         </span>
-                      </div>
-                      <div className="item-row">
-                        <span className="label">Otras (P:8%, R:2%, L:2%)</span>
-                        <span className="value negative">
-                          - {formatCurrency(comisionP + comisionR + comisionL, "USD")}
+                        <span className="valuacion-card-value-secondary">
+                          Alcaldía, ISLR, SENIAT(10%)
                         </span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* 4. Gastos Realizados */}
-                  <div className="resultado-group">
-                    <div className="group-header">Gastos Operativos</div>
-                    <div className="group-items">
-                      <div className="item-row">
-                        <span className="label">Total Gastos Registrados</span>
-                        <span className="value negative">
+                    {/* Comisiones Card */}
+                    <div className="valuacion-total-card orange">
+                      <div className="valuacion-card-icon">
+                        <MultiUsersIcon width={32} height={32} fill="#ea580c" />
+                      </div>
+                      <div className="valuacion-card-content">
+                        <span className="valuacion-card-label">Total Comisiones</span>
+                        <span className="valuacion-card-value-main text-orange-700">
+                          - {formatCurrency(totalComisiones, "USD")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Gastos Operativos Card */}
+                    <div className="valuacion-total-card red">
+                      <div className="valuacion-card-icon">
+                        <CartShoppingIcon width={32} height={32} fill="#ef4444" />
+                      </div>
+                      <div className="valuacion-card-content">
+                        <span className="valuacion-card-label">Gastos Operativos</span>
+                        <span className="valuacion-card-value-main text-red-700">
                           - {formatCurrency(totalGastosUSD, "USD")}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 5. Utilidad Final */}
-                  <div className="resultado-principal final">
-                    <div className="resultado-label">UTILIDAD PROYECTADA</div>
-                    <div className={`resultado-value ${utilidadFinal >= 0 ? 'positive' : 'negative'}`}>
-                      {formatCurrency(utilidadFinal, "USD")}
+                  {/* SENIAT Anual Card */}
+                  <div className="valuacion-totales-grid seniat-grid" style={{ marginBottom: '1rem', marginTop: '0.5rem' }}>
+                    <div className="valuacion-total-card gray seniat-card-dashed">
+                      <div className="valuacion-card-content seniat-content-row">
+                        <div className="seniat-icon-wrapper">
+                          <BankIcon width={28} height={28} fill="#4b5563" />
+                        </div>
+                        <div>
+                          <span className="valuacion-card-label seniat-label-block">SENIAT (Cuota Anual)</span>
+                          <span className="valuacion-card-value-main text-lg text-gray-600">
+                            - {formatCurrency(seniatAmount, "USD")}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="indicadores-grid">
-                    <div className="indicador ganancia">
-                      <div className="indicador-icon">�</div>
-                      <div className="indicador-content">
-                        <span className="indicador-label">% Margen</span>
-                        <span className="indicador-value">
+                  {/* Detalle Desplegable */}
+                  <div className="details-toggle-container" style={{ marginBottom: '1.5rem' }}>
+                    <button
+                      className="details-toggle-btn"
+                      onClick={() => setShowProfitDetails(!showProfitDetails)}
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid #e2e8f0',
+                        color: '#64748b',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        margin: '0 auto',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <span>{showProfitDetails ? 'Ocultar Desglose' : 'Ver Desglose Detallado'}</span>
+                      <span style={{ transform: showProfitDetails ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+                    </button>
+
+                    {showProfitDetails && (
+                      <div className="resultados-grid-detailed" style={{ marginTop: '1rem', animation: 'slideIn 0.3s ease-out' }}>
+                        {/* 2. Deducciones Gubernamentales Detalle */}
+                        <div className="resultado-group">
+                          <div className="group-header">Deducciones Gubernamentales</div>
+                          <div className="group-items">
+                            <div className="item-row">
+                              <span className="label">Alcaldía (3%)</span>
+                              <span className="value negative">
+                                - {formatCurrency(dedAlcaldia, "USD")}
+                              </span>
+                            </div>
+                            <div className="item-row">
+                              <span className="label">Anticipo ISLR (1%)</span>
+                              <span className="value negative">
+                                - {formatCurrency(dedISLR, "USD")}
+                              </span>
+                            </div>
+                            <div className="item-row">
+                              <span className="label">SENIAT (10%)</span>
+                              <span className="value negative">
+                                - {formatCurrency(dedSENIAT, "USD")}
+                              </span>
+                            </div>
+                            <div className="item-row">
+                              <span className="label">SENIAT (Cuota Anual)</span>
+                              <span className="value negative">
+                                - {formatCurrency(seniatAmount, "USD")}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 3. Comisiones Detalle */}
+                        <div className="resultado-group">
+                          <div className="group-header">Comisiones y Deducciones</div>
+                          <div className="group-items">
+                            <div className="item-row">
+                              <span className="label">Comisión por Cobro (15%)</span>
+                              <span className="value negative">
+                                - {formatCurrency(comisionCobro, "USD")}
+                              </span>
+                            </div>
+                            <div className="item-row">
+                              <span className="label">D25%</span>
+                              <span className="value negative">
+                                - {formatCurrency(d25, "USD")}
+                              </span>
+                            </div>
+                            <div className="item-row">
+                              <span className="label">Otras (P:8%, R:2%, L:2%)</span>
+                              <span className="value negative">
+                                - {formatCurrency(comisionP + comisionR + comisionL, "USD")}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 4. Gastos Realizados Detalle */}
+                        <div className="resultado-group">
+                          <div className="group-header">Gastos Operativos</div>
+                          <div className="group-items">
+                            <div className="item-row">
+                              <span className="label">Total Gastos Registrados</span>
+                              <span className="value negative">
+                                - {formatCurrency(totalGastosUSD, "USD")}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Utilidad Final Dashboard */}
+                  <div className="profit-dashboard">
+                    {/* Card 1: Utilidad Monetaria */}
+                    <div className="profit-card utility-main">
+                      <div className="profit-icon-wrapper">
+                        <SackDollarIcon width={32} height={32} fill="#ffffff" />
+                      </div>
+                      <div className="profit-info">
+                        <span className="profit-label">Utilidad Proyectada</span>
+                        <span className="profit-value">
+                          {formatCurrency(utilidadFinal, "USD")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Margen Porcentual con Gráfica */}
+                    <div className="profit-card margin-main">
+                      <div className="margin-info">
+                        <span className="profit-label">% Margen</span>
+                        <span className="profit-value-large">
                           {montoBanco > 0
                             ? ((utilidadFinal / montoBanco) * 100).toFixed(2)
                             : 0}%
                         </span>
+                      </div>
+                      <div className="margin-chart-wrapper">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={[
+                                { name: 'Utilidad', value: Math.max(0, utilidadFinal), color: '#10b981' }, // Green-500
+                                { name: 'Gastos', value: Math.max(0, montoBanco - utilidadFinal), color: 'rgba(255,255,255,0.2)' }
+                              ]}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={25}
+                              outerRadius={35}
+                              startAngle={90}
+                              endAngle={-270}
+                              dataKey="value"
+                              stroke="none"
+                            >
+                              <Cell key="cell-utilidad" fill="#ffffff" />
+                              <Cell key="cell-gastos" fill="rgba(255,255,255,0.2)" />
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
                     </div>
                   </div>

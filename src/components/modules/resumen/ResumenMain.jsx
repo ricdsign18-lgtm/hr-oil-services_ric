@@ -85,6 +85,8 @@ const ResumenMain = () => {
     totalGastosTodasValuaciones_USD,
     totalUtilidadProyectadaGlobal_USD,
     totalComisionesYDeduccionesGlobal_USD,
+    budgetChartData,
+    valuationsChartData,
   } = useMemo(() => {
     const subtotales = {
       USD: { conIVA: 0, sinIVA: 0 },
@@ -219,6 +221,19 @@ const ResumenMain = () => {
     // Final Global Utility = Total Net Income - Total Global Expenses
     totalUtilidadProyectadaGlobal_USD = totalIngresosNetos_USD - totalGastosTodasValuaciones_USD;
 
+    // PREPARE CHART DATA
+    const budgetChartData = [
+      { name: 'Ejecutado', value: totalEjecutado_USD, color: '#3b82f6', formattedValue: formatCurrency(convertFromUSD(totalEjecutado_USD), mainCurrency) },
+      { name: 'Disponible', value: Math.max(0, totalPresupuesto_USD - totalEjecutado_USD), color: '#e2e8f0', formattedValue: formatCurrency(convertFromUSD(Math.max(0, totalPresupuesto_USD - totalEjecutado_USD)), mainCurrency) }
+    ];
+
+    const valuationsChartData = [
+      { name: 'Gastos', value: totalGastosTodasValuaciones_USD, color: '#ef4444', formattedValue: formatCurrency(convertFromUSD(totalGastosTodasValuaciones_USD), mainCurrency) },
+      { name: 'Comisiones', value: totalComisionesYDeduccionesGlobal_USD, color: '#f59e0b', formattedValue: formatCurrency(convertFromUSD(totalComisionesYDeduccionesGlobal_USD), mainCurrency) },
+      { name: 'Utilidad', value: Math.max(0, totalUtilidadProyectadaGlobal_USD), color: '#10b981', formattedValue: formatCurrency(convertFromUSD(Math.max(0, totalUtilidadProyectadaGlobal_USD)), mainCurrency) }
+    ];
+
+
     const presupuestoItems = [
       {
         label: "Total Presupuesto",
@@ -239,6 +254,7 @@ const ResumenMain = () => {
         value: formatCurrency(convertFromUSD(subtotalSinIVA_USD), mainCurrency),
         equivalentValue: generarConversiones(subtotalSinIVA_USD),
       },
+      // Legend items for Chart removed as per user request
     ];
 
     const valuacionesItems = [
@@ -254,6 +270,7 @@ const ResumenMain = () => {
           mainCurrency
         ),
         equivalentValue: generarConversiones(totalGastosTodasValuaciones_USD),
+        color: '#ef4444'
       },
       {
         label: "Total Comisiones y Deducciones",
@@ -262,7 +279,8 @@ const ResumenMain = () => {
           mainCurrency
         ),
         equivalentValue: generarConversiones(totalComisionesYDeduccionesGlobal_USD),
-        isNegative: true, // Helper for styling if needed, implies red usually
+        isNegative: true,
+        color: '#f59e0b'
       },
       {
         label: "Utilidad Proyectada",
@@ -272,6 +290,7 @@ const ResumenMain = () => {
         ),
         equivalentValue: generarConversiones(totalUtilidadProyectadaGlobal_USD),
         highlight: true,
+        color: '#10b981'
       },
       {
         label: "Progreso Global",
@@ -290,6 +309,8 @@ const ResumenMain = () => {
       totalGastosTodasValuaciones_USD,
       totalUtilidadProyectadaGlobal_USD,
       totalComisionesYDeduccionesGlobal_USD,
+      budgetChartData,
+      valuationsChartData
     };
   }, [
     budget,
@@ -338,11 +359,15 @@ const ResumenMain = () => {
             title="Resumen de Presupuesto"
             items={presupuestoItems}
             icon={<SackDollarIcon />}
+            chartData={budgetChartData.map(d => ({ ...d, formattedValue: `${((d.value / totalPresupuesto_USD) * 100).toFixed(1)}%` }))}
+            chartConfig={{ centerLabel: `${porcentajeTotalEjecutado.toFixed(0)}%` }}
+            chartType="donut"
           />
           <ResumeCard
             title="Resumen de Valuaciones"
             items={valuacionesItems}
             icon={<DashboarddIcon />}
+            chartData={valuationsChartData}
           />
         </aside>
 

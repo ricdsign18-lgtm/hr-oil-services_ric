@@ -1,96 +1,298 @@
-.resume-card {
-  display: inline-flex;
+/* ResumeCard.css */
+
+.resume-card-modern {
+  display: flex;
   flex-direction: column;
-
-  background: var(--surface-color, #ffffff);
-  border-radius: var(--border-radius-lg, 12px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 2px 2px 5px #24294eff;
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  height: auto;
+  min-height: fit-content;
 }
 
-.resume-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+.resume-card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.1);
 }
 
-.resume-card h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 1rem 0;
-  padding-bottom: 1rem;
-
+.card-header-modern {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.75rem;
+}
+
+.card-header-modern h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 8px;
+  color: #3b82f6;
+}
+
+.icon-wrapper svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.card-body-modern {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  flex: 1;
+  align-items: flex-start;
+}
+
+/* Chart Container */
+.chart-container {
+  flex: 1;
+  min-width: 160px;
+  max-width: 220px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.chart-center-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Details Container */
+.details-container {
+  flex: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  /* More padding */
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  /* Subtle border */
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  margin-bottom: 0.5rem;
+  /* Space between rows */
+}
+
+.detail-row:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateX(2px);
+  /* Subtle movement */
+}
+
+/* Specific style for the total/highlighted row */
+.detail-row.highlight {
+  background: #eff6ff;
+  /* Light blue background */
+  border-color: #bfdbfe;
+  border-left: 4px solid #3b82f6;
+  /* Accent border */
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-info .label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.detail-info .sub-value {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.detail-value-wrapper {
+  text-align: right;
+}
+
+.detail-value-wrapper .value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+}
+
+.detail-row.highlight .value {
+  color: #2563eb;
+  font-size: 1.1rem;
+  /* Larger font for total */
+}
+
+.detail-row.highlight .label {
+  color: #1e40af;
+  /* Darker label for total */
+  font-weight: 600;
+}
+
+.detail-row.negative .value {
+  color: #ef4444;
+}
+
+/* Enhanced Tooltip */
+.custom-tooltip-enhanced {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-tooltip-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: transparent;
+}
+
+.tooltip-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.tooltip-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+  padding-left: 0.5rem;
+}
+
+.tooltip-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  padding-left: 0.5rem;
+}
+
+/* Progress Footer */
+.progress-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.footer-progress-wrapper {
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-.resume-card-content {
+.footer-info-row {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  flex: 1;
-  border-radius: 10px;
-}
-
-.resume-item {
-  align-items: center;
   justify-content: space-between;
-  width: auto;
-  gap: 0.25rem;
-  padding: 1rem;
-  background: var(--surface-light, #f8fafc);
-  border-radius: var(--border-radius-md, 8px);
-  font-family: sans-serif;
-  border-left: 3px solid #4144d8;
+  align-items: center;
 }
 
-.resume-item .label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-secondary, #64748b);
+.footer-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
 }
 
-.resume-item .value {
-  font-size: 1.25rem;
+.footer-value {
+  font-size: 0.9rem;
   font-weight: 700;
-  color: #394bd3;
+  color: #2563eb;
 }
 
-.resume-item .equivalent-value {
-  display: block;
-  text-align: right;
-  font-size: 0.875rem;
-  color: var(--text-secondary, #64748b);
-}
-
-.resume-item .progress-bar {
+.progress-bar-modern {
   width: 100%;
-  height: 6px;
-  background: var(--border-light, #e2e8f0);
-  border-radius: 3px;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
   overflow: hidden;
-  margin-top: 0.5rem;
 }
 
-.resume-item .progress-fill {
+.progress-fill-modern {
   height: 100%;
-  background: var(--primary-color, #3b82f6);
-  border-radius: 3px;
-  transition: width 0.4s ease;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Highlight para valores importantes */
-.resume-item.highlight .value {
-  color: #462faa;
+.footer-sub {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: right;
 }
 
-.content-resume-icon svg {
-  fill: #394bd3;
-  width: 40px;
-}
+/* Responsive */
+@media (max-width: 768px) {
+  .card-body-modern {
+    flex-direction: column;
+    align-items: center;
+  }
 
-.value-container {
-  display: block;
+  .chart-container {
+    order: -1;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .details-container {
+    width: 100%;
+  }
 }
