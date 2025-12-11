@@ -474,21 +474,21 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
   }
 
   return (
-    <div className="factura-form">
-      <div className="form-header">
+    <div className="ccf-factura-form" id="factura-form-dark-mode">
+      <div className="ccf-form-header">
         <h3>{facturaEdit ? 'Editar Factura' : 'Nueva Factura'}</h3>
         {facturaEdit && (
-          <button type="button" className="btn-secondary" onClick={onCancelEdit}>
+          <button type="button" className="ccf-btn-secondary" onClick={onCancelEdit}>
             Cancelar Edición
           </button>
         )}
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-section">
+        <div className="ccf-form-section">
           <h3>Información General</h3>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="ccf-form-grid">
+            <div className="ccf-form-group">
               <label>VALUACIÓN ASOCIADA</label>
               <input
                 type="text"
@@ -505,9 +505,9 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               </datalist>
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>CATEGORÍA *</label>
-              <div className="input-with-button">
+              <div className="ccf-input-with-button">
                 <select
                   name="categoria"
                   value={formData.categoria}
@@ -522,7 +522,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                 <button
                   type="button"
                   onClick={() => setShowCategoriaModal(true)}
-                  className="btn-add-inline"
+                  className="ccf-btn-add-inline"
                   title="Agregar nueva categoría"
                 >
                   +
@@ -530,10 +530,10 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>SUBCATEGORÍAS</label>
               {formData.subcategorias.map((sub, index) => (
-                <div key={index} className="subcategoria-input-group" style={{ display: 'flex', gap: '5px', alignItems: 'center', marginBottom: '10px' }}>
+                <div key={index} className="ccf-subcategoria-input-group" style={{ display: 'flex', gap: '5px', alignItems: 'center', marginBottom: '10px' }}>
                   <input
                     type="text"
                     value={sub}
@@ -546,7 +546,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                     <button
                       type="button"
                       onClick={() => removeSubcategoria(index)}
-                      className="btn-remove-subcategory"
+                      className="ccf-btn-remove-subcategory"
                       title="Eliminar subcategoría"
                     >
                       -
@@ -556,7 +556,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                     <button
                       type="button"
                       onClick={addSubcategoria}
-                      className="btn-add-inline"
+                      className="ccf-btn-add-inline"
                       title="Añadir Subcategoría"
                     >
                       +
@@ -571,9 +571,9 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               </datalist>
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>PROVEEDOR *</label>
-              <div className="input-with-button">
+              <div className="ccf-input-with-button">
                 <input
                   type="text"
                   list="proveedores-list"
@@ -592,7 +592,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                 <button
                   type="button"
                   onClick={() => setIsProveedorModalOpen(true)}
-                  className="btn-add-inline"
+                  className="ccf-btn-add-inline"
                   title="Agregar nuevo proveedor"
                 >
                   +
@@ -600,17 +600,19 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>RIF *</label>
-              <div className="rif-input">
+              <div className="ccf-rif-input">
                 <select
                   name="tipoRif"
                   value={formData.tipoRif}
                   onChange={handleInputChange}
                 >
-                  {tiposRif.map(tipo => (
-                    <option key={tipo} value={tipo}>{tipo}</option>
-                  ))}
+                  <option value="J-">J-</option>
+                  <option value="V-">V-</option>
+                  <option value="G-">G-</option>
+                  <option value="E-">E-</option>
+                  <option value="P-">P-</option>
                 </select>
                 <input
                   type="text"
@@ -623,23 +625,23 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               </div>
             </div>
 
-            <div className="form-group full-width">
+            <div className="ccf-form-group full-width">
               <label>DIRECCIÓN</label>
-              <input
-                type="text"
+              <textarea
                 name="direccion"
                 value={formData.direccion}
                 onChange={handleInputChange}
-                placeholder="Dirección del proveedor"
+                className="direccion-input"
+                placeholder="Dirección fiscal del proveedor"
               />
             </div>
           </div>
         </div>
 
-        <div className="form-section">
+        <div className="ccf-form-section">
           <h3>Datos de la Factura</h3>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="ccf-form-grid">
+            <div className="ccf-form-group">
               <label>FECHA DE LA FACTURA *</label>
               <input
                 type="date"
@@ -650,7 +652,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               />
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>FECHA DE RECIBIDA</label>
               <input
                 type="date"
@@ -660,7 +662,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               />
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>NÚMERO DE FACTURA *</label>
               <input
                 type="text"
@@ -668,20 +670,22 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                 value={formData.numeroFactura}
                 onChange={handleInputChange}
                 required
+                placeholder="Ej: 000123"
               />
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>NÚMERO DE CONTROL</label>
               <input
                 type="text"
                 name="numeroControl"
                 value={formData.numeroControl}
                 onChange={handleInputChange}
+                placeholder="Ej: 00-00123456"
               />
             </div>
 
-            <div className="form-group full-width">
+            <div className="ccf-form-group full-width">
               <label>DESCRIPCIÓN DE LA FACTURA</label>
               <textarea
                 name="descripcion"
@@ -692,7 +696,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               />
             </div>
 
-            <div className="form-group full-width">
+            <div className="ccf-form-group full-width">
               <label>OBSERVACIONES</label>
               <textarea
                 name="observaciones"
@@ -705,10 +709,10 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
           </div>
         </div>
 
-        <div className="form-section">
+        <div className="ccf-form-section">
           <h3>Valores de la Factura (en Bolívares)</h3>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="ccf-form-grid">
+            <div className="ccf-form-group">
               <label>EXCENTO (Bs)</label>
               <input
                 type="number"
@@ -719,7 +723,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               />
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>BASE IMPONIBLE (Bs) *</label>
               <input
                 type="number"
@@ -731,17 +735,17 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               />
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>IVA (16%) (Bs)</label>
-              <div className="readonly-value">{formData.iva.toFixed(2)}</div>
+              <div className="ccf-readonly-value">{formData.iva.toFixed(2)}</div>
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>SUB TOTAL A PAGAR (Bs)</label>
-              <div className="readonly-value">{formData.subTotalPagar.toFixed(2)}</div>
+              <div className="ccf-readonly-value">{formData.subTotalPagar.toFixed(2)}</div>
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>TASA DE PAGO (Bs/$)</label>
               <input
                 type="number"
@@ -752,9 +756,9 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               />
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>SUB TOTAL A PAGAR ($)</label>
-              <div className="readonly-value">{formData.subTotalDolares.toFixed(2)}</div>
+              <div className="ccf-readonly-value">{formData.subTotalDolares.toFixed(2)}</div>
             </div>
           </div>
         </div>
@@ -765,12 +769,12 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
           onRetencionesChange={handleRetencionesChange}
         />
 
-        <div className="form-section">
+        <div className="ccf-form-section">
           <h3>Información de Pago</h3>
-          <div className="form-grid">
-            <div className="form-group">
+          <div className="ccf-form-grid">
+            <div className="ccf-form-group">
               <label>MODO DE PAGO</label>
-              <div className="input-with-button">
+              <div className="ccf-input-with-button">
                 <select
                   name="modoPago"
                   value={formData.modoPago.startsWith('Multi-Banco') ? 'Multi-Banco' : formData.modoPago}
@@ -788,7 +792,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                 <button
                   type="button"
                   onClick={() => setShowModoPagoModal(true)}
-                  className="btn-add-inline"
+                  className="ccf-btn-add-inline"
                   title="Agregar nuevo modo de pago"
                 >
                   +
@@ -810,7 +814,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               )}
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>OBRA / CONTRATO</label>
               <input
                 type="text"
@@ -821,17 +825,17 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
               />
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>MONTO PAGADO (Bs)</label>
-              <div className="readonly-value">{formData.montoPagado.toFixed(2)}</div>
+              <div className="ccf-readonly-value">{formData.montoPagado.toFixed(2)}</div>
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>PAGADO EN DÓLARES ($)</label>
-              <div className="readonly-value">{formData.pagadoDolares.toFixed(2)}</div>
+              <div className="ccf-readonly-value">{formData.pagadoDolares.toFixed(2)}</div>
             </div>
 
-            <div className="form-group">
+            <div className="ccf-form-group">
               <label>VALUACIÓN</label>
               <input
                 type="text"

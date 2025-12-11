@@ -337,13 +337,13 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
                 <h4>IVA</h4>
                 <div className="ccf-retencion-item">
                   <span>Por Cobrar:</span>
-                  <span className="estado-pendiente">
+                  <span className="ccf-estado-pendiente">
                     Bs {retenciones.retencionIvaPendiente.toFixed(2)}
                   </span>
                 </div>
                 <div className="ccf-retencion-item">
                   <span>Cobrado:</span>
-                  <span className="estado-bueno">
+                  <span className="ccf-estado-bueno">
                     Bs {retenciones.retencionIvaCobrada.toFixed(2)}
                   </span>
                 </div>
@@ -353,28 +353,28 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
                 <h4>ISLR</h4>
                 <div className="ccf-retencion-item">
                   <span>Por Cobrar:</span>
-                  <span className="estado-pendiente">
+                  <span className="ccf-estado-pendiente">
                     Bs {retenciones.retencionIslrPendiente.toFixed(2)}
                   </span>
                 </div>
                 <div className="ccf-retencion-item">
                   <span>Cobrado:</span>
-                  <span className="estado-bueno">
+                  <span className="ccf-estado-bueno">
                     Bs {retenciones.retencionIslrCobrada.toFixed(2)}
                   </span>
                 </div>
               </div>
 
               <div className="ccf-retencion-total">
-                <div className="total-item">
+                <div className="ccf-total-item">
                   <strong>Total por Cobrar:</strong>
-                  <strong className="estado-pendiente">
+                  <strong className="ccf-estado-pendiente">
                     Bs {retenciones.retencionPorCobrar.toFixed(2)}
                   </strong>
                 </div>
-                <div className="total-item">
+                <div className="ccf-total-item">
                   <strong>Total Cobrado:</strong>
-                  <strong className="estado-bueno">
+                  <strong className="ccf-estado-bueno">
                     Bs {retenciones.retencionCobrada.toFixed(2)}
                   </strong>
                 </div>

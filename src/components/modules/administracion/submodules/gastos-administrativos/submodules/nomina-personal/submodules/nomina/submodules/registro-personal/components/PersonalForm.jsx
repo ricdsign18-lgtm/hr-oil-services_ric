@@ -374,6 +374,7 @@ const PersonalForm = ({ employee, onSubmit, onCancel }) => {
                   name="fechaIngreso"
                   value={formData.fechaIngreso}
                   onChange={handleChange}
+                  onClick={(e) => e.target.showPicker && e.target.showPicker()}
                   className={errors.fechaIngreso ? "error" : ""}
                   disabled={submitting}
                 />

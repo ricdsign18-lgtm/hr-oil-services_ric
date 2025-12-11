@@ -217,9 +217,9 @@ const RegistroPersonalMain = () => {
       </div>
 
       {showForm && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="modal-close-btn" onClick={handleCancelForm}>
+        <div className="custom-registro-modal-overlay">
+          <div className="custom-registro-modal-content">
+            <button className="custom-registro-modal-close-btn" onClick={handleCancelForm}>
               ×
             </button>
             <PersonalForm

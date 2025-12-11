@@ -621,7 +621,7 @@ const ValuacionResumenCard = ({
                           <td className="td-provider font-medium">{item.proveedor}</td>
                           <td className="td-desc text-muted">{item.descripcion}</td>
                           <td className="td-subcat">
-                            <span className="badge">{item.subcategoria || 'General'}</span>
+                            <span className="valuacion-badge">{item.subcategoria || 'General'}</span>
                           </td>
                           <td className="td-amount text-right font-bold">
                             {new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2 }).format(item.monto)}
@@ -653,7 +653,7 @@ const ValuacionResumenCard = ({
                       </div>
                       <div className="mobile-row">
                         <span className="label">Subcategoría:</span>
-                        <span className="value"><span className="badge small">{item.subcategoria || 'General'}</span></span>
+                        <span className="value"><span className="valuacion-badge small">{item.subcategoria || 'General'}</span></span>
                       </div>
                       {item.descripcion && (
                         <div className="mobile-row column">

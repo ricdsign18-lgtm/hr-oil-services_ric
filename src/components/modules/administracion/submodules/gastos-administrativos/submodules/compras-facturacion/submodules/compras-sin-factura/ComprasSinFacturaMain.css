@@ -272,7 +272,7 @@
     margin-left: 0;
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
@@ -376,11 +376,12 @@
   font-size: 0.875rem;
 }
 
+/* GENERAL FORM INPUTS */
 .csf-form-group input,
 .csf-form-group select,
-.csf-form-group textarea {
-  width: 100%;
-  box-sizing: border-box;
+.csf-form-group textarea,
+.csf-form-input,
+.csf-form-select {
   padding: 10px 12px;
   border: 1px solid var(--gray-700);
   border-radius: var(--border-radius-sm);
@@ -388,14 +389,41 @@
   transition: var(--transition);
   background-color: var(--gray-900);
   color: var(--gray-200);
+  width: 100%;
+  box-sizing: border-box; /* Keep this for safety */
 }
 
+/* Focus states */
 .csf-form-group input:focus,
 .csf-form-group select:focus,
 .csf-form-group textarea:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* Specific overrides for joined groups to ensure they keep layout but change color */
+.csf-input-group input,
+.csf-input-group select,
+.csf-rif-input select,
+.csf-rif-input input,
+.csf-input-with-button input,
+.csf-input-with-button select {
+  /* Retain layout properties */
+  flex: 1; /* Match previous flex behavior */
+  min-width: 0 !important;
+  /* Override colors only */
+  background-color: var(--gray-900) !important;
+  color: var(--gray-200) !important;
+  border: 1px solid var(--gray-700) !important;
+}
+
+/* Adjust readonly value for light theme */
+.csf-readonly-value {
+    background-color: #e5e7eb !important; /* Gray 200 */
+    color: #374151 !important; /* Gray 700 */
+    border: 1px solid #d1d5db !important;
+    box-sizing: border-box !important;
 }
 
 .csf-form-group textarea {
@@ -1152,11 +1180,13 @@
   .csf-rif-input,
   .csf-input-with-button {
     display: flex !important;
-    gap: 0 !important; /* Force no gap */
+    gap: 8px !important; /* Restore gap */
     width: 100% !important; /* Ensure full width */
-    flex-wrap: nowrap !important; /* CRITICAL: Prevent wrapping */
+    flex-direction: column !important; /* Stack vertically */
     align-items: stretch !important; /* Match heights */
   }
+
+
 
   /* Input styling in joined groups AND standard inputs */
   .csf-form-group input,
@@ -1173,23 +1203,21 @@
   .csf-rif-input input,
   .csf-input-with-button input,
   .csf-input-with-button select {
-    flex: 1 1 0% !important; /* Force basis to 0% */
-    width: 0 !important; /* Force width to 0 to rely on flex-grow */
+    flex: none !important; /* Don't rely on flex grow */
+    width: 100% !important; /* Force full width */
     min-width: 0 !important; /* Allow shrinking */
     max-width: 100%;
     border-radius: var(--border-radius-sm) !important;
     height: 38px !important;
   }
 
-  /* Specific overrides for joined groups to flatten borders */
+  /* Specific overrides for joined groups to flatten borders - REMOVED TO SEPARATE */
   .csf-input-group input,
   .csf-input-group select,
   .csf-rif-input select,
   .csf-input-with-button input,
   .csf-input-with-button select {
-    border-top-right-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-    border-right-width: 0 !important;
+    /* border-radius overrides removed to allow full rounds */
   }
 
   /* RIF specific: The input is the second element (number) */
@@ -1200,12 +1228,13 @@
     border-right-width: 1px !important; /* Restore right border */
     border-top-right-radius: var(--border-radius-sm) !important;
     border-bottom-right-radius: var(--border-radius-sm) !important;
+    /* width override removed */
+    /* flex override removed */
   }
   
   /* RIF specific: The select is the first element (type) */
    .csf-rif-input select {
-    flex: 0 0 65px !important; /* Fixed width for RIF type */
-    width: 65px !important;
+    /* flex/width overrides removed, will inherit 100% from group rules */
     border-right: 1px solid var(--gray-700) !important;
    }
 
@@ -1214,12 +1243,12 @@
   .csf-input-group button.btn-remove-subcategory,
   .csf-input-group button.btn-add-inline,
   .csf-input-with-button button.btn-add-inline {
-    border-top-left-radius: 0 !important;
-    border-bottom-left-radius: 0 !important;
+    /* Radius overrides removed */
     margin: 0 !important;
     flex-shrink: 0 !important; /* Prevent button from shrinking */
     height: 38px !important;
-    width: auto;
+    width: 100% !important; /* Full width for stacked button */
+    box-sizing: border-box !important; /* Ensure padding doesn't cause overflow */
   }
   
   /* Special handling for subcategory remove button (middle element potential) */
