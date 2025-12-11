@@ -152,25 +152,25 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
   const getEstadoRetenciones = (factura) => {
     const retenciones = calcularRetenciones(factura);
 
-    if (retenciones.totalPendiente === 0) {
+      if (retenciones.totalPendiente === 0) {
       return (
-        <div className="retenciones-detalle">
-          <div className="retencion-item">
-            <span className="estado-bueno">Al día</span>
+        <div className="ccf-retenciones-detalle">
+          <div className="ccf-retencion-item">
+            <span className="ccf-estado-bueno">Al día</span>
           </div>
           {(retenciones.retencionIvaCobrada > 0 ||
             retenciones.retencionIslrCobrada > 0) && (
               <>
                 {retenciones.retencionIvaCobrada > 0 && (
-                  <div className="retencion-item">
-                    <small className="estado-bueno">
+                  <div className="ccf-retencion-item">
+                    <small className="ccf-estado-bueno">
                       IVA: Bs {retenciones.retencionIvaCobrada.toFixed(2)}
                     </small>
                   </div>
                 )}
                 {retenciones.retencionIslrCobrada > 0 && (
-                  <div className="retencion-item">
-                    <small className="estado-bueno">
+                  <div className="ccf-retencion-item">
+                    <small className="ccf-estado-bueno">
                       ISLR: Bs {retenciones.retencionIslrCobrada.toFixed(2)}
                     </small>
                   </div>
@@ -181,22 +181,22 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
       );
     } else {
       return (
-        <div className="retenciones-detalle">
-          <div className="retencion-item">
-            <span className="estado-pendiente">Pendiente</span>
+        <div className="ccf-retenciones-detalle">
+          <div className="ccf-retencion-item">
+            <span className="ccf-estado-pendiente">Pendiente</span>
           </div>
 
           {/* Mostrar retenciones pendientes */}
           {retenciones.retencionIvaPendiente > 0 && (
-            <div className="retencion-item">
-              <small className="estado-pendiente">
+            <div className="ccf-retencion-item">
+              <small className="ccf-estado-pendiente">
                 IVA: Bs {retenciones.retencionIvaPendiente.toFixed(2)}
               </small>
             </div>
           )}
           {retenciones.retencionIslrPendiente > 0 && (
-            <div className="retencion-item">
-              <small className="estado-pendiente">
+            <div className="ccf-retencion-item">
+              <small className="ccf-estado-pendiente">
                 ISLR: Bs {retenciones.retencionIslrPendiente.toFixed(2)}
               </small>
             </div>
@@ -206,8 +206,8 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
           {(retenciones.retencionIvaCobrada > 0 ||
             retenciones.retencionIslrCobrada > 0) && (
               <>
-                <div className="retencion-item separador">
-                  <small className="estado-bueno">Pagado:</small>
+                <div className="ccf-retencion-item ccf-separador">
+                  <small className="ccf-estado-bueno">Pagado:</small>
                 </div>
                 {retenciones.retencionIvaCobrada > 0 && (
                   <div className="retencion-item">
@@ -231,8 +231,8 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
   };
 
   return (
-    <div className="facturas-list">
-      <div className="section-header">
+    <div className="ccf-facturas-list">
+      <div className="ccf-section-header">
         <h3>Lista de Facturas</h3>
 
         {!parentFilters && (
@@ -240,7 +240,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
             <select
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
-              className="filter-select"
+              className="ccf-filter-select"
             >
               <option value="">Todas las categorías</option>
               {categoriasUnicas.map((cat) => (
@@ -255,7 +255,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
               placeholder="Buscar por proveedor o RIF..."
               value={filtroProveedor}
               onChange={(e) => setFiltroProveedor(e.target.value)}
-              className="search-input"
+              className="ccf-search-input"
             />
             <label htmlFor="fechaInicio" style={{ color: 'red' }}>Desde</label>
             <input
@@ -263,7 +263,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
               placeholder="Fecha inicio"
               value={fechaInicio}
               onChange={(e) => setFechaInicio(e.target.value)}
-              className="date-input"
+              className="ccf-date-input"
             />
             <label htmlFor="fechaFin" style={{ color: 'red' }}>Hasta</label>
             <input
@@ -271,7 +271,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
               placeholder="Fecha fin"
               value={fechaFin}
               onChange={(e) => setFechaFin(e.target.value)}
-              className="date-input"
+              className="ccf-date-input"
             />
           </div>
         )}
@@ -282,7 +282,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
           <p>No hay facturas para mostrar</p>
         </div>
       ) : (
-        <div className="facturas-table">
+        <div className="ccf-facturas-table">
             {/* Mobile View - Cards */}
             <div className="mobile-facturas-list">
               {facturasFiltradas.map((factura) => {
@@ -406,14 +406,14 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
                   <td>Bs {factura.montoPagado?.toFixed(2) || "0.00"}</td>
                   <td>$ {factura.pagadoDolares?.toFixed(2) || "0.00"}</td>
                   <td>{factura.modoPago || "-"}</td>
-                  <td className="retenciones-cell">
+                  <td className="ccf-retenciones-cell">
                     {getEstadoRetenciones(factura)}
                   </td>
-                  <td className="observaciones-cell">
+                  <td className="ccf-observaciones-cell">
                     {factura.observaciones ? (
-                      <div className="observaciones-tooltip">
-                        <span className="observaciones-icon">📝</span>
-                        <div className="observaciones-content">
+                      <div className="ccf-observaciones-tooltip">
+                        <span className="ccf-observaciones-icon">📝</span>
+                        <div className="ccf-observaciones-content">
                           {factura.observaciones}
                         </div>
                       </div>
@@ -424,13 +424,13 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
                   <td>{factura.valuacion || '-'}</td>
                   <td>
                     <button
-                      className="btn-edit"
+                      className="ccf-btn-edit"
                       onClick={() => onEditFactura(factura)}
                     >
                       Editar
                     </button>
                     <button
-                      className="btn-delete"
+                      className="ccf-btn-delete"
                       onClick={() => handleDelete(factura.id)}
                     >
                       Eliminar

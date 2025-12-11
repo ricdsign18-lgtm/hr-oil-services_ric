@@ -125,7 +125,7 @@
 }
 
 /* Modal Styles */
-.modal-overlay {
+.custom-registro-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -140,19 +140,19 @@
   padding: 1rem;
 }
 
-.modal-content {
-  background-color: #1f2937;
+.custom-registro-modal-content {
+  background-color: #ffffff;
   border-radius: 1rem;
-  border: 1px solid #374151;
+  border: 1px solid #e5e7eb;
   width: 100%;
-  max-width: 800px;
-  max-height: 90vh;
+  max-width: 400px;
+  max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   position: relative;
 }
 
-.modal-close-btn {
+.custom-registro-modal-close-btn {
   position: absolute;
   top: 1rem;
   right: 1rem;
@@ -171,27 +171,27 @@
   transition: all 0.2s;
 }
 
-.modal-close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #f3f4f6;
+.custom-registro-modal-close-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #374151;
 }
 
 /* Custom Scrollbar for Modal */
-.modal-content::-webkit-scrollbar {
-  width: 8px;
+.custom-registro-modal-content::-webkit-scrollbar {
+  width: 6px;
 }
 
-.modal-content::-webkit-scrollbar-track {
-  background: #111827;
+.custom-registro-modal-content::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.modal-content::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
+.custom-registro-modal-content::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
 }
 
-.modal-content::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+.custom-registro-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
 }
 
 @media (max-width: 768px) {
@@ -209,7 +209,21 @@
     max-width: none;
   }
   
-  .modal-content {
+  .custom-registro-modal-content {
     max-height: 95vh;
+    background-color: #ffffff;
+    border: none;
+    box-shadow: none;
+    padding-top: 2.5rem; /* Space for close button */
+  }
+  
+  /* Ensure the close button is visible and properly positioned */
+  .custom-registro-modal-close-btn {
+    color: #4b5563;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: #f3f4f6; /* Light background bubble */
+    width: 36px;
+    height: 36px;
   }
 }

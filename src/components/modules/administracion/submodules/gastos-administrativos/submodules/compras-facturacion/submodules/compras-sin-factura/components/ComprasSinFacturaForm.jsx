@@ -19,9 +19,9 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
     fechaRecibida: '',
     numeroNotaEntrega: '',
     descripcion: '',
-    totalDolares: 0,
-    tasaPago: 0,
-    pagoBolivares: 0,
+    totalDolares: '',
+    tasaPago: '',
+    pagoBolivares: '',
     modoPago: '',
     observaciones: '',
     contrato: ''
@@ -83,9 +83,9 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
         fechaRecibida: '',
         numeroNotaEntrega: '',
         descripcion: '',
-        totalDolares: 0,
-        tasaPago: 0,
-        pagoBolivares: 0,
+        totalDolares: '',
+        tasaPago: '',
+        pagoBolivares: '',
         modoPago: '',
         observaciones: '',
         contrato: ''
@@ -144,9 +144,9 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
 
   // Calcular total en dólares automáticamente
   useEffect(() => {
-    const tasa = formData.tasaPago || 0
-    const bolivares = formData.pagoBolivares || 0
-    const totalDolares = tasa > 0 ? bolivares / tasa : 0
+    const tasa = parseFloat(formData.tasaPago) || 0
+    const bolivares = parseFloat(formData.pagoBolivares) || 0
+    const totalDolares = tasa > 0 ? bolivares / tasa : ''
     setFormData(prev => ({
       ...prev,
       totalDolares: totalDolares
@@ -159,9 +159,15 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
 
   const handleInputChange = (e) => {
     const { name, value, type } = e.target
+    // Allow empty string for number inputs to show placeholder
+    let newValue = value
+    if (type === 'number') {
+        newValue = value === '' ? '' : parseFloat(value)
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value
+      [name]: newValue
     }))
   }
 
@@ -378,7 +384,12 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
         if (newProvs) setProveedores(newProvs)
       }
 
-      const cleanedFormData = { ...formData }
+      const cleanedFormData = {
+        ...formData,
+        totalDolares: formData.totalDolares === '' ? 0 : formData.totalDolares,
+        tasaPago: formData.tasaPago === '' ? 0 : formData.tasaPago,
+        pagoBolivares: formData.pagoBolivares === '' ? 0 : formData.pagoBolivares
+      }
 
       delete cleanedFormData.id
       delete cleanedFormData.createdAt
@@ -421,9 +432,9 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
           fechaRecibida: '',
           numeroNotaEntrega: '',
           descripcion: '',
-          totalDolares: 0,
-          tasaPago: 0,
-          pagoBolivares: 0,
+          totalDolares: '',
+          tasaPago: '',
+          pagoBolivares: '',
           modoPago: '',
           observaciones: '',
           contrato: ''
@@ -696,7 +707,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
             </div>
             <div className="csf-form-group">
               <label>TOTAL A PAGAR ($)</label>
-              <div className="readonly-value">{formData.totalDolares.toFixed(2)}</div>
+              <div className="readonly-value">{(typeof formData.totalDolares === 'number' ? formData.totalDolares : 0).toFixed(2)}</div>
             </div>
           </div>
         </div>

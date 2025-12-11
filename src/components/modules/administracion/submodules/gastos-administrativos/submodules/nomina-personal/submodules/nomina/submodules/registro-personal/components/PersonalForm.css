@@ -107,7 +107,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem; /* Reduced from 1.5rem */
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -378,9 +378,21 @@
     width: 100%;
   }
 
-  /* Ensure inputs take full width */
-  .form-group input,
-  .form-group select {
+  /* Ensure inputs take full width and look cleaner on mobile */
+  .personal-form-container .form-group input,
+  .personal-form-container .form-group select {
     width: 100%;
+    background-color: #ffffff !important; /* Pure white background */
+    border: 1px solid #d1d5db !important; /* Clean border */
+    color: #111827 !important;
+    padding: 0.75rem; /* Better touch target */
+  }
+
+  /* Reset container background for mobile specific request */
+  .personal-form-container,
+  .form-section {
+    background-color: #ffffff !important;
+    box-shadow: none !important; /* Remove shadows for cleaner flat look on mobile */
+    border: none !important; /* Remove borders if any */
   }
 }

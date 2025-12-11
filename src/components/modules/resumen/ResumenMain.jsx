@@ -374,7 +374,7 @@ const ResumenMain = () => {
         <section className="valuaciones-resumen-container">
           <div className="section-header">
             <h3>Detalle de Valuaciones</h3>
-            <span className="badge">{totalSlides}</span>
+            <span className="valuacion-badge">{totalSlides}</span>
           </div>
 
           {totalSlides > 0 ? (

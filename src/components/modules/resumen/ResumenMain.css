@@ -15,6 +15,33 @@
   width: 100%;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.section-header h3 {
+  color: var(--text-primary, #ffffff);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.section-header .valuacion-badge {
+  background-color: var(--surface-light, #1e293b);
+  color: var(--primary-light, #93c5fd);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 .valuaciones-resumen-container {
   display: flex;
   flex-direction: column;
@@ -173,6 +200,20 @@
 }
 
 @media (max-width: 768px) {
+  .resumen-main__container {
+    padding: 1rem; /* Reduce padding on mobile */
+  }
+
+  .resume-cards-container {
+    grid-template-columns: 1fr; /* Force single column, full width */
+    place-items: center; /* Center items if they don't stretch */
+  }
+
+  .resume-cards-container > * {
+    width: 100%; /* Ensure cards take full width available */
+    max-width: 450px; /* Prevent them from getting too wide on tablets */
+  }
+
   .valuaciones-carousel-viewport {
     overflow-x: auto;
     scroll-snap-type: x mandatory;
