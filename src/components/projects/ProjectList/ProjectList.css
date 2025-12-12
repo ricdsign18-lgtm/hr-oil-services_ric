@@ -88,3 +88,50 @@
     min-width: 280px;
   }
 }
+
+.project-list-container {
+  position: relative;
+  width: 100%;
+}
+
+.carousel-nav-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .carousel-nav-btn {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background-color: rgba(17, 24, 39, 0.8); /* Dark background with opacity */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s;
+  }
+
+  .carousel-nav-btn:active {
+    background-color: rgba(17, 24, 39, 1);
+  }
+
+  .carousel-nav-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .prev-btn {
+    left: 10px;
+  }
+
+  .next-btn {
+    right: 10px;
+  }
+}

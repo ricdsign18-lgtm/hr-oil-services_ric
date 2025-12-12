@@ -9,6 +9,13 @@ import ClientDeductionsForm from './components/ClientDeductionsForm'
 import CompanyDeductionsForm from './components/CompanyDeductionsForm'
 import DailySummary from './components/DailySummary'
 import InvoicesList from './components/InvoicesList'
+import {
+  ContractIcon,
+  SackDollarIcon,
+  BankIcon,
+  DashboarddIcon,
+  ClipBoardIcon
+} from '../../../../../../../assets/icons/Icons'
 import './IngresosPagosMain.css'
 
 const IngresosPagosMain = () => {
@@ -98,31 +105,36 @@ const IngresosPagosMain = () => {
             if (activeSection !== 'invoice') setEditingInvoice(null) // Reset edit if clicking tab manually
           }}
         >
-          {editingInvoice ? '✏️ Editando Factura' : '📄 Nueva Factura'}
+          <ContractIcon />
+          <span>{editingInvoice ? 'Editando Factura' : 'Nueva Factura'}</span>
         </button>
         <button
           className={`tab ${activeSection === 'client-deductions' ? 'active' : ''}`}
           onClick={() => setActiveSection('client-deductions')}
         >
-          💰 Deducciones Cliente
+          <SackDollarIcon />
+          <span>Deducciones Cliente</span>
         </button>
         <button
           className={`tab ${activeSection === 'company-deductions' ? 'active' : ''}`}
           onClick={() => setActiveSection('company-deductions')}
         >
-          🏢 Deducciones Empresa
+          <BankIcon />
+          <span>Deducciones Empresa</span>
         </button>
         <button
           className={`tab ${activeSection === 'summary' ? 'active' : ''}`}
           onClick={() => setActiveSection('summary')}
         >
-          📊 Resumen Diario
+          <DashboarddIcon />
+          <span>Resumen Diario</span>
         </button>
         <button
           className={`tab ${activeSection === 'list' ? 'active' : ''}`}
           onClick={() => setActiveSection('list')}
         >
-          📋 Lista Facturas
+          <ClipBoardIcon />
+          <span>Lista Facturas</span>
         </button>
       </div>
 

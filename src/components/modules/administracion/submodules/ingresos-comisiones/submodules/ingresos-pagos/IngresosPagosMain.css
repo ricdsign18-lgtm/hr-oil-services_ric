@@ -56,6 +56,16 @@
   flex: 1;
   min-width: 200px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.tab svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
 }
 
 .tab:hover {

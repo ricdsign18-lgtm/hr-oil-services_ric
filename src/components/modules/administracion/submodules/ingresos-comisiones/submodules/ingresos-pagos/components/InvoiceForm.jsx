@@ -87,19 +87,19 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
   }
 
   return (
-    <div className="invoice-form">
-      <div className="form-header">
+    <div className="inv-form-container">
+      <div className="inv-form-header">
         <h2>{isEditing ? '✏️ Editar Factura' : '📄 Nueva Factura'}</h2>
         {isEditing && (
-          <button type="button" onClick={onCancel} className="cancel-button">
+          <button type="button" onClick={onCancel} className="inv-cancel-btn">
             Cancelar Edición
           </button>
         )}
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-grid">
-          <div className="form-group">
+        <div className="inv-form-grid">
+          <div className="inv-form-group">
             <label>Fecha de la Factura *</label>
             <input
               type="date"
@@ -110,13 +110,13 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             />
           </div>
 
-          <div className="form-group">
+          <div className="inv-form-group">
             <label>Estado de la Factura *</label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className={`status-select ${formData.status}`}
+              className={`inv-form-select ${formData.status}`}
               required
             >
               <option value="por_cobrar">⏳ Por Cobrar</option>
@@ -124,13 +124,13 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             </select>
           </div>
 
-          <div className="form-group">
+          <div className="inv-form-group">
             <label>Vincular Valuación (Opcional)</label>
             <select
               name="valuationId"
               value={formData.valuationId}
               onChange={handleChange}
-              className="valuation-select"
+              className="inv-form-select"
             >
               <option value="">-- Seleccionar Valuación --</option>
               {valuations.map(val => (
@@ -141,7 +141,7 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             </select>
           </div>
 
-          <div className="form-group">
+          <div className="inv-form-group">
             <label>Nombre del Cliente *</label>
             <input
               type="text"
@@ -153,7 +153,7 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             />
           </div>
 
-          <div className="form-group">
+          <div className="inv-form-group">
             <label>RIF *</label>
             <input
               type="text"
@@ -165,7 +165,7 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             />
           </div>
 
-          <div className="form-group full-width">
+          <div className="inv-form-group full-width">
             <label>Dirección</label>
             <input
               type="text"
@@ -176,7 +176,7 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             />
           </div>
 
-          <div className="form-group full-width">
+          <div className="inv-form-group full-width">
             <label>Descripción</label>
             <textarea
               name="description"
@@ -187,7 +187,7 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             />
           </div>
 
-          <div className="form-group">
+          <div className="inv-form-group">
             <label>Exento (Bs) *</label>
             <input
               type="number"
@@ -200,7 +200,7 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             />
           </div>
 
-          <div className="form-group">
+          <div className="inv-form-group">
             <label>Base Imponible (Bs) *</label>
             <input
               type="number"
@@ -213,7 +213,7 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
             />
           </div>
 
-          <div className="form-group">
+          <div className="inv-form-group">
             <label>Tasa de Cambio (Bs/USD) *</label>
             <input
               type="number"
@@ -228,25 +228,25 @@ const InvoiceForm = ({ onSubmit, initialData = null, isEditing = false, onCancel
         </div>
 
         {/* Valores Calculados */}
-        <div className="calculated-values">
+        <div className="inv-calculated-section">
           <h3>Valores Calculados</h3>
-          <div className="calculated-grid">
-            <div className="calculated-item">
+          <div className="inv-calculated-grid">
+            <div className="inv-calculated-item">
               <label>Subtotal (Bs):</label>
               <span className="value">{calculatedValues.subtotal.toFixed(2)}</span>
             </div>
-            <div className="calculated-item">
+            <div className="inv-calculated-item">
               <label>IVA 16% (Bs):</label>
               <span className="value">{calculatedValues.ivaAmount.toFixed(2)}</span>
             </div>
-            <div className="calculated-item total">
+            <div className="inv-calculated-item total">
               <label>TOTAL FACTURA (Bs):</label>
               <span className="value">{calculatedValues.totalAmount.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
-        <button type="submit" className="submit-button">
+        <button type="submit" className="inv-submit-btn">
           {isEditing ? '💾 Actualizar Factura' : '💾 Guardar Factura y Continuar'}
         </button>
       </form>
