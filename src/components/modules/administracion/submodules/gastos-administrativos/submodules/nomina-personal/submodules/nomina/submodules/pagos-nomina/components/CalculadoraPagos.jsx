@@ -240,6 +240,68 @@ const CalculadoraPagos = ({
     }
   };
 
+  // CORRECCIÓN: Helper para parsear fecha localmente sin problemas de zona horaria
+  const parseDateLocal = (dateStr) => {
+    if (!dateStr) return null;
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return new Date(dateStr);
+    return new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+  };
+
+  // NUEVO: Obtener rango real de asistencia para la semana
+  const obtenerRangoAsistenciaSemanal = (empleado, fechaPago) => {
+    if (!fechaPago) return null;
+
+    // Usar parseDateLocal para evitar saltos de día por timezone
+    const fechaPagoDate = parseDateLocal(fechaPago);
+    const diaSemana = fechaPagoDate.getDay();
+    const diffLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+    // Calcular Lunes
+    const lunesSemana = new Date(fechaPagoDate);
+    lunesSemana.setDate(fechaPagoDate.getDate() + diffLunes);
+
+    // Calcular Sábado anterior (Inicio semana)
+    const inicioSemana = new Date(lunesSemana);
+    inicioSemana.setDate(lunesSemana.getDate() - 2);
+
+    let fechaInicioAsistencia = null;
+    let fechaFinAsistencia = new Date(fechaPagoDate); // Por defecto el viernes/dia de pago
+
+    // Iterar para encontrar el primer día de asistencia (Sábado a Viernes = 7 días)
+    for (let i = 0; i < 7; i++) {
+      // Crear nueva fecha base para cada iteración
+      const fechaDia = new Date(inicioSemana);
+      fechaDia.setDate(inicioSemana.getDate() + i);
+      fechaDia.setHours(12, 0, 0, 0); // Forzar mediodía
+
+      const fechaStr = formatDateSafe(fechaDia);
+
+      if (!fechaStr) continue;
+
+      const asistenciaDia = asistencias.find(
+        (a) => a.fecha === fechaStr && a.projectId === project?.id
+      );
+
+      if (asistenciaDia) {
+        const registro = asistenciaDia.registros.find(r => r.empleadoId === empleado.id);
+        // MODIFICADO: Tomar en cuenta si existe registro, sea asistencia o inasistencia (asistio true o false, pero registro existe)
+        if (registro) {
+          // Encontramos el primer día con registro
+          fechaInicioAsistencia = new Date(fechaDia);
+          break; // Solo nos interesa el primero
+        }
+      }
+    }
+
+    // Si no hubo registro, retornamos el rango completo por defecto (Sábado a Viernes)
+    if (!fechaInicioAsistencia) {
+      return { inicio: new Date(inicioSemana), fin: fechaFinAsistencia };
+    }
+
+    return { inicio: fechaInicioAsistencia, fin: fechaFinAsistencia };
+  };
+
   // CORRECCIÓN: Calcular días trabajados basados en asistencia real para pagos semanales
   const calcularDiasTrabajados = (empleado, fechaPago) => {
     // Validar fecha de pago
@@ -555,6 +617,13 @@ const CalculadoraPagos = ({
 
     // Si solo es extras, forzamos días trabajados a 0 para el cálculo financiero
     const diasTrabajados = soloExtras ? 0 : calcularDiasTrabajados(empleado, fechaPago);
+
+    // NUEVO: Calcular rango de periodo semanal si es Semanal O si es Solo Extras (aunque sea Quincenal)
+    let rangoPeriodo = null;
+    if (empleado.frecuenciaPago === "Semanal" || soloExtras) {
+      rangoPeriodo = obtenerRangoAsistenciaSemanal(empleado, fechaPago);
+    }
+
     const montoDiario = calcularMontoDiario(empleado);
 
     console.log(`Calculando para ${empleado.nombre}: montoDiario = ${montoDiario} (Solo Extras: ${soloExtras})`);
@@ -626,11 +695,14 @@ const CalculadoraPagos = ({
     }
 
     // Monto extra en Bs y su conversión a USD
-    const montoExtraEnBs = parseFloat(montoExtraBs[empleado.id] || 0);
-    const montoExtraUSD = montoExtraEnBs / parseFloat(tasaCambio || 1);
+    // CAMBIO: Input ahora es en USD
+    const montoExtraInputUSD = parseFloat(montoExtraBs[empleado.id] || 0);
+    const montoExtraUSD = montoExtraInputUSD;
+    const montoExtraEnBs = montoExtraUSD * parseFloat(tasaCambio || 0);
 
-    // Total a pagar en Bs (SIN incluir monto extra)
-    const totalPagarBs = subtotalBs - deduccionesLeyBs;
+    // Total a pagar en Bs (INCLUYENDO monto extra)
+    // Se suma el monto extra en Bs al subtotal (que ya tiene restadas deducciones manuales y adelantos) y se restan deducciones de ley
+    const totalPagarBs = subtotalBs - deduccionesLeyBs + montoExtraEnBs;
 
     // Monto Total en USD (Total a Pagar USD + Monto Extra USD + Adelantos USD)
     // Los adelantos se suman aquí porque son parte del dinero que recibe el empleado (ya recibido)
@@ -639,6 +711,7 @@ const CalculadoraPagos = ({
     return {
       empleado: {
         ...empleado,
+        rangoPeriodo, // NUEVO: Incluir para el resumen
         mitadPagoQuincenal: mitadPagoQuincenal[empleado.id] || "primera",
       },
       diasTrabajados,
@@ -928,7 +1001,7 @@ const CalculadoraPagos = ({
               <span>H. Extra N.</span>
               <span>Deduc.($)</span>
               <span>Adel.($)</span>
-              <span>Monto Extra (Bs)</span>
+              <span>Monto Extra ($)</span>
               <span>Banco</span>
               <span>Observaciones</span>
             </div>

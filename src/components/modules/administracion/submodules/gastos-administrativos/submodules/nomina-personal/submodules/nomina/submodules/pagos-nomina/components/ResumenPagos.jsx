@@ -1,5 +1,3 @@
-
-
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/ResumenPagos.jsx
 import React from "react";
 import * as XLSX from "xlsx";
@@ -14,43 +12,51 @@ const ResumenPagos = ({
   selectedProject,
 }) => {
   // Calcular período de pago
-  const calcularPeriodoPago = (empleado) => {
+  const calcularPeriodoPago = (pago) => {
+    const { empleado, diasTrabajados } = pago;
     const fecha = new Date(fechaPago.replace(/-/g, '\/'));
 
+    // Calcular fechas base (Lunes, Viernes, Sábado) de la semana de pago
+    const lunes = new Date(fecha);
+    const diaSemana = fecha.getDay();
+    const diffLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+    lunes.setDate(fecha.getDate() + diffLunes);
+
+    const viernes = new Date(lunes);
+    viernes.setDate(lunes.getDate() + 4);
+
+    const sabado = new Date(lunes);
+    sabado.setDate(lunes.getDate() - 2);
+
+    // CASO 1: Semanal con más de 5 días trabajados -> Mostrar semana completa (Sábado a Viernes)
+    if (empleado.frecuenciaPago === "Semanal" && diasTrabajados > 5) {
+      return `Semana del ${sabado.toLocaleDateString("es-ES")} al ${viernes.toLocaleDateString("es-ES")}`;
+    }
+
+    // CASO 2: Rango de periodo específico (Para "Solo Extras" Quincenal que debe mostrarse como semanal, o Semanal normal)
+    if (empleado.rangoPeriodo && empleado.rangoPeriodo.inicio && empleado.rangoPeriodo.fin) {
+      const inicio = new Date(empleado.rangoPeriodo.inicio);
+      const fin = new Date(empleado.rangoPeriodo.fin);
+      return `Semana del ${inicio.toLocaleDateString("es-ES")} al ${fin.toLocaleDateString("es-ES")}`;
+    }
+
+    // CASO 3: Defaults
     if (empleado.frecuenciaPago === "Semanal") {
-      // Encontrar lunes de la semana del pago
-      const lunes = new Date(fecha);
-      const diaSemana = fecha.getDay();
-      const diffLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
-      lunes.setDate(fecha.getDate() + diffLunes);
-
-      // Encontrar viernes de la semana del pago
-      const viernes = new Date(lunes);
-      viernes.setDate(lunes.getDate() + 4);
-
-      return `Semana del ${lunes.toLocaleDateString(
-        "es-ES"
-      )} al ${viernes.toLocaleDateString("es-ES")}`;
+      return `Semana del ${lunes.toLocaleDateString("es-ES")} al ${viernes.toLocaleDateString("es-ES")}`;
     } else {
-      // Pago quincenal
+      // Pago quincenal estándar
       const mes = fecha.getMonth();
       const año = fecha.getFullYear();
-
-      const mitad =
-        empleado.mitadPagoQuincenal || empleado.mitadPago || "primera";
+      const mitad = empleado.mitadPagoQuincenal || empleado.mitadPago || "primera";
 
       if (mitad === "primera") {
         const primerDia = new Date(año, mes, 1);
         const ultimoDia = new Date(año, mes, 15);
-        return `Pago del ${primerDia.toLocaleDateString(
-          "es-ES"
-        )} al ${ultimoDia.toLocaleDateString("es-ES")}`;
+        return `Pago del ${primerDia.toLocaleDateString("es-ES")} al ${ultimoDia.toLocaleDateString("es-ES")}`;
       } else {
         const primerDia = new Date(año, mes, 16);
         const ultimoDia = new Date(año, mes + 1, 0);
-        return `Pago del ${primerDia.toLocaleDateString(
-          "es-ES"
-        )} al ${ultimoDia.toLocaleDateString("es-ES")}`;
+        return `Pago del ${primerDia.toLocaleDateString("es-ES")} al ${ultimoDia.toLocaleDateString("es-ES")}`;
       }
     }
   };
@@ -62,9 +68,9 @@ const ResumenPagos = ({
   const exportToExcel = () => {
     // Función auxiliar para formatear datos
     const formatPagoData = (pago, includeLegalDeductions) => {
-      const periodoPago = calcularPeriodoPago(pago.empleado);
+      const periodoPago = calcularPeriodoPago(pago);
       const datos = {
-        "Nombre del Trabajador": `${pago.empleado.nombre} ${pago.empleado.apellido}`,
+        "Nombre del Trabajador": `${pago.empleado.nombre} ${pago.empleado.apellido} `,
         Cédula: pago.empleado.cedula,
         Cargo: pago.empleado.cargo,
         "Tipo Nómina": pago.empleado.tipoNomina,
@@ -233,7 +239,7 @@ const ResumenPagos = ({
           </thead>
           <tbody>
             {pagos.map((pago, index) => {
-              const periodoPago = calcularPeriodoPago(pago.empleado);
+              const periodoPago = calcularPeriodoPago(pago);
               const esAdministrativo = ["Administrativa", "Ejecucion"].includes(pago.empleado.tipoNomina);
 
               return (
@@ -242,7 +248,7 @@ const ResumenPagos = ({
                   <td>{pago.empleado.cedula}</td>
                   <td>{pago.empleado.cargo}</td>
                   <td>
-                    <span className={`nomina-badge ${pago.empleado.tipoNomina.replace(/\s+/g, "-")}`}>
+                    <span className={`nomina - badge ${pago.empleado.tipoNomina.replace(/\s+/g, "-")} `}>
                       {pago.empleado.tipoNomina}
                     </span>
                   </td>
@@ -304,7 +310,7 @@ const ResumenPagos = ({
               <td className="text-right"><strong>${totales.totalMontoExtraUSD.toFixed(2)}</strong></td>
               <td className="text-right"><strong>${totales.totalMontoTotalUSD.toFixed(2)}</strong></td>
               <td></td>
-              <td className="text-right total-pagar"><strong>Bs {(totales.totalPagar + totales.totalMontoExtraBs).toFixed(2)}</strong></td>
+              <td className="text-right total-pagar"><strong>Bs {totales.totalPagar.toFixed(2)}</strong></td>
               <td colSpan="4"></td>
 
               {/* Totales de deducciones de ley */}
