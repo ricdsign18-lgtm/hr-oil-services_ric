@@ -19,32 +19,16 @@ const ProveedoresManager = ({ projectId }) => {
     const tiposRif = ['J-', 'V-', 'E-', 'P-', 'G-', 'N/A']
 
     const fetchProveedores = async () => {
-        if (!projectId) return
         setLoading(true)
         
-     
         let { data, error } = await supabase
             .from('proveedores')
             .select('*')
-            .eq('projectid', projectId)
             .order('nombre')
 
         if (error) {
-            console.warn('Error fetching proveedores with projectid:', error)
-            
-            // Si falla, intentar con 'projectId' (camelCase)
-            const { data: dataCamel, error: errorCamel } = await supabase
-                .from('proveedores')
-                .select('*')
-                .eq('projectId', projectId)
-                .order('nombre')
-            
-            if (errorCamel) {
-                console.error('Error fetching proveedores (both formats):', errorCamel)
-                showToast(`Error al cargar proveedores: ${errorCamel.message || JSON.stringify(errorCamel)}`, 'error')
-            } else {
-                setProveedores(dataCamel)
-            }
+            console.error('Error fetching proveedores:', error)
+            showToast(`Error al cargar proveedores: ${error.message}`, 'error')
         } else {
             setProveedores(data)
         }
@@ -53,7 +37,7 @@ const ProveedoresManager = ({ projectId }) => {
 
     useEffect(() => {
         fetchProveedores()
-    }, [projectId])
+    }, [])
 
     const handleEdit = (item) => {
         setEditingItem(item)
@@ -94,7 +78,6 @@ const ProveedoresManager = ({ projectId }) => {
                         const { data: existing } = await supabase
                             .from('proveedores')
                             .select('id')
-                            .eq('projectid', projectId)
                             .eq('tiporif', formData.tiporif)
                             .eq('rif', formData.rif)
                             .neq('id', editingItem.id)

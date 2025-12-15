@@ -106,15 +106,16 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
       if (modoError) console.error('Error cargando modos de pago:', modoError)
       else setModosPago(modoData.map(m => m.nombre))
 
-      // Cargar Proveedores
-      if (projectId) {
-        const { data: provData, error: provError } = await supabase
-          .from('proveedores')
-          .select('*')
-          .eq('projectid', projectId)
+      // Cargar Proveedores (Global)
+      const { data: provData, error: provError } = await supabase
+        .from('proveedores')
+        .select('*')
 
-        if (provError) console.error('Error cargando proveedores:', provError)
-        else setProveedores(provData)
+      if (provError) console.error('Error cargando proveedores:', provError)
+      else setProveedores(provData)
+
+      // Cargar Valuaciones
+      if (projectId) {
 
         // Cargar Valuaciones
         const { data: valData, error: valError } = await supabase
@@ -325,14 +326,25 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
       let newTotalGastado = 0
       let existingProvId = null;
 
-      // Obtener datos actuales del proveedor si existe
-      const { data: existingProv } = await supabase
+      // Obtener datos actuales del proveedor si existe (GLOBAL)
+      let existingProvQuery = supabase
         .from('proveedores')
         .select('id, total_facturas, total_gastado_dolares')
-        .eq('projectid', projectId)
-        .eq('tiporif', formData.tipoRif)
-        .eq('rif', formData.rif)
+        .limit(1)
         .maybeSingle()
+
+      // Si tenemos RIF, buscamos por RIF (prioridad)
+      if (formData.rif && formData.rif.trim()) {
+        existingProvQuery = existingProvQuery
+          .eq('tiporif', formData.tipoRif)
+          .eq('rif', formData.rif)
+      } else {
+        // Si no hay RIF, buscamos por Nombre exacto para evitar colisión
+        existingProvQuery = existingProvQuery
+          .eq('nombre', formData.proveedor)
+      }
+
+      const { data: existingProv } = await existingProvQuery
 
       if (existingProv) {
         existingProvId = existingProv.id;
@@ -348,7 +360,6 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
 
       // Datos del proveedor
       const proveedorData = {
-        projectid: projectId,
         nombre: formData.proveedor,
         tiporif: formData.tipoRif,
         rif: formData.rif,
@@ -358,10 +369,15 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
         updatedat: new Date().toISOString()
       }
 
+      // Si no existe, agregamos el projectId para la creación
+      if (!existingProvId) {
+        proveedorData.projectid = projectId
+      }
+
       let provError;
 
       if (existingProvId) {
-        // Actualizar existente
+        // Actualizar existente (GLOBAL)
         ({ error: provError } = await supabase
           .from('proveedores')
           .update(proveedorData)
@@ -376,11 +392,10 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
       if (provError) {
         console.error('Error al guardar proveedor:', provError)
       } else {
-        // Recargar proveedores
+        // Recargar proveedores (Global)
         const { data: newProvs } = await supabase
           .from('proveedores')
           .select('*')
-          .eq('projectid', projectId)
         if (newProvs) setProveedores(newProvs)
       }
 

@@ -331,19 +331,32 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
     }
     try {
       // Calcular nuevos totales para el proveedor
+      // Obtener datos actuales del proveedor si existe (Búsqueda GLOBAL por RIF)
+      let existingProvQuery = supabase
+        .from('proveedores')
+        .select('id, total_facturas, total_gastado_dolares')
+        .limit(1)
+        .maybeSingle()
+      
+      // Si tenemos RIF, buscamos por RIF (prioridad)
+      if (formData.rif && formData.rif.trim()) {
+        existingProvQuery = existingProvQuery
+          .eq('tiporif', formData.tipoRif)
+          .eq('rif', formData.rif)
+      } else {
+        // Si no hay RIF, buscamos por Nombre exacto para evitar colisión de "sin rif"
+        existingProvQuery = existingProvQuery
+          .eq('nombre', formData.proveedor)
+      }
+
+      const { data: existingProv } = await existingProvQuery
+
       let newTotalFacturas = 0
       let newTotalGastado = 0
-
-      // Obtener datos actuales del proveedor si existe
-      const { data: existingProv } = await supabase
-        .from('proveedores')
-        .select('total_facturas, total_gastado_dolares')
-        .eq('projectid', projectId)
-        .eq('tiporif', formData.tipoRif)
-        .eq('rif', formData.rif)
-        .single()
+      let existingProvId = null
 
       if (existingProv) {
+        existingProvId = existingProv.id
         newTotalFacturas = existingProv.total_facturas || 0
         newTotalGastado = existingProv.total_gastado_dolares || 0
       }
@@ -354,9 +367,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
         newTotalGastado += (formData.subTotalDolares || 0)
       }
 
-      // Guardar o actualizar proveedor
       const proveedorData = {
-        projectid: projectId,
         nombre: formData.proveedor,
         tiporif: formData.tipoRif,
         rif: formData.rif,
@@ -366,19 +377,35 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
         updatedat: new Date().toISOString()
       }
 
-      // Upsert proveedor (inserta si no existe conflicto con projectid, tiporif, rif)
-      const { error: provError } = await supabase
-        .from('proveedores')
-        .upsert(proveedorData, { onConflict: 'projectid, tiporif, rif' })
+      // Si no existe, agregamos el projectId para la creación
+      if (!existingProvId) {
+        proveedorData.projectid = projectId
+      }
+
+      let provError
+
+      if (existingProvId) {
+         // ACTUALIZAR proveedor existente (GLOBAL)
+         const { error } = await supabase
+          .from('proveedores')
+          .update(proveedorData)
+          .eq('id', existingProvId)
+         provError = error
+      } else {
+         // INSERTAR nuevo proveedor (con projectId actual)
+         const { error } = await supabase
+          .from('proveedores')
+          .insert(proveedorData)
+         provError = error
+      }
 
       if (provError) {
         console.error('Error al guardar proveedor:', provError)
       } else {
-        // Recargar proveedores
+        // Recargar proveedores (Global)
         const { data: newProvs } = await supabase
           .from('proveedores')
           .select('*')
-          .eq('projectid', projectId)
         if (newProvs) setProveedores(newProvs)
       }
 
