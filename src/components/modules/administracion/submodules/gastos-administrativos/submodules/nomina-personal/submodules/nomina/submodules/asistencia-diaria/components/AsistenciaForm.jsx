@@ -289,70 +289,104 @@ const AsistenciaForm = ({
               {asistencias.map((registro) => (
                 <div
                   key={registro.empleadoId}
-                  className={`employee-row ${registro.asistio ? "present" : "absent"
-                    }`}
+                  className={`employee-row ${registro.asistio ? "present" : "absent"}`}
                 >
                   <div className="employee-info">
                     <div className="employee-name">{registro.nombre}</div>
                     <div className="employee-details">
-                      <span className="cedula">C.I. {registro.cedula}</span>
-                      <span className="separator">•</span>
-                      <span className="cargo">{registro.cargo}</span>
+                      <span className="cedula-badge">C.I. {registro.cedula}</span>
+                      <span className="cargo-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                        {registro.cargo}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="attendance-controls">
-                    <div className="attendance-toggle">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={registro.asistio}
-                          onChange={() =>
-                            handleToggleAsistencia(registro.empleadoId)
-                          }
-                          disabled={isFutureDate || readOnly}
-                        />
-                        <span className="slider">
-                          <span className="toggle-text">
-                            {registro.asistio ? "✅ Presente" : "❌ Ausente"}
-                          </span>
-                        </span>
-                      </label>
+                  <div className="card-section">
+                    <div className="card-section-title">ASISTENCIA</div>
+                    <div className="attendance-toggle-segmented">
+                      <button 
+                        className={`segment-option ${registro.asistio ? "active present" : ""}`}
+                        onClick={() => !readOnly && !isFutureDate && registro.asistio !== true && handleToggleAsistencia(registro.empleadoId)}
+                        disabled={readOnly || isFutureDate}
+                      >
+                         <div className="segment-icon">
+                           {registro.asistio && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                         </div>
+                         Presente
+                      </button>
+                      <button 
+                        className={`segment-option ${!registro.asistio ? "active absent" : ""}`}
+                        onClick={() => !readOnly && !isFutureDate && registro.asistio !== false && handleToggleAsistencia(registro.empleadoId)}
+                        disabled={readOnly || isFutureDate}
+                      >
+                        Ausente
+                        <div className="segment-icon">
+                           {!registro.asistio && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>}
+                        </div>
+                      </button>
                     </div>
                   </div>
 
-                  <div className="hours-control">
-                    <input
-                      type="number"
-                      value={registro.horasTrabajadas || 0}
-                      onChange={(e) =>
-                        handleHorasTrabajadasChange(
-                          registro.empleadoId,
-                          e.target.value
-                        )
-                      }
-                      min="0"
-                      max="24"
-                      step="0.5"
-                      disabled={!registro.asistio || isFutureDate || readOnly}
-                      className={!registro.asistio ? "disabled" : ""}
-                    />
-                    <span className="hours-label">horas</span>
+                  <div className="card-section">
+                     <div className="card-section-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        HORAS TRABAJADAS
+                     </div>
+                     <div className="hours-stepper">
+                        <button 
+                          className="stepper-btn"
+                          disabled={!registro.asistio || isFutureDate || readOnly || registro.horasTrabajadas <= 0}
+                          onClick={() => handleHorasTrabajadasChange(registro.empleadoId, Math.max(0, (registro.horasTrabajadas || 0) - 0.5))}
+                        >
+                          −
+                        </button>
+                        <div className="stepper-value">
+                            <input
+                              type="number"
+                              value={registro.horasTrabajadas || 0}
+                              onChange={(e) =>
+                                handleHorasTrabajadasChange(
+                                  registro.empleadoId,
+                                  e.target.value
+                                )
+                              }
+                              min="0"
+                              max="24"
+                              step="0.5"
+                              disabled={!registro.asistio || isFutureDate || readOnly}
+                              className="stepper-input"
+                            />
+                            <span>hrs</span>
+                        </div>
+                        <button 
+                          className="stepper-btn"
+                          disabled={!registro.asistio || isFutureDate || readOnly || registro.horasTrabajadas >= 24}
+                          onClick={() => handleHorasTrabajadasChange(registro.empleadoId, Math.min(24, (registro.horasTrabajadas || 0) + 0.5))}
+                        >
+                          +
+                        </button>
+                     </div>
                   </div>
 
-                  <div className="observations-control">
-                    <input
-                      type="text"
-                      value={registro.observaciones || ""}
-                      onChange={(e) =>
-                        handleObservacionesChange(
-                          registro.empleadoId,
-                          e.target.value
-                        )
-                      }
-                      placeholder="Observaciones..."
-                      disabled={isFutureDate || readOnly}
-                    />
+                  <div className="card-section">
+                    <div className="card-section-title">OBSERVACIONES</div>
+                    <div className="observations-input-wrapper">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="input-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                      <input
+                        type="text"
+                        value={registro.observaciones || ""}
+                        onChange={(e) =>
+                          handleObservacionesChange(
+                            registro.empleadoId,
+                            e.target.value
+                          )
+                        }
+                        placeholder="Escribe una nota aquí..."
+                        disabled={isFutureDate || readOnly}
+                        className="custom-input"
+                      />
+                    </div>
                   </div>
                 </div>
               ))}

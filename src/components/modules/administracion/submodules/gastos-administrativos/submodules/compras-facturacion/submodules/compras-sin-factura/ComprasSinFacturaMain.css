@@ -1211,14 +1211,6 @@
     height: 38px !important;
   }
 
-  /* Specific overrides for joined groups to flatten borders - REMOVED TO SEPARATE */
-  .csf-input-group input,
-  .csf-input-group select,
-  .csf-rif-input select,
-  .csf-input-with-button input,
-  .csf-input-with-button select {
-    /* border-radius overrides removed to allow full rounds */
-  }
 
   /* RIF specific: The input is the second element (number) */
   .csf-rif-input input {
@@ -1228,8 +1220,7 @@
     border-right-width: 1px !important; /* Restore right border */
     border-top-right-radius: var(--border-radius-sm) !important;
     border-bottom-right-radius: var(--border-radius-sm) !important;
-    /* width override removed */
-    /* flex override removed */
+
   }
   
   /* RIF specific: The select is the first element (type) */

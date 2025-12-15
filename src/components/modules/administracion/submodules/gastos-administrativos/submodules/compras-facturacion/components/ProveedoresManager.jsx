@@ -21,15 +21,30 @@ const ProveedoresManager = ({ projectId }) => {
     const fetchProveedores = async () => {
         if (!projectId) return
         setLoading(true)
-        const { data, error } = await supabase
+        
+     
+        let { data, error } = await supabase
             .from('proveedores')
             .select('*')
             .eq('projectid', projectId)
             .order('nombre')
 
         if (error) {
-            console.error('Error fetching proveedores:', error)
-            showToast('Error al cargar proveedores', 'error')
+            console.warn('Error fetching proveedores with projectid:', error)
+            
+            // Si falla, intentar con 'projectId' (camelCase)
+            const { data: dataCamel, error: errorCamel } = await supabase
+                .from('proveedores')
+                .select('*')
+                .eq('projectId', projectId)
+                .order('nombre')
+            
+            if (errorCamel) {
+                console.error('Error fetching proveedores (both formats):', errorCamel)
+                showToast(`Error al cargar proveedores: ${errorCamel.message || JSON.stringify(errorCamel)}`, 'error')
+            } else {
+                setProveedores(dataCamel)
+            }
         } else {
             setProveedores(data)
         }

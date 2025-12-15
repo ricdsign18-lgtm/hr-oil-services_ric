@@ -211,7 +211,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
 
   return (
     <div className="proveedores-list">
-      <div className="section-header">
+      <div className="section-header-proveedores">
         <h3>Proveedores y Retenciones</h3>
         <div className="filtros">
           <input
@@ -225,44 +225,44 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
       </div>
 
       <div className="proveedores-summary-container">
-        <div className="summary-header">
+        <div className="summary-header-proveedores">
           <h3>Resumen General</h3>
         </div>
         
         <div className="summary-grid">
-          <div className="summary-card">
+          <div className="summary-card-proveedores">
             <div className="card-icon-wrapper icon-users">
               <MultiUsersIcon />
-            </div>
             <span className="card-label">TOTAL PROVEEDORES</span>
+            </div>
             <strong className="card-value">{proveedores.length}</strong>
           </div>
 
-          <div className="summary-card">
+          <div className="summary-card-proveedores">
             <div className="card-icon-wrapper icon-check">
               <CheckCircleIcon />
-            </div>
             <span className="card-label">PROVEEDORES AL DÍA</span>
+            </div>
             <strong className="card-value">
               {proveedores.filter(p => p.estadoRetenciones === 'al-dia').length}
             </strong>
           </div>
 
-          <div className="summary-card">
+          <div className="summary-card-proveedores">
             <div className="card-icon-wrapper icon-alert">
               <AlertTriangleIcon />
-            </div>
             <span className="card-label">PROVEEDORES PENDIENTES</span>
+            </div>
             <strong className="card-value">
               {proveedores.filter(p => p.estadoRetenciones === 'pendiente').length}
             </strong>
           </div>
 
-          <div className="summary-card">
+          <div className="summary-card-proveedores">
             <div className="card-icon-wrapper icon-money">
               <SackDollarIcon />
-            </div>
             <span className="card-label">TOTAL RET. POR COBRAR</span>
+            </div>
             <strong className="card-value">
               $ {proveedores.reduce((sum, p) => sum + (p.totalRetencionPorCobrar / 50), 0).toFixed(2)}
             </strong>

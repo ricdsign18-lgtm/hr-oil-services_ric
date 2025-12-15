@@ -11,7 +11,9 @@ import PagosNominaMain from "../components/modules/administracion/submodules/gas
 // Importar los nuevos componentes de Compra y Facturación
 import ComprasFacturacionMain from "../components/modules/administracion/submodules/gastos-administrativos/submodules/compras-facturacion/ComprasFacturacionMain";
 import ComprasConFacturaMain from "../components/modules/administracion/submodules/gastos-administrativos/submodules/compras-facturacion/submodules/compras-con-factura/ComprasConFacturaMain";
+
 import ComprasSinFacturaMain from "../components/modules/administracion/submodules/gastos-administrativos/submodules/compras-facturacion/submodules/compras-sin-factura/ComprasSinFacturaMain";
+import Configuraciones from "../components/modules/administracion/submodules/gastos-administrativos/submodules/compras-facturacion/components/Configuraciones";
 // Importar los nuevos componentes de Ingresos y Comisiones
 import IngresosComisionesMain from "../components/modules/administracion/submodules/ingresos-comisiones/IngresosComisionesMain";
 import IngresosPagosMain from "../components/modules/administracion/submodules/ingresos-comisiones/submodules/ingresos-pagos/IngresosPagosMain";
@@ -60,6 +62,10 @@ const AdministracionPage = () => {
           <Route
             path="gastos-administrativos/compra-facturacion/compras-sin-factura"
             element={<ComprasSinFacturaMain projectId={projectId} />}
+          />
+          <Route
+            path="gastos-administrativos/compra-facturacion/configuraciones"
+            element={<Configuraciones projectId={projectId} />}
           />
           {/* Nuevas rutas para Ingresos y Comisiones*/}
           <Route path="ingresos-comisiones" element={<IngresosComisionesMain />} />

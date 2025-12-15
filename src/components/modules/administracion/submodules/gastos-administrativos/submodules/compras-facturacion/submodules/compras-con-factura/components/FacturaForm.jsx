@@ -582,6 +582,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
                   onChange={handleProveedorChange}
                   required
                   placeholder="Nombre del proveedor"
+                  autoComplete="off"
                 />
                 <datalist id="proveedores-list">
                   {proveedores.map((prov, index) => (
