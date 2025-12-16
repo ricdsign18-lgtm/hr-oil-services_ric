@@ -1,253 +1,208 @@
+/* src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/ResumenPagos.css */
+
+/* ===== VARIABLES Y ESTILOS BASE (Copiados de ComprasSinFacturaMain para consistencia) ===== */
+:root {
+  --primary-color: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #dbeafe;
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --border-radius: 8px;
+  --border-radius-sm: 4px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --transition: all 0.2s ease-in-out;
+}
+
 .resumen-pagos {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  padding: 1rem;
+  background-color: transparent;
 }
 
 .resumen-header {
-  background: var(--background-color);
+  background: var(--gray-800);
   padding: 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-700);
+  box-shadow: var(--shadow);
 }
 
 .resumen-header h3 {
-  color: #ffffff;
+  color: var(--gray-100);
   margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .resumen-info {
   display: flex;
   gap: 2rem;
-  font-size: 0.9rem;
-  color: #ffffff;
+  font-size: 0.95rem;
+  color: var(--gray-300);
   flex-wrap: wrap;
 }
 
-.nomina-summary {
-  background: var(--surface-color);
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
+.resumen-info strong {
+  color: var(--gray-100);
 }
 
-.nomina-summary h4 {
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-}
-
-.nomina-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.nomina-card {
-  background: var(--background-color);
-  padding: 1rem;
-  border-radius: 0.375rem;
-  border: 1px solid var(--border-color);
-  text-align: center;
-}
-
-.nomina-type {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.nomina-count {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
-}
-
-.nomina-total {
-  font-weight: 700;
-  color: var(--primary-color);
-  font-size: 1rem;
-}
-
-.totales-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-}
-
-.total-card {
-  background: var(--surface-color);
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
-  text-align: center;
-}
-
-.total-card.highlight {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-.total-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.total-card.highlight .total-label {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.total-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.total-card.highlight .total-value {
-  color: white;
-}
-
-.deducciones-desglose {
-  background: var(--surface-color);
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border-color);
-}
-
-.deducciones-desglose h4 {
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-}
-
-.deducciones-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.deduccion-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  background: var(--background-color);
-  border-radius: 0.375rem;
-}
-
-.deduccion-label {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.deduccion-value {
-  font-weight: 600;
-  color: var(--primary-color);
-}
+/* ===== TABLE STYLES (Matched to Compras Sin Factura) ===== */
 
 .pagos-table-container {
   overflow-x: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-700);
+  box-shadow: var(--shadow-sm);
+  background: var(--gray-800);
+}
+
+.pagos-table-container h4 {
+  padding: 1rem 1.5rem;
+  margin: 0;
+  background: var(--gray-800);
+  color: var(--gray-200);
+  border-bottom: 1px solid var(--gray-700);
+  font-size: 1.1rem;
 }
 
 .pagos-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
+  min-width: 1200px;
+}
+
+.pagos-table th,
+.pagos-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-700);
+  color: var(--gray-300);
 }
 
 .pagos-table th {
-  background: var(--background-color);
-  padding: 1rem 0.75rem;
-  text-align: left;
+  background: var(--gray-900);
   font-weight: 600;
-  color: #ffffff;
-  border-bottom: 1px solid var(--border-color);
+  color: var(--gray-200);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
 }
 
-.pagos-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.pagos-table tr.even {
-  background: var(--surface-color);
-}
-
+.pagos-table tr.even,
 .pagos-table tr.odd {
-  background: white;
+  background: transparent; /* Reset alternate colors to use simple hover */
 }
 
 .pagos-table tr:hover {
-  background: #f8fafc;
+  background: var(--gray-700);
 }
 
+.pagos-table td.text-center {
+  text-align: center;
+}
+
+.pagos-table td.text-right {
+  text-align: right;
+}
+
+/* Footer styles for totals */
 .pagos-table tfoot {
-  background: var(--background-color);
+  background: var(--gray-900);
   font-weight: 600;
 }
 
 .pagos-table tfoot td {
-  border-top: 2px solid var(--border-color);
+  border-top: 2px solid var(--gray-700);
   border-bottom: none;
+  color: var(--gray-100);
+  padding: 1rem 16px;
 }
 
+.pagos-table tfoot tr:hover {
+  background: var(--gray-900); /* Disable hover for footer */
+}
+
+/* Specific cell styling */
 .employee-name {
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--gray-100) !important;
   white-space: nowrap;
 }
 
 .nomina-badge {
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .nomina-badge.Administrativa {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
 }
 
 .nomina-badge.Ejecucion {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
 }
 
 .nomina-badge.Tecnica-Operativa {
-  background: #dcfce7;
-  color: #166534;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
 }
 
 .nomina-badge.Tecnica-Operativa-Administrativa–Trabajos-Especiales {
-  background: #f3e8ff;
-  color: #7e22ce;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
 }
 
 .total-pagar {
-  color: var(--primary-color);
-  font-weight: 600;
+  color: var(--success-color) !important;
+  font-weight: 700;
 }
 
+.deducciones-ley-total {
+    color: var(--warning-color);
+}
+
+.periodo-pago {
+    font-size: 0.8rem;
+    color: var(--gray-400);
+}
+
+.observaciones {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Actions Section */
 .resumen-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--gray-700);
+  margin-top: 1rem;
 }
 
 .action-group {
@@ -257,32 +212,34 @@
 
 .btn-outline {
   background: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  border: 1px solid var(--gray-600);
+  color: var(--gray-300);
   padding: 0.75rem 1.5rem;
-  border-radius: 0.375rem;
+  border-radius: var(--border-radius-sm);
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s;
 }
 
 .btn-outline:hover {
-  background: var(--background-color);
+  background: var(--gray-800);
+  color: var(--gray-100);
+  border-color: var(--gray-500);
 }
 
 .btn-secondary {
-  background: #6b7280;
+  background: var(--gray-700);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.375rem;
+  border-radius: var(--border-radius-sm);
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
 }
 
 .btn-secondary:hover {
-  background: #4b5563;
+  background: var(--gray-600);
 }
 
 .btn-primary {
@@ -290,7 +247,7 @@
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.375rem;
+  border-radius: var(--border-radius-sm);
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s;
@@ -300,27 +257,11 @@
   background: var(--primary-dark);
 }
 
+/* Responsive adjustments */
 @media (max-width: 1024px) {
   .resumen-info {
     flex-direction: column;
     gap: 0.5rem;
-  }
-  
-  .nomina-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .totales-cards {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  
-  .pagos-table {
-    font-size: 0.75rem;
-  }
-  
-  .pagos-table th,
-  .pagos-table td {
-    padding: 0.5rem 0.25rem;
   }
   
   .resumen-actions {
@@ -332,22 +273,17 @@
   .action-group {
     justify-content: center;
   }
+  
+  .pagos-table {
+      font-size: 0.8rem;
+  }
+  
+  .pagos-table th, .pagos-table td {
+      padding: 8px 10px;
+  }
 }
 
-@media (max-width: 768px) {
-  .nomina-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .totales-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .deducciones-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .pagos-table-container {
-    font-size: 0.7rem;
-  }
+.separator-line {
+    border-top-color: var(--gray-700) !important;
+    opacity: 0.5;
 }

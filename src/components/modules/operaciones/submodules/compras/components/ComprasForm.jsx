@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import supabase from '../../../../../../api/supaBase.js';
 import './ComprasForm.css';
 
 const ComprasForm = () => {
@@ -17,6 +18,29 @@ const ComprasForm = () => {
 
   const [totalBs, setTotalBs] = useState(0);
   const [totalUsd, setTotalUsd] = useState(0);
+  const [proveedores, setProveedores] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+
+  useEffect(() => {
+    const fetchGlobalData = async () => {
+      // Fetch Proveedores (Global)
+      const { data: provData, error: provError } = await supabase.from('proveedores').select('*');
+      if (provError) {
+        console.error('Error fetching proveedores:', provError);
+      } else if (provData) {
+        setProveedores(provData);
+      }
+
+      // Fetch Categorias (Global)
+      const { data: catData, error: catError } = await supabase.from('categorias_compras').select('*');
+      if (catError) {
+        console.error('Error fetching categorias:', catError);
+      } else if (catData) {
+        setCategorias(catData);
+      }
+    };
+    fetchGlobalData();
+  }, []);
 
   useEffect(() => {
     const { cantidad, precio_unitario_bs, aplica_iva, tasa_cambio_bsd } = formData;
@@ -57,7 +81,20 @@ const ComprasForm = () => {
         </div>
         <div className="form-group">
           <label>Proveedor (Opcional)</label>
-          <input type="text" name="proveedor" value={formData.proveedor} onChange={handleChange} />
+          <input 
+            type="text" 
+            name="proveedor" 
+            value={formData.proveedor} 
+            onChange={handleChange} 
+            list="compras-proveedores-list"
+            autoComplete="off"
+            placeholder="Seleccione o escriba un proveedor"
+          />
+          <datalist id="compras-proveedores-list">
+            {proveedores.map((p, i) => (
+              <option key={i} value={p.nombre} />
+            ))}
+          </datalist>
         </div>
         <div className="form-group">
           <label>Nombre del Producto</label>
@@ -65,7 +102,21 @@ const ComprasForm = () => {
         </div>
         <div className="form-group">
           <label>Categoría del Producto</label>
-          <input type="text" name="categoria_producto" value={formData.categoria_producto} onChange={handleChange} required />
+          <input 
+            type="text" 
+            name="categoria_producto" 
+            value={formData.categoria_producto} 
+            onChange={handleChange} 
+            required 
+            list="compras-categorias-list"
+            autoComplete="off"
+            placeholder="Seleccione o escriba una categoría"
+          />
+          <datalist id="compras-categorias-list">
+            {categorias.map((c, i) => (
+              <option key={i} value={c.nombre} />
+            ))}
+          </datalist>
         </div>
         <div className="form-group">
           <label>Cantidad</label>

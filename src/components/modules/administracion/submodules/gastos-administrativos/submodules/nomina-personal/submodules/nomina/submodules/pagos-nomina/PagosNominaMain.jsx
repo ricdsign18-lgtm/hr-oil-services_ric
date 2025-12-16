@@ -44,25 +44,29 @@ const PagosNominaMain = () => {
     message: ''
   });
 
+  const [pagoParaEditar, setPagoParaEditar] = useState(null);
+
   // Cargar empleados, asistencias y pagos del proyecto
   useEffect(() => {
     loadData();
   }, [selectedProject?.id]);
 
   useEffect(() => {
-    // Establecer fecha por defecto (próximo viernes)
-    const hoy = new Date();
-    const diasHastaViernes = (5 - hoy.getDay() + 7) % 7;
-    const proximoViernes = new Date(hoy);
-    proximoViernes.setDate(hoy.getDate() + diasHastaViernes);
+    if (!pagoParaEditar) {
+      // Establecer fecha por defecto (próximo viernes) solo si no se está editando
+      const hoy = new Date();
+      const diasHastaViernes = (5 - hoy.getDay() + 7) % 7;
+      const proximoViernes = new Date(hoy);
+      proximoViernes.setDate(hoy.getDate() + diasHastaViernes);
 
-    // Formatear la fecha a YYYY-MM-DD sin conversiones de zona horaria
-    const year = proximoViernes.getFullYear();
-    const month = String(proximoViernes.getMonth() + 1).padStart(2, "0");
-    const day = String(proximoViernes.getDate()).padStart(2, "0");
+      // Formatear la fecha a YYYY-MM-DD sin conversiones de zona horaria
+      const year = proximoViernes.getFullYear();
+      const month = String(proximoViernes.getMonth() + 1).padStart(2, "0");
+      const day = String(proximoViernes.getDate()).padStart(2, "0");
 
-    setFechaPago(`${year}-${month}-${day}`);
-  }, []);
+      setFechaPago(`${year}-${month}-${day}`);
+    }
+  }, [pagoParaEditar]); // Dependencia agregada para resetear si se limpia la edición
 
   const loadData = async () => {
     if (!selectedProject?.id) return;
@@ -106,10 +110,24 @@ const PagosNominaMain = () => {
         pagos: pagosData,
         projectId: selectedProject?.id,
       };
+      
+      // Si estamos editando, podríamos querer reemplazar el pago existente o guardar uno nuevo.
+      // Por simplicidad y seguridad, la lógica actual "savePagos" típicamente crea uno nuevo.
+      // Si queremos actualizar, necesitaríamos un método "updatePago" en el contexto.
+      // Asumiremos comportamiento de "Guardar nuevo" o "Sobrescribir si ID existe" dependiendo de savePagos.
+      // Si savePagos genera nuevo ID siempre, entonces duplicará.
+      // Para un flujo de edición completo, idealmente updatePago.
+      // Si pagoParaEditar existe, usamos su ID si la API lo soporta, o borramos el anterior y creamos nuevo.
+      
+      if (pagoParaEditar && pagoParaEditar.id) {
+          // Opción: Eliminar el anterior y guardar el nuevo para simular edición
+          await deletePago(pagoParaEditar.id);
+      }
 
       await savePagos(nuevoPago);
       await loadData(); // Recargar datos
       setCurrentView("historial");
+      setPagoParaEditar(null); // Limpiar estado de edición
       setFeedback({
         isOpen: true,
         type: 'success',
@@ -144,6 +162,13 @@ const PagosNominaMain = () => {
         message: 'Error al eliminar pago: ' + error.message
       });
     }
+  };
+  
+  const handleEditarPago = (pago) => {
+      setPagoParaEditar(pago);
+      setFechaPago(pago.fechaPago);
+      setTasaCambio(pago.tasaCambio);
+      setCurrentView("calculadora");
   };
 
   return (
@@ -187,7 +212,10 @@ const PagosNominaMain = () => {
           {hasPermissionSync("administracion", "write") && (
             <button
               className={currentView === "calculadora" ? "active" : ""}
-              onClick={() => setCurrentView("calculadora")}
+              onClick={() => {
+                  setCurrentView("calculadora");
+                  setPagoParaEditar(null); // Reset al volver manualmente a calculadora
+              }}
               disabled={loading}
             >
               Calculadora
@@ -231,6 +259,7 @@ const PagosNominaMain = () => {
               tasaCambio={tasaCambio}
               onCalcular={handleCalcularPagos}
               selectedProject={selectedProject}
+              initialData={pagoParaEditar}
             />
           )}
 
@@ -256,6 +285,7 @@ const PagosNominaMain = () => {
                 setCurrentView("resumen");
               }}
               onDeletePago={handleDeletePago}
+              onEditarPago={handleEditarPago}
               selectedProject={selectedProject}
             />
           )}

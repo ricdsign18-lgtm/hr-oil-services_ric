@@ -5,14 +5,14 @@
 }
 
 .calculadora-header {
-  background: var(--background-color);
+  background: #2d3748;
   padding: 1.5rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border-color);
 }
 
 .calculadora-header h3 {
-  color: var(--text-primary);
+  color: #fff;
   margin-bottom: 0.5rem;
 }
 
@@ -62,14 +62,15 @@
 }
 
 .nomina-section {
-  background: var(--surface-color);
+  background: #2d3748;
+  color: #fff;
   padding: 1.5rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border-color);
 }
 
 .nomina-section h4 {
-  color: var(--text-primary);
+  color: #fff;
   margin-bottom: 1rem;
   border-bottom: 2px solid var(--border-color);
   padding-bottom: 0.5rem;

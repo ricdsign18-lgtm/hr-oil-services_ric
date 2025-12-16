@@ -167,19 +167,17 @@
 
 .employees-scroll-container-asistencia-form {
   max-height: 60vh;
-
-  background-color: red;
 }
 
 .employee-row {
   display: grid;
   grid-template-columns: 2fr 1fr 0.8fr 1.5fr;
   gap: 1rem;
+  margin-top: 0.1rem;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
   align-items: center;
   transition: background-color 0.2s;
-  min-width: 800px; /* Añadido para forzar el scroll horizontal */
+
 }
 
 .employee-row:hover {

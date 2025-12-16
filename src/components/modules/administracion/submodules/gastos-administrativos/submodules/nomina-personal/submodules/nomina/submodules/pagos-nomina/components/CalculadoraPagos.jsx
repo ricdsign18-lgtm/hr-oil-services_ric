@@ -12,6 +12,7 @@ const CalculadoraPagos = ({
   tasaCambio,
   onCalcular,
   selectedProject,
+  initialData, // NUEVO PROP
 }) => {
   const { selectedProject: contextProject } = useProjects();
   const { showToast } = useNotification();
@@ -137,7 +138,7 @@ const CalculadoraPagos = ({
 
 
 
-  // Inicializar días de pago quincenal y mitad
+  // Inicializar días de pago quincenal, mitad, y otros campos
   useEffect(() => {
     const initialDias = {};
     const initialMitad = {};
@@ -149,44 +150,72 @@ const CalculadoraPagos = ({
 
     const initialMontoExtra = {};
     const initialSoloExtras = {};
+    
+    // Mapeo inverso si hay initialData
+    const savedDataMap = {};
+    if (initialData && initialData.pagos) {
+      console.log("CalculadoraPagos received initialData:", initialData);
+      initialData.pagos.forEach(p => {
+        // Asegurar que usamos el ID correcto. A veces empleado es un objeto, a veces un ID si la estructura varía, pero en 'pagos' guardados suele ser objeto.
+        if (p.empleado && p.empleado.id) {
+            savedDataMap[p.empleado.id] = p;
+        }
+      });
+      console.log("Saved Data Map prepared:", savedDataMap);
+
+      const hasQuincenal = initialData.pagos.some(p => p.empleado.frecuenciaPago === 'Quincenal');
+      if (hasQuincenal) setIncluirQuincenal(true);
+    } else {
+        console.log("CalculadoraPagos: No initialData or pagos found");
+    }
 
     employees.forEach((emp) => {
-      if (emp.frecuenciaPago === "Quincenal") {
-        initialDias[emp.id] = diasPagoQuincenal[emp.id] || 15;
-        initialMitad[emp.id] = mitadPagoQuincenal[emp.id] || "primera";
+      // Intentar obtener datos guardados
+      const saved = savedDataMap[emp.id];
+      if (saved) {
+          console.log(`Found saved data for ${emp.nombre} (${emp.id}):`, saved);
       }
-      initialBancos[emp.id] = bancosPago[emp.id] || "";
-      initialObservaciones[emp.id] = observaciones[emp.id] || "";
-      initialHorasExtras[emp.id] = horasExtras[emp.id] || {
+
+      if (emp.frecuenciaPago === "Quincenal") {
+        initialDias[emp.id] = saved?.diasTrabajados || diasPagoQuincenal[emp.id] || 15;
+        // Recuperar mitad de pago del saved o usar default
+        // Nota: en el objeto saved pago.mitadPago es lo que guardamos
+        initialMitad[emp.id] = saved?.mitadPago || mitadPagoQuincenal[emp.id] || "primera";
+      }
+      
+      initialBancos[emp.id] = saved?.bancoPago || bancosPago[emp.id] || "";
+      initialObservaciones[emp.id] = saved?.observaciones || observaciones[emp.id] || "";
+      
+      initialHorasExtras[emp.id] = saved?.horasExtras ? {
+         diurna: saved.horasExtras.diurna || 0,
+         nocturna: saved.horasExtras.nocturna || 0
+      } : (horasExtras[emp.id] || {
         diurna: 0,
         nocturna: 0,
-      };
-      initialDeducciones[emp.id] = deduccionesManuales[emp.id] || 0;
-      initialAdelantos[emp.id] = adelantosSueldo[emp.id] || 0;
-      initialMontoExtra[emp.id] = montoExtraBs[emp.id] || 0;
-      initialSoloExtras[emp.id] = soloHorasExtras[emp.id] || false;
-    });
-    setDiasPagoQuincenal((prev) => ({ ...prev, ...initialDias }));
-    setMitadPagoQuincenal((prev) => ({ ...prev, ...initialMitad }));
-    const newBancos = {};
-    const newObservaciones = {};
-    employees.forEach((emp) => {
-      if (!bancosPago[emp.id]) {
-        newBancos[emp.id] = "";
-      }
-      if (!observaciones[emp.id]) {
-        newObservaciones[emp.id] = "";
-      }
+      });
+
+      initialDeducciones[emp.id] = saved?.deduccionesManualesUSD || deduccionesManuales[emp.id] || 0;
+      initialAdelantos[emp.id] = saved?.adelantosUSD || adelantosSueldo[emp.id] || 0;
+      // OJO: montoExtraBs en state guarda el monto en USD (input), aunque se llame Bs. 
+      // En saved tenemos montoExtraUSD que es lo que queremos.
+      initialMontoExtra[emp.id] = saved?.montoExtraUSD || montoExtraBs[emp.id] || 0;
+      
+      initialSoloExtras[emp.id] = saved ? (saved.soloExtras || false) : (soloHorasExtras[emp.id] || false);
     });
 
-    setBancosPago((prev) => ({ ...prev, ...newBancos }));
-    setObservaciones((prev) => ({ ...prev, ...newObservaciones }));
+    setDiasPagoQuincenal((prev) => ({ ...prev, ...initialDias }));
+    setMitadPagoQuincenal((prev) => ({ ...prev, ...initialMitad }));
+    
+    // Setear valores iniciales
+    setBancosPago((prev) => ({ ...prev, ...initialBancos }));
+    setObservaciones((prev) => ({ ...prev, ...initialObservaciones }));
     setHorasExtras((prev) => ({ ...prev, ...initialHorasExtras }));
     setDeduccionesManuales((prev) => ({ ...prev, ...initialDeducciones }));
     setAdelantosSueldo((prev) => ({ ...prev, ...initialAdelantos }));
     setMontoExtraBs((prev) => ({ ...prev, ...initialMontoExtra }));
     setSoloHorasExtras((prev) => ({ ...prev, ...initialSoloExtras }));
-  }, [employees, fechaPago]);
+    
+  }, [employees, fechaPago, initialData]); // Agregar initialData a dependencias
 
   // CORRECCIÓN: Función auxiliar para formatear fecha de forma segura
   const formatDateSafe = (date) => {
@@ -1065,7 +1094,7 @@ const CalculadoraPagos = ({
                   <div className="horas-extra-input">
                     <input
                       type="number"
-                      value={horasExtrasEmpleado.diurna}
+                      // value={horasExtrasEmpleado.diurna}
                       onChange={(e) =>
                         handleHorasExtrasChange(
                           empleado.id,
@@ -1082,7 +1111,7 @@ const CalculadoraPagos = ({
                   <div className="horas-extra-input">
                     <input
                       type="number"
-                      value={horasExtrasEmpleado.nocturna}
+                      // value={horasExtrasEmpleado.nocturna}
                       onChange={(e) =>
                         handleHorasExtrasChange(
                           empleado.id,
@@ -1099,7 +1128,7 @@ const CalculadoraPagos = ({
                   <div className="deduccion-manual-input">
                     <input
                       type="number"
-                      value={deduccionManual}
+                      // value={deduccionManual}
                       onChange={(e) =>
                         handleDeduccionManualChange(empleado.id, e.target.value)
                       }
@@ -1112,7 +1141,7 @@ const CalculadoraPagos = ({
                   <div className="deduccion-manual-input">
                     <input
                       type="number"
-                      value={adelanto}
+                      // value={adelanto}
                       onChange={(e) =>
                         handleAdelantoChange(empleado.id, e.target.value)
                       }
@@ -1125,7 +1154,7 @@ const CalculadoraPagos = ({
                   <div className="monto-extra-input">
                     <input
                       type="number"
-                      value={montoExtra}
+                      // value={montoExtra}
                       onChange={(e) =>
                         handleMontoExtraChange(empleado.id, e.target.value)
                       }
@@ -1137,7 +1166,7 @@ const CalculadoraPagos = ({
 
                   <div className="banco-input">
                     <select
-                      value={bancoPago}
+                      // value={bancoPago}
                       onChange={(e) =>
                         handleBancoChange(empleado.id, e.target.value)
                       }

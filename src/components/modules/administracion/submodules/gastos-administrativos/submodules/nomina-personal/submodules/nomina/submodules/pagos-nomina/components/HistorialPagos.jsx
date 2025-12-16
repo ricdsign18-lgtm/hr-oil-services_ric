@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import "./HistorialPagos.css";
 
-const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago, selectedProject }) => {
+const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago, onEditarPago, selectedProject }) => { // onEditarPago AGREGADO
   const [filterMonth, setFilterMonth] = useState(
     new Date().toISOString().slice(0, 7)
   );
@@ -240,6 +240,13 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
                   onClick={() => onVerDetalles(pago)}
                 >
                   👁️ Ver Detalles
+                </button>
+                <button
+                    className="btn-secondary"
+                    onClick={() => onEditarPago(pago)}
+                    style={{ backgroundColor: '#f59e0b', borderColor: '#f59e0b', color: 'white' }} 
+                >
+                    ✏️ Editar
                 </button>
                 <button
                   className="btn-secondary"

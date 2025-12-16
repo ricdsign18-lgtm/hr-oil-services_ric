@@ -1,6 +1,6 @@
 .compras-main {
   padding: 20px;
-  max-width: 900px;
+ 
   margin: 0 auto;
 }
 
@@ -63,6 +63,7 @@
 }
 
 .compras-form {
+
   background: #f8f9fa;
   border: 1px solid #dee2e6;
   border-radius: 8px;
