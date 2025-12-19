@@ -57,9 +57,8 @@ const AdministracionMain = ({ projectId }) => {
 
       <ModuleDescription
         title="Módulo de Administración"
-        description={`Gestión integral de los aspectos administrativos y financieros del proyecto ${
-          selectedProject?.name || ""
-        }`}
+        description={`Gestión integral de los aspectos administrativos y financieros del proyecto ${selectedProject?.name || ""
+          }`}
       />
 
       <section className="modules-main-grid">

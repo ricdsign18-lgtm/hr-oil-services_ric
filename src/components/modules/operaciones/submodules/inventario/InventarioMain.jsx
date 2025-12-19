@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useOperaciones } from '../../../../../contexts/OperacionesContext';
 import ModuleDescription from '../../../_core/ModuleDescription/ModuleDescription';
 import Modal from '../../../../common/Modal/Modal';
@@ -7,15 +7,15 @@ import InventoryStats from './InventoryStats';
 import './InventarioMain.css';
 
 const InventarioMain = () => {
-  const { 
-    inventory, 
-    loading, 
-    withdrawInventory, 
+  const {
+    inventory,
+    loading,
+    withdrawInventory,
     retiros,
     getLowStockItems,
     updateInventoryItem
   } = useOperaciones();
-  
+
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [filterCategory, setFilterCategory] = useState('all');
@@ -27,7 +27,7 @@ const InventarioMain = () => {
   });
 
   const lowStockItems = useMemo(() => getLowStockItems(), [getLowStockItems]);
-  
+
   const filteredInventory = useMemo(() => {
     return inventory.filter(item => {
       const matchesCategory = filterCategory === 'all' || item.categoria_producto === filterCategory;
@@ -95,9 +95,9 @@ const InventarioMain = () => {
         description="Materiales, equipos y suministros disponibles en stock."
       />
 
-      <InventoryStats 
-        inventory={inventory} 
-        lowStockItems={lowStockItems} 
+      <InventoryStats
+        inventory={inventory}
+        lowStockItems={lowStockItems}
       />
 
       <div className="inventory-controls">
@@ -110,8 +110,8 @@ const InventarioMain = () => {
           />
         </div>
         <div className="filter-controls">
-          <select 
-            value={filterCategory} 
+          <select
+            value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
           >
             <option value="all">Todas las categorías</option>
@@ -139,7 +139,7 @@ const InventarioMain = () => {
 
       {!loading && Object.keys(groupedInventory).map(category => (
         <div key={category} className="inventory-category">
-          <h3>{category} 
+          <h3>{category}
             <span className="category-count">
               ({groupedInventory[category].length} items)
             </span>
@@ -201,8 +201,8 @@ const InventarioMain = () => {
                     </td>
                     <td>{new Date(item.last_updated.replace(/-/g, '/')).toLocaleDateString()}</td>
                     <td>
-                      <button 
-                        onClick={() => handleOpenWithdrawModal(item)} 
+                      <button
+                        onClick={() => handleOpenWithdrawModal(item)}
                         className="btn-withdraw"
                         disabled={isOutOfStock}
                       >

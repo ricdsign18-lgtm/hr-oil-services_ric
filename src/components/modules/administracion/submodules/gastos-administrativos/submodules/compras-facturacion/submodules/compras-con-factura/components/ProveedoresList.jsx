@@ -8,17 +8,31 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
   const { showToast } = useNotification();
   const [facturas, setFacturas] = useState([])
   const [proveedores, setProveedores] = useState([])
+  const [allProveedores, setAllProveedores] = useState([])
   const [filtroProveedor, setFiltroProveedor] = useState('')
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null)
   const [mostrarModalPago, setMostrarModalPago] = useState(false)
 
   useEffect(() => {
     cargarFacturas()
+    cargarProveedoresGlobales()
   }, [projectId, refreshTrigger])
 
   useEffect(() => {
     procesarProveedores()
-  }, [facturas])
+  }, [facturas, allProveedores])
+
+  const cargarProveedoresGlobales = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('proveedores')
+        .select('*')
+      if (error) throw error
+      setAllProveedores(data || [])
+    } catch (error) {
+      console.error('Error cargando proveedores globales:', error)
+    }
+  }
 
   const cargarFacturas = async () => {
     try {
@@ -37,8 +51,40 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
   const procesarProveedores = () => {
     const proveedoresMap = {}
 
+    // 1. Inicializar con todos los proveedores globales
+    allProveedores.forEach(p => {
+      // Normalizar clave para coincidir con facturas
+      const key = `${p.nombre}_${p.tiporif}_${p.rif || 'NA'}`
+      proveedoresMap[key] = {
+        proveedor: p.nombre,
+        tipoRif: p.tiporif,
+        rif: p.rif,
+        direccion: p.direccion,
+        facturas: [],
+        totalBaseImponible: 0,
+        totalIva: 0,
+        totalExcento: 0,
+        totalSubTotalPagar: 0,
+        totalRetencionIva: 0,
+        totalRetencionIslr: 0,
+        totalPagar: 0,
+        totalMontoPagado: 0,
+        totalPagarDolares: 0,
+        totalPagadoDolares: 0,
+        totalRetencionPorCobrar: 0,
+        totalRetencionCobrada: 0,
+        retencionIvaPendiente: 0,
+        retencionIslrPendiente: 0,
+        retencionIvaCobrada: 0,
+        retencionIslrCobrada: 0,
+        estadoRetenciones: 'al-dia'
+      }
+    })
+
+    // 2. Procesar facturas y sumarizar
     facturas.forEach(factura => {
       const key = `${factura.proveedor}_${factura.tipoRif}_${factura.rif || 'NA'}`
+
       if (!proveedoresMap[key]) {
         proveedoresMap[key] = {
           proveedor: factura.proveedor,
@@ -54,7 +100,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
           totalRetencionIslr: 0,
           totalPagar: 0,
           totalMontoPagado: 0,
-          totalPagarDolares: 0, // Nuevo campo para el total a pagar en USD
+          totalPagarDolares: 0,
           totalPagadoDolares: 0,
           totalRetencionPorCobrar: 0,
           totalRetencionCobrada: 0,
@@ -98,7 +144,6 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
       proveedoresMap[key].totalRetencionCobrada += factura.retencionCobrada || 0
 
       // CALCULO CORREGIDO: Usar los valores específicos de la factura
-      // en lugar de recalcular basado en retencionPorCobrar
       proveedoresMap[key].retencionIvaPendiente += factura.retencionIvaPendiente || 0
       proveedoresMap[key].retencionIslrPendiente += factura.retencionIslrPendiente || 0
       proveedoresMap[key].retencionIvaCobrada += factura.retencionIvaCobrada || 0
@@ -119,7 +164,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
 
   const proveedoresFiltrados = proveedores.filter(proveedor =>
     proveedor.proveedor.toLowerCase().includes(filtroProveedor.toLowerCase()) ||
-    proveedor.rif.includes(filtroProveedor)
+    (proveedor.rif && proveedor.rif.includes(filtroProveedor))
   )
 
   const getEstadoBadge = (estado) => {
@@ -228,12 +273,12 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
         <div className="summary-header-proveedores">
           <h3>Resumen General</h3>
         </div>
-        
+
         <div className="summary-grid">
           <div className="summary-card-proveedores">
             <div className="card-icon-wrapper icon-users">
               <MultiUsersIcon />
-            <span className="card-label">TOTAL PROVEEDORES</span>
+              <span className="card-label">TOTAL PROVEEDORES</span>
             </div>
             <strong className="card-value">{proveedores.length}</strong>
           </div>
@@ -241,7 +286,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
           <div className="summary-card-proveedores">
             <div className="card-icon-wrapper icon-check">
               <CheckCircleIcon />
-            <span className="card-label">PROVEEDORES AL DÍA</span>
+              <span className="card-label">PROVEEDORES AL DÍA</span>
             </div>
             <strong className="card-value">
               {proveedores.filter(p => p.estadoRetenciones === 'al-dia').length}
@@ -251,7 +296,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
           <div className="summary-card-proveedores">
             <div className="card-icon-wrapper icon-alert">
               <AlertTriangleIcon />
-            <span className="card-label">PROVEEDORES PENDIENTES</span>
+              <span className="card-label">PROVEEDORES PENDIENTES</span>
             </div>
             <strong className="card-value">
               {proveedores.filter(p => p.estadoRetenciones === 'pendiente').length}
@@ -261,7 +306,7 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
           <div className="summary-card-proveedores">
             <div className="card-icon-wrapper icon-money">
               <SackDollarIcon />
-            <span className="card-label">TOTAL RET. POR COBRAR</span>
+              <span className="card-label">TOTAL RET. POR COBRAR</span>
             </div>
             <strong className="card-value">
               $ {proveedores.reduce((sum, p) => sum + (p.totalRetencionPorCobrar / 50), 0).toFixed(2)}

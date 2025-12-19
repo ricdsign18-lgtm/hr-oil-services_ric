@@ -129,6 +129,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
 
     setFormData(prev => ({
       ...prev,
+
       iva: ivaCalculado,
       subTotalPagar: subTotalPagar,
       subTotalDolares: subTotalDolares
@@ -148,11 +149,11 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
       if (modoError) console.error('Error cargando modos de pago:', modoError)
       else setModosPago(modoData.map(m => m.nombre))
 
-      // Cargar Proveedores (Globales para sugerencias)
+      // Cargar Proveedores (Global)
       const { data: provData, error: provError } = await supabase
         .from('proveedores')
         .select('*')
-      
+
       if (provError) console.error('Error cargando proveedores:', provError)
       else setProveedores(provData)
 
@@ -337,7 +338,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
         .select('id, total_facturas, total_gastado_dolares')
         .limit(1)
         .maybeSingle()
-      
+
       // Si tenemos RIF, buscamos por RIF (prioridad)
       if (formData.rif && formData.rif.trim()) {
         existingProvQuery = existingProvQuery
@@ -385,18 +386,18 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
       let provError
 
       if (existingProvId) {
-         // ACTUALIZAR proveedor existente (GLOBAL)
-         const { error } = await supabase
+        // ACTUALIZAR proveedor existente (GLOBAL)
+        const { error } = await supabase
           .from('proveedores')
           .update(proveedorData)
           .eq('id', existingProvId)
-         provError = error
+        provError = error
       } else {
-         // INSERTAR nuevo proveedor (con projectId actual)
-         const { error } = await supabase
+        // INSERTAR nuevo proveedor (con projectId actual)
+        const { error } = await supabase
           .from('proveedores')
           .insert(proveedorData)
-         provError = error
+        provError = error
       }
 
       if (provError) {
@@ -501,7 +502,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
   }
 
   return (
-    <div className="ccf-factura-form" id="factura-form-dark-mode">
+    <div className="ccf-factura-form" id="factura-form-dark-mode" >
       <div className="ccf-form-header">
         <h3>{facturaEdit ? 'Editar Factura' : 'Nueva Factura'}</h3>
         {facturaEdit && (
@@ -1006,50 +1007,52 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
       )}
 
       {/* Modal Agregar Modo de Pago */}
-      {showModoPagoModal && (
-        <div className="modal-overlay" onClick={() => setShowModoPagoModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-            <div className="modal-header">
-              <h3>Agregar Nuevo Modo de Pago</h3>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={() => setShowModoPagoModal(false)}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>NOMBRE DEL MODO DE PAGO *</label>
-                <input
-                  type="text"
-                  value={nuevoModoPago}
-                  onChange={(e) => setNuevoModoPago(e.target.value)}
-                  placeholder="Ej: Zelle, Efectivo, Transferencia..."
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), agregarModoPago())}
-                />
+      {
+        showModoPagoModal && (
+          <div className="modal-overlay" onClick={() => setShowModoPagoModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+              <div className="modal-header">
+                <h3>Agregar Nuevo Modo de Pago</h3>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowModoPagoModal(false)}
+                >
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>NOMBRE DEL MODO DE PAGO *</label>
+                  <input
+                    type="text"
+                    value={nuevoModoPago}
+                    onChange={(e) => setNuevoModoPago(e.target.value)}
+                    placeholder="Ej: Zelle, Efectivo, Transferencia..."
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), agregarModoPago())}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={agregarModoPago}
+                >
+                  Guardar Modo de Pago
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowModoPagoModal(false)}
+                >
+                  Cancelar
+                </button>
               </div>
             </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={agregarModoPago}
-              >
-                Guardar Modo de Pago
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={() => setShowModoPagoModal(false)}
-              >
-                Cancelar
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       <FeedbackModal
         isOpen={feedback.isOpen}
@@ -1066,7 +1069,7 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
         montoTotal={formData.montoPagado}
         montoLabel="Monto Pagado"
       />
-    </div>
+    </div >
   )
 }
 
