@@ -1,15 +1,16 @@
 
 
-// src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/HistorialPagos.jsx
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import "./HistorialPagos.css";
+import { DelateIcon, EditIcon, EyesIcon, ExportIcon } from "../../../../../../../../../../../../assets/icons/Icons";
+import Modal from "../../../../../../../../../../../../components/common/Modal/Modal";
 
 const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago, onEditarPago, selectedProject }) => { // onEditarPago AGREGADO
   const [filterMonth, setFilterMonth] = useState(
     new Date().toISOString().slice(0, 7)
   );
-  const [expandedPaymentId, setExpandedPaymentId] = useState(null);
+  const [selectedPaymentDetail, setSelectedPaymentDetail] = useState(null);
   const [paymentToDelete, setPaymentToDelete] = useState(null);
 
   const pagosFiltrados = pagosGuardados
@@ -143,9 +144,7 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
     XLSX.writeFile(wb, fileName);
   };
 
-  const toggleExpand = (id) => {
-    setExpandedPaymentId(expandedPaymentId === id ? null : id);
-  };
+
 
   const handleDeleteClick = (pago) => {
     setPaymentToDelete(pago);
@@ -189,7 +188,7 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
       <div className="pagos-list">
         {pagosFiltrados.map((pago) => {
           const totales = calcularTotalesPago(pago);
-          const isExpanded = expandedPaymentId === pago.id;
+
 
           return (
             <div key={pago.id} className="pago-item">
@@ -206,7 +205,7 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
                   </h4>
                   <div className="pago-details">
                     <span>
-                      <strong>Tasa:</strong> Bs {pago.tasaCambio.toFixed(4)}/$
+                      <strong>Tasa:</strong> Bs {pago.tasaCambio.toFixed(4)}
                     </span>
                     <span>
                       <strong>Empleados:</strong> {pago.pagos.length}
@@ -217,7 +216,9 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
                     </span>
                   </div>
                 </div>
-                <div className="pago-totales">
+               
+              </div>
+                     <div className="pago-totales">
                   <div className="pago-total">
                     <span className="label">Total USD</span>
                     <span className="value">
@@ -232,71 +233,40 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
                     </span>
                   </div>
                 </div>
-              </div>
 
+              <div className="pago-employees-list">
+                <button 
+                  className="btn-view-employees"
+                  onClick={() => setSelectedPaymentDetail(pago)}
+                >
+                  Ver empleados incluidos ({pago.pagos.length})
+                </button>
+              </div>
               <div className="pago-actions">
                 <button
-                  className="btn-outline"
+                  className="btn-outline-pago"
                   onClick={() => onVerDetalles(pago)}
                 >
-                  👁️ Ver Detalles
+                  <EyesIcon />
                 </button>
                 <button
                     className="btn-secondary"
                     onClick={() => onEditarPago(pago)}
-                    style={{ backgroundColor: '#f59e0b', borderColor: '#f59e0b', color: 'white' }} 
                 >
-                    ✏️ Editar
+                    <EditIcon /> 
                 </button>
                 <button
                   className="btn-secondary"
                   onClick={() => exportPagoToExcel(pago)}
                 >
-                  📊 Exportar Excel
+                  <ExportIcon/>
                 </button>
                 <button
                   className="btn-danger"
                   onClick={() => handleDeleteClick(pago)}
                 >
-                  🗑️ Eliminar
+                   <DelateIcon/>
                 </button>
-              </div>
-
-              <div className="pago-employees-list">
-                <div
-                  className="employees-toggle-header"
-                  onClick={() => toggleExpand(pago.id)}
-                >
-                  <span className={`toggle-icon ${isExpanded ? 'expanded' : ''}`}>▼</span>
-                  <span>Empleados incluidos en este pago ({pago.pagos.length})</span>
-                </div>
-
-                <div className={`employees-collapsible ${isExpanded ? 'expanded' : ''}`}>
-                  <div className="employees-grid">
-                    {pago.pagos.map((pagoEmp) => (
-                      <div key={pagoEmp.empleado.id} className="employee-preview">
-                        <span className="name">
-                          {pagoEmp.empleado.nombre} {pagoEmp.empleado.apellido}
-                        </span>
-                        <div className="amounts">
-                          {(pagoEmp.deduccionesManualesUSD > 0) && (
-                            <span className="amount-deduc" style={{ color: '#ef4444', marginRight: '0.5rem', fontSize: '0.85rem' }}>
-                              Ded: ${pagoEmp.deduccionesManualesUSD.toFixed(2)}
-                            </span>
-                          )}
-                          {(pagoEmp.adelantosUSD > 0) && (
-                            <span className="amount-adel" style={{ color: '#f59e0b', marginRight: '0.5rem', fontSize: '0.85rem' }}>
-                              Adel: ${pagoEmp.adelantosUSD.toFixed(2)}
-                            </span>
-                          )}
-                          <span className="amount-usd" style={{ fontWeight: 'bold' }}>
-                            Total: $ {(pagoEmp.montoTotalUSD || 0).toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           );
@@ -309,15 +279,54 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
         </div>
       )}
 
+      {/* Modal de Detalle de Empleados */}
+      <Modal
+        isOpen={!!selectedPaymentDetail}
+        onClose={() => setSelectedPaymentDetail(null)}
+        title={`Empleados del Pago (${selectedPaymentDetail?.pagos.length || 0})`}
+        size="lg"
+      >
+        {selectedPaymentDetail && (
+          <div className="modal-employees-grid">
+            {selectedPaymentDetail.pagos.map((pagoEmp) => (
+              <div key={pagoEmp.empleado.id} className="modal-employee-card">
+                <span className="employee-name">
+                  {pagoEmp.empleado.nombre} {pagoEmp.empleado.apellido}
+                </span>
+                <div className="employee-amounts">
+                  {(pagoEmp.deduccionesManualesUSD > 0) && (
+                    <span className="amount-deduc">
+                      Ded: ${pagoEmp.deduccionesManualesUSD.toFixed(2)}
+                    </span>
+                  )}
+                  {(pagoEmp.adelantosUSD > 0) && (
+                    <span className="amount-adel">
+                      Adel: ${pagoEmp.adelantosUSD.toFixed(2)}
+                    </span>
+                  )}
+                  <span className="amount-total">
+                    Total: $ {(pagoEmp.montoTotalUSD || 0).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
+
       {/* Confirmation Modal */}
-      {paymentToDelete && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Confirmar Eliminación</h3>
+      <Modal
+        isOpen={!!paymentToDelete}
+        onClose={cancelDelete}
+        title="Confirmar Eliminación"
+        size="sm"
+      >
+        {paymentToDelete && (
+          <div className="confirmation-content">
             <p>
               ¿Estás seguro de que deseas eliminar el registro de pago del{" "}
               <strong>
-                {new Date(paymentToDelete.fechaPago.replace(/-/g, '\/')).toLocaleDateString("es-ES", {
+                {new Date(paymentToDelete.fechaPago.replace(/-/g, '/')).toLocaleDateString("es-ES", {
                   weekday: "long",
                   year: "numeric",
                   month: "long",
@@ -326,10 +335,10 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
               </strong>
               ?
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="warning-text">
               Esta acción no se puede deshacer.
             </p>
-            <div className="modal-actions">
+            <div className="confirmation-actions">
               <button className="btn-outline" onClick={cancelDelete}>
                 Cancelar
               </button>
@@ -338,8 +347,8 @@ const HistorialPagos = ({ pagosGuardados, employees, onVerDetalles, onDeletePago
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };

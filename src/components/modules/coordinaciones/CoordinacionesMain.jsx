@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useProjects } from '../../../contexts/ProjectContext'
 import { useAuth } from '../../../contexts/AuthContext'
 import ModuleDescription from '../_core/ModuleDescription/ModuleDescription'
-import './CoordinacionesMain.css'
-
+import '../_core/ModuleDashboard/ModuleDashboard.css'
 const CoordinacionesMain = ({ projectId }) => {
   const navigate = useNavigate()
   const { selectedProject } = useProjects()
@@ -40,21 +39,21 @@ const CoordinacionesMain = ({ projectId }) => {
   }
 
   return (
-    <div className="coordinaciones-main">
+    <div className="modules-main">
       <ModuleDescription 
         title="Módulo de Coordinaciones"
         description={`Gestión integral de comunicaciones y coordinaciones del proyecto ${selectedProject?.name || ''}`}
       />
 
-      <div className="coordinaciones-main-grid">
+      <div className="modules-main-grid">
         {mainCards.map(card => (
           <div 
             key={card.id}
-            className="coordinaciones-main-card"
+            className="modules-main-card"
             onClick={() => handleCardClick(card.path)}
           >
-            <div className="coordinaciones-card-icon">{card.icon}</div>
-            <div className="coordinaciones-card-content">
+            <div className="modules-main-card-icon">{card.icon}</div>
+            <div className="modules-main-card-content">
               <h3>{card.title}</h3>
               <p>{card.description}</p>
               <small>Proyecto: {selectedProject?.name || ''}</small>
@@ -64,25 +63,25 @@ const CoordinacionesMain = ({ projectId }) => {
       </div>
 
       {/* Acciones rápidas para usuarios con permisos */}
-      {hasPermission('coordinaciones', 'write') && (
-        <div className="quick-actions-section">
-          <h3>Acciones Rápidas</h3>
-          <div className="quick-actions-grid">
-            <button className="quick-action-btn">
-              <span className="action-icon">📅</span>
-              <span>Programar Reunión</span>
-            </button>
-            <button className="quick-action-btn">
-              <span className="action-icon">✉️</span>
-              <span>Enviar Comunicado</span>
-            </button>
-            <button className="quick-action-btn">
-              <span className="action-icon">👥</span>
-              <span>Gestionar Participantes</span>
-            </button>
-          </div>
-        </div>
-      )}
+      {/* {hasPermission('coordinaciones', 'write') && (
+        // <div className="quick-actions-section">
+        //   <h3>Acciones Rápidas</h3>
+        //   <div className="quick-actions-grid">
+        //     <button className="quick-action-btn">
+        //       <span className="action-icon">📅</span>
+        //       <span>Programar Reunión</span>
+        //     </button>
+        //     <button className="quick-action-btn">
+        //       <span className="action-icon">✉️</span>
+        //       <span>Enviar Comunicado</span>
+        //     </button>
+        //     <button className="quick-action-btn">
+        //       <span className="action-icon">👥</span>
+        //       <span>Gestionar Participantes</span>
+        //     </button>
+        //   </div>
+        // </div>
+      )} */}
     </div>
   )
 }

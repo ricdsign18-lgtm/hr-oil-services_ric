@@ -94,17 +94,17 @@
 }
 
 .list-header-pagos-nomina {
-  border-bottom: 2px solid var(--border-color);
-  background-color: rgba(255, 255, 255, 0.05);
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.85rem;
+  border-bottom: 2px solid #e5e7eb;
+  background-color: #f9fafb;
+  font-weight: 700;
+  color: #374151;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .pago-row {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e5e7eb;
   transition: background-color 0.2s;
 }
 
@@ -113,7 +113,7 @@
 }
 
 .pago-row:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: #f9fafb;
 }
 
 /* Semanal Grid Template (10 Columns) */
@@ -139,7 +139,7 @@
 
 .employee-name {
   font-weight: 600;
-  color: var(--text-primary);
+  color: #111827; /* Dark text for visibility */
   font-size: 0.9rem;
 }
 
@@ -147,7 +147,7 @@
   display: flex;
   gap: 0.5rem;
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: #6b7280; /* Medium gray */
   flex-wrap: wrap;
 }
 
@@ -172,7 +172,7 @@
 
 .deducciones-info {
   font-size: 0.65rem;
-  color: var(--primary-color);
+  color: #2563eb;
   font-weight: 500;
 }
 
@@ -199,7 +199,7 @@
 .dias-trabajados {
   text-align: center;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #374151;
 }
 
 .mitad-pago-input select,
@@ -210,13 +210,26 @@
 .banco-input select,
 .observaciones-input input {
   width: 100%;
-  padding: 0.6rem 0.5rem;
-  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
   border-radius: 0.375rem;
-  background-color: var(--background-color);
-  color: #fef3c7;
-  font-size: 0.9rem;
+  background-color: #ffffff;
+  color: #111827;
+  font-size: 0.875rem;
   height: 38px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.mitad-pago-input select:focus,
+.dias-pago-input input:focus,
+.horas-extra-input input:focus,
+.deduccion-manual-input input:focus,
+.monto-extra-input input:focus,
+.banco-input select:focus,
+.observaciones-input input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .dias-pago-input input,

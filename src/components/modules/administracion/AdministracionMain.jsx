@@ -2,7 +2,8 @@
 import { useNavigate } from "react-router-dom";
 import { useProjects } from "../../../contexts/ProjectContext";
 import ModuleDescription from "../_core/ModuleDescription/ModuleDescription";
-import "./AdministracionMain.css";
+// import "./AdministracionMain.css";
+import "../_core/ModuleDashboard/ModuleDashboard.css";
 import {
   BankIcon,
   BudgetIcon,
@@ -37,13 +38,13 @@ const AdministracionMain = ({ projectId }) => {
       icon: <BankIcon />,
       path: "gastos-financieros",
     },
-    {
-      id: "gestion-usuarios",
-      title: "GESTIÓN DE USUARIOS",
-      description: "Administración de usuarios, roles y permisos",
-      icon: <MultiUsersIcon />,
-      path: "gestion-usuarios",
-    },
+    // {
+    //   id: "gestion-usuarios",
+    //   title: "GESTIÓN DE USUARIOS",
+    //   description: "Administración de usuarios, roles y permisos",
+    //   icon: <MultiUsersIcon />,
+    //   path: "gestion-usuarios",
+    // },
   ];
 
   const handleCardClick = (path) => {
@@ -52,7 +53,8 @@ const AdministracionMain = ({ projectId }) => {
   };
 
   return (
-    <div className="administracion-main">
+    <main className="modules-main">
+
       <ModuleDescription
         title="Módulo de Administración"
         description={`Gestión integral de los aspectos administrativos y financieros del proyecto ${
@@ -60,23 +62,23 @@ const AdministracionMain = ({ projectId }) => {
         }`}
       />
 
-      <div className="admin-main-grid">
+      <section className="modules-main-grid">
         {mainCards.map((card) => (
           <div
             key={card.id}
-            className="admin-main-card"
+            className="modules-main-card"
             onClick={() => handleCardClick(card.path)}
           >
-            <div className="admin-card-icon">{card.icon}</div>
-            <div className="admin-card-content">
+            <div className="modules-main-card-icon">{card.icon}</div>
+            <div className="modules-main-card-content">
               <h3>{card.title}</h3>
               <p>{card.description}</p>
               <small>Proyecto: {selectedProject?.name || ""}</small>
             </div>
           </div>
         ))}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

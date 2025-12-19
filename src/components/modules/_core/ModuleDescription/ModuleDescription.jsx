@@ -1,15 +1,14 @@
-import React from 'react'
 import './ModuleDescription.css'
 
 const ModuleDescription = ({ title, description, action }) => {
   return (
-    <div className="module-description">
-      <div className="module-header-row">
+    <main className="module-description">
+      <section className="module-header-row">
         <h2>{title}</h2>
         {action && <div className="module-action">{action}</div>}
-      </div>
+      </section>
       <p>{description}</p>
-    </div>
+    </main>
   )
 }
 

@@ -2,7 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useProjects } from "../../../contexts/ProjectContext";
 import ModuleDescription from "../_core/ModuleDescription/ModuleDescription";
-import "./ContratoMain.css";
+// import "./ContratoMain.css";
+import "../_core/ModuleDashboard/ModuleDashboard.css";
 import { PagesIcon, SackDollarIcon } from "../../../assets/icons/Icons";
 
 const ContratoMain = ({ projectId }) => {
@@ -32,7 +33,7 @@ const ContratoMain = ({ projectId }) => {
   };
 
   return (
-    <div className="contrato-main">
+    <main className="modules-main">
       <ModuleDescription
         title="Módulo de Contrato"
         description={`Gestión integral de la documentación contractual del proyecto ${
@@ -40,15 +41,15 @@ const ContratoMain = ({ projectId }) => {
         }`}
       />
 
-      <div className="contrato-main-grid">
+      <div className="modules-main-grid">
         {mainCards.map((card) => (
           <div
             key={card.id}
-            className="contrato-main-card"
+            className="modules-main-card"
             onClick={() => handleCardClick(card.path)}
           >
-            <div className="contrato-card-icon">{card.icon}</div>
-            <div className="contrato-card-content">
+            <div className="modules-main-card-icon">{card.icon}</div>
+            <div className="modules-main-card-content">
               <h3>{card.title}</h3>
               <p>{card.description}</p>
               <small>Proyecto: {selectedProject?.name || ""}</small>
@@ -56,7 +57,7 @@ const ContratoMain = ({ projectId }) => {
           </div>
         ))}
       </div>
-    </div>
+    </main>
   );
 };
 

@@ -121,18 +121,19 @@ const PagosNominaMain = () => {
       
       if (pagoParaEditar && pagoParaEditar.id) {
           // Opción: Eliminar el anterior y guardar el nuevo para simular edición
-          await deletePago(pagoParaEditar.id);
+          await deletePago(pagoParaEditar.id, true);
       }
 
       await savePagos(nuevoPago);
       await loadData(); // Recargar datos
       setCurrentView("historial");
+      const wasEditing = !!pagoParaEditar;
       setPagoParaEditar(null); // Limpiar estado de edición
       setFeedback({
         isOpen: true,
         type: 'success',
         title: 'Pagos Guardados',
-        message: 'Los pagos de nómina han sido guardados exitosamente.'
+        message: wasEditing ? 'El pago ha sido actualizado exitosamente.' : 'Los pagos de nómina han sido guardados exitosamente.'
       });
     } catch (error) {
       setFeedback({

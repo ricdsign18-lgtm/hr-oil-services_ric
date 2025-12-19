@@ -2,7 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useProjects } from "../../../contexts/ProjectContext";
 import ModuleDescription from "../_core/ModuleDescription/ModuleDescription";
-import "./OperacionesMain.css";
+// import "./OperacionesMain.css";
+import "../_core/ModuleDashboard/ModuleDashboard.css";
 import {
   CalendarIcon,
   CartShoppingIcon,
@@ -59,7 +60,7 @@ const OperacionesMain = ({ projectId }) => {
   };
 
   return (
-    <div className="operaciones-main">
+    <div className="modules-main">
       <ModuleDescription
         title="Módulo de Operaciones"
         description={`Gestión y control integral de las operaciones del proyecto ${
@@ -67,15 +68,15 @@ const OperacionesMain = ({ projectId }) => {
         }`}
       />
 
-      <div className="operaciones-main-grid">
+      <div className="modules-main-grid">
         {mainCards.map((card) => (
           <div
             key={card.id}
-            className="operaciones-main-card"
+            className="modules-main-card"
             onClick={() => handleCardClick(card.path)}
           >
-            <div className="operaciones-card-icon">{card.icon}</div>
-            <div className="operaciones-card-content">
+            <div className="modules-main-card-icon">{card.icon}</div>
+            <div className="modules-main-card-content">
               <h3>{card.title}</h3>
               <p>{card.description}</p>
               <small>Proyecto: {selectedProject?.name || ""}</small>

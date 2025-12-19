@@ -1,4 +1,3 @@
-import React from 'react'
 import './ContentGrid.css'
 
 const ContentGrid = ({ left, right, reverse = false }) => {

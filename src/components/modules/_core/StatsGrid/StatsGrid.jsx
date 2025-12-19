@@ -1,4 +1,3 @@
-import React from 'react'
 import './StatsGrid.css'
 
 const StatsGrid = ({ stats }) => {

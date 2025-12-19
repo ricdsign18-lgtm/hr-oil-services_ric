@@ -172,6 +172,7 @@
 .employee-row {
   display: grid;
   grid-template-columns: 2fr 1fr 0.8fr 1.5fr;
+ 
   gap: 1rem;
   margin-top: 0.1rem;
   padding: 1rem 1.5rem;

@@ -1,4 +1,3 @@
-import React from 'react'
 import './SectionContainer.css'
 
 const SectionContainer = ({ title, children, className = '' }) => {

@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../../../../contexts/AuthContext";
 import "./ModulePage.css";
@@ -11,10 +10,10 @@ const ModulePage = ({
   showSubRoutes = false,
   customContent = null,
 }) => {
+  
   const { hasPermissionSync } = useAuth();
   const hasAccess = hasPermissionSync(moduleId, "read");
 
-  // Si no tiene permisos, mostrar mensaje de acceso denegado
   if (!hasAccess) {
     return (
       <div className="module-container">

@@ -100,10 +100,8 @@ const AsistenciaDiariaMain = () => {
       selectedProject.id
     );
   };
-
   const estadisticasDelDia = () => {
-    // Para estadísticas en tiempo real, usamos los empleados cargados
-    // ya que la asistencia del día se maneja en el estado local del formulario
+
     return {
       total: employees.length,
       presentes: 0,
@@ -111,8 +109,25 @@ const AsistenciaDiariaMain = () => {
       porcentaje: 0,
     };
   };
-
   const stats = estadisticasDelDia();
+  const statsCards =[
+    {
+      number: stats.total,
+      label: "Total Empleados",
+    },
+    {
+      number: stats.presentes,
+      label: "Presentes",
+    },
+    {
+      number: stats.ausentes,
+      label: "Ausentes",
+    },
+    {
+      number: stats.porcentaje,
+      label: "Porcentaje",
+    }
+  ]
 
   return (
     <div className="asistencia-diaria-main">
@@ -165,24 +180,15 @@ const AsistenciaDiariaMain = () => {
         </div>
       ) : (
         <>
-          <div className="stats-cards-asistencia">
-            <div className="stat-card total-asistencia">
-              <div className="stat-number-asistencia">{stats.total}</div>
-              <div className="stat-label-asistencia">Total Empleados</div>
-            </div>
-            <div className="stat-card present-asistencia">
-              <div className="stat-number-asistencia">{stats.presentes}</div>
-              <div className="stat-label-asistencia">Presentes</div>
-            </div>
-            <div className="stat-card absent-asistencia">
-              <div className="stat-number-asistencia">{stats.ausentes}</div>
-              <div className="stat-label-asistencia">Ausentes</div>
-            </div>
-            <div className="stat-card percentage-asistencia">
-              <div className="stat-number-asistencia">{stats.porcentaje}%</div>
-              <div className="stat-label-asistencia">Asistencia</div>
-            </div>
+            <div className="stats-cards-asistencia">
+            {statsCards.map((stat, index) => (
+              <div className="stat-card" key={index}>
+                <div className="stat-number-asistencia">{stat.number}</div>
+                <div className="stat-label-asistencia">{stat.label}</div>
+              </div>
+            ))}
           </div>
+
 
           <div className="module-content">
             {currentView === "registrar" ? (

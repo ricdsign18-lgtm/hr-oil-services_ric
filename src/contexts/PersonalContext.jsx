@@ -656,7 +656,7 @@ export const PersonalProvider = ({ children }) => {
     }
   }, []);
 
-  const deletePago = useCallback(async (id) => {
+  const deletePago = useCallback(async (id, silent = false) => {
     console.log("🗑️ PersonalContext: Eliminando pago:", id);
 
     try {
@@ -677,7 +677,9 @@ export const PersonalProvider = ({ children }) => {
       if (error) throw error;
 
       console.log("✅ PersonalContext: Pago eliminado exitosamente");
-      addNotification("Pago eliminado exitosamente", "delete");
+      if (!silent) {
+          addNotification("Pago eliminado exitosamente", "delete");
+      }
       return true;
     } catch (error) {
       console.error("Error eliminando pago:", error);
