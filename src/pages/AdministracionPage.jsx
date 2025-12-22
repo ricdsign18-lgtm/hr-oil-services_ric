@@ -1,6 +1,6 @@
 // src/pages/modules/AdministracionPage.jsx
 import { Routes, Route } from "react-router-dom";
-import { useProjects } from "../contexts/ProjectContext"; 
+import { useProjects } from "../contexts/ProjectContext";
 import ModulePage from "../components/modules/_core/ModulePage/ModulePage";
 import AdministracionMain from "../components/modules/administracion/AdministracionMain";
 import GastosAdminMain from "../components/modules/administracion/submodules/gastos-administrativos/GastosAdminMain";
@@ -47,7 +47,7 @@ const AdministracionPage = () => {
             element={<PagosNominaMain />}
           />
           <Route
-            path="gastos-administrativos/compra-facturacion/*" 
+            path="gastos-administrativos/compra-facturacion/*"
             element={<ComprasFacturacionMain projectId={projectId} />}
           />
           <Route
@@ -72,7 +72,7 @@ const AdministracionPage = () => {
           <Route path="ingresos-comisiones/comisiones" element={<ComisionesMain />} />
 
           {/* Ruta para Gestión de Usuarios */}
-          <Route path="gestion-usuarios/*" element={<GestionUsariosPage />} />
+          {/* <Route path="gestion-usuarios/*" element={<GestionUsariosPage />} /> */}
         </Routes>
       </PersonalProvider>
     </ModulePage>

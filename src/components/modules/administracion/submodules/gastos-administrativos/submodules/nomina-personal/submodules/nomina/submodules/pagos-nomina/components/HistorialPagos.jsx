@@ -320,8 +320,8 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
               <button className="btn-danger" onClick={confirmDelete}>Eliminar</button>
             </div>
           </div>
-        )}
-      </Modal>
+        </div>
+      )}
     </div>
   );
 };
