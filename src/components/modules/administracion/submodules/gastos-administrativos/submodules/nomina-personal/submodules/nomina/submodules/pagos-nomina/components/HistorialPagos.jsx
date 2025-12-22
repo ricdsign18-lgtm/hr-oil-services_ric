@@ -16,6 +16,11 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
   );
   const [selectedPaymentDetail, setSelectedPaymentDetail] = useState(null);
   const [paymentToDelete, setPaymentToDelete] = useState(null);
+  const [expandedPaymentId, setExpandedPaymentId] = useState(null);
+
+  const toggleExpand = (id) => {
+    setExpandedPaymentId(expandedPaymentId === id ? null : id);
+  };
 
   // Filter Logic
   const filteredPersonal = (pagosGuardados || [])
