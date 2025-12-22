@@ -150,7 +150,7 @@ const CalculadoraPagos = ({
 
     const initialMontoExtra = {};
     const initialSoloExtras = {};
-    
+
     // Mapeo inverso si hay initialData
     const savedDataMap = {};
     let dataLoadedCounter = 0;
@@ -158,12 +158,12 @@ const CalculadoraPagos = ({
     if (initialData && initialData.pagos) {
       initialData.pagos.forEach(p => {
         if (p.empleado && p.empleado.id) {
-            // Usar String() para asegurar coincidencia de tipos (firebase ids vs sql ids etc)
-            savedDataMap[String(p.empleado.id)] = p;
+          // Usar String() para asegurar coincidencia de tipos (firebase ids vs sql ids etc)
+          savedDataMap[String(p.empleado.id)] = p;
         }
       });
       console.log("Datos de edición preparados para:", Object.keys(savedDataMap).length, "empleados");
-      
+
       const hasQuincenal = initialData.pagos.some(p => p.empleado.frecuenciaPago === 'Quincenal');
       if (hasQuincenal) setIncluirQuincenal(true);
     }
@@ -178,33 +178,33 @@ const CalculadoraPagos = ({
         // Nota: saved.mitadPagoQuincenal debería ser lo correcto si lo guardamos así, o saved.mitadPago.
         initialMitad[emp.id] = saved?.mitadPagoQuincenal || saved?.mitadPago || mitadPagoQuincenal[emp.id] || "primera";
       }
-      
+
       initialBancos[emp.id] = saved?.bancoPago || bancosPago[emp.id] || "";
       initialObservaciones[emp.id] = saved?.observaciones || observaciones[emp.id] || "";
-      
+
       // Manejo robusto de horas extras
       if (saved?.horasExtras) {
-         initialHorasExtras[emp.id] = {
-             diurna: parseFloat(saved.horasExtras.diurna) || 0,
-             nocturna: parseFloat(saved.horasExtras.nocturna) || 0
-         };
+        initialHorasExtras[emp.id] = {
+          diurna: parseFloat(saved.horasExtras.diurna) || 0,
+          nocturna: parseFloat(saved.horasExtras.nocturna) || 0
+        };
       } else {
-         initialHorasExtras[emp.id] = horasExtras[emp.id] || { diurna: 0, nocturna: 0 };
+        initialHorasExtras[emp.id] = horasExtras[emp.id] || { diurna: 0, nocturna: 0 };
       }
 
       initialDeducciones[emp.id] = saved?.deduccionesManualesUSD ?? deduccionesManuales[emp.id] ?? 0;
       initialAdelantos[emp.id] = saved?.adelantosUSD ?? adelantosSueldo[emp.id] ?? 0;
-      
+
       // OJO: montoExtraBs en state guarda el monto en USD (input).
       // saved.montoExtraUSD es lo que queremos recuperar.
       initialMontoExtra[emp.id] = saved?.montoExtraUSD ?? montoExtraBs[emp.id] ?? 0;
-      
+
       initialSoloExtras[emp.id] = saved ? (saved.soloExtras || false) : (soloHorasExtras[emp.id] || false);
     });
 
     setDiasPagoQuincenal((prev) => ({ ...prev, ...initialDias }));
     setMitadPagoQuincenal((prev) => ({ ...prev, ...initialMitad }));
-    
+
     setBancosPago((prev) => ({ ...prev, ...initialBancos }));
     setObservaciones((prev) => ({ ...prev, ...initialObservaciones }));
     setHorasExtras((prev) => ({ ...prev, ...initialHorasExtras }));
@@ -214,10 +214,10 @@ const CalculadoraPagos = ({
     setSoloHorasExtras((prev) => ({ ...prev, ...initialSoloExtras }));
 
     if (dataLoadedCounter > 0 && initialData) {
-        // showToast(`Datos cargados para ${dataLoadedCounter} empleados en la edición`, 'info');
-        // Comentado para no spamear, pero útil si se quiere feedback
+      // showToast(`Datos cargados para ${dataLoadedCounter} empleados en la edición`, 'info');
+      // Comentado para no spamear, pero útil si se quiere feedback
     }
-    
+
   }, [employees, fechaPago, initialData]); // Agregar initialData a dependencias
 
   // CORRECCIÓN: Función auxiliar para formatear fecha de forma segura
@@ -274,14 +274,14 @@ const CalculadoraPagos = ({
 
   // Debug / Feedback VISUAL para el usuario
   const matchedInfo = React.useMemo(() => {
-     if (!initialData?.pagos) return { total: 0, matched: 0 };
-     const total = initialData.pagos.length;
-     let matched = 0;
-     const savedIds = new Set(initialData.pagos.map(p => String(p.empleado?.id)));
-     employees.forEach(e => {
-         if (savedIds.has(String(e.id))) matched++;
-     });
-     return { total, matched };
+    if (!initialData?.pagos) return { total: 0, matched: 0 };
+    const total = initialData.pagos.length;
+    let matched = 0;
+    const savedIds = new Set(initialData.pagos.map(p => String(p.empleado?.id)));
+    employees.forEach(e => {
+      if (savedIds.has(String(e.id))) matched++;
+    });
+    return { total, matched };
   }, [initialData, employees]);
 
 
@@ -966,24 +966,24 @@ const CalculadoraPagos = ({
   return (
     <div className="calculadora-pagos">
       {initialData && (
-        <div style={{ 
-            backgroundColor: '#eff6ff', 
-            border: '1px solid #1d4ed8', 
-            borderRadius: '8px', 
-            padding: '12px', 
-            marginBottom: '16px',
-            color: '#1e3a8a'
+        <div style={{
+          backgroundColor: '#eff6ff',
+          border: '1px solid #1d4ed8',
+          borderRadius: '8px',
+          padding: '12px',
+          marginBottom: '16px',
+          color: '#1e3a8a'
         }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>✏️ Modo Edición Activo</div>
-            <div style={{ fontSize: '0.9em' }}>
-                Se están editando datos del pago del {initialData.fechaPago}. <br/>
-                Coincidencias encontradas: <strong>{matchedInfo.matched}</strong> de {matchedInfo.total} registros guardados.
-                {matchedInfo.matched === 0 && matchedInfo.total > 0 && (
-                    <div style={{ color: '#ef4444', marginTop: '4px', fontWeight: 'bold' }}>
-                        ⚠ No se han podido vincular los datos guardados con los empleados actuales. Es posible que los IDs no coincidan.
-                    </div>
-                )}
-            </div>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>✏️ Modo Edición Activo</div>
+          <div style={{ fontSize: '0.9em' }}>
+            Se están editando datos del pago del {initialData.fechaPago}. <br />
+            Coincidencias encontradas: <strong>{matchedInfo.matched}</strong> de {matchedInfo.total} registros guardados.
+            {matchedInfo.matched === 0 && matchedInfo.total > 0 && (
+              <div style={{ color: '#ef4444', marginTop: '4px', fontWeight: 'bold' }}>
+                ⚠ No se han podido vincular los datos guardados con los empleados actuales. Es posible que los IDs no coincidan.
+              </div>
+            )}
+          </div>
         </div>
       )}
       <div className="calculadora-header">
@@ -1094,7 +1094,7 @@ const CalculadoraPagos = ({
               return (
                 <div key={empleado.id} className="pago-row">
                   <div className="employee-info">
-                    <div className="employee-name">
+                    <div className="employee-name-calc">
                       {empleado.nombre} {empleado.apellido}
                     </div>
                     <div className="employee-details">
