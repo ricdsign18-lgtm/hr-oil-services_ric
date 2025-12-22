@@ -14,6 +14,7 @@ import ComprasConFacturaMain from "../components/modules/administracion/submodul
 
 import ComprasSinFacturaMain from "../components/modules/administracion/submodules/gastos-administrativos/submodules/compras-facturacion/submodules/compras-sin-factura/ComprasSinFacturaMain";
 import Configuraciones from "../components/modules/administracion/submodules/gastos-administrativos/submodules/compras-facturacion/components/Configuraciones";
+import ContratacionesServiciosMain from "../components/modules/administracion/submodules/gastos-administrativos/submodules/contrataciones-servicios/ContratacionesServiciosMain";
 // Importar los nuevos componentes de Ingresos y Comisiones
 import IngresosComisionesMain from "../components/modules/administracion/submodules/ingresos-comisiones/IngresosComisionesMain";
 import IngresosPagosMain from "../components/modules/administracion/submodules/ingresos-comisiones/submodules/ingresos-pagos/IngresosPagosMain";
@@ -67,11 +68,15 @@ const AdministracionPage = () => {
             path="gastos-administrativos/compra-facturacion/configuraciones"
             element={<Configuraciones projectId={projectId} />}
           />
+          <Route
+            path="gastos-administrativos/contrataciones-servicios"
+            element={<ContratacionesServiciosMain />}
+          />
           {/* Nuevas rutas para Ingresos y Comisiones*/}
           <Route path="ingresos-comisiones" element={<IngresosComisionesMain />} />
           <Route path="ingresos-comisiones/ingresos-pagos" element={<IngresosPagosMain />} />
           <Route path="ingresos-comisiones/comisiones" element={<ComisionesMain />} />
-          
+
           {/* Ruta para Gestión de Usuarios */}
           <Route path="gestion-usuarios/*" element={<GestionUsariosPage />} />
         </Routes>

@@ -26,6 +26,13 @@ const GastosAdminMain = ({ projectId }) => {
       icon: <ScrollIcon />,
       path: "compra-facturacion",
     },
+    {
+      id: "contrataciones-servicios",
+      title: "Contrataciones y Servicios",
+      description: "Gestión de contratistas, servicios y pagos",
+      icon: <UserIcon />, // Using UserIcon as a placeholder, similar to employees
+      path: "contrataciones-servicios",
+    },
   ];
 
   const handleCardClick = (path) => {
@@ -50,9 +57,8 @@ const GastosAdminMain = ({ projectId }) => {
 
       <ModuleDescription
         title="GASTOS ADMINISTRATIVOS"
-        description={`Gestión integral de todos los gastos administrativos del proyecto ${
-          selectedProject?.name || ""
-        }`}
+        description={`Gestión integral de todos los gastos administrativos del proyecto ${selectedProject?.name || ""
+          }`}
       />
 
       <div className="gastos-admin-grid">
