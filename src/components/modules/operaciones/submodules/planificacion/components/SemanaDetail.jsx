@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import supabase from '../../../../../../api/supaBase';
 import { usePlanning } from '../../../../../../contexts/PlanningContext';
 import { DiasList } from './DiasList';
-import { RequerimientosForm } from './RequerimientosForm';
+import { RequerimientosForm } from '../../requerimientos/RequerimientosForm'; // Use the shared component
 import { RequerimientosList } from './RequerimientosList';
 import Modal from '../../../../../common/Modal/Modal';
 
@@ -17,9 +17,13 @@ export const SemanaDetail = ({ semana, onBack }) => {
   const getRequerimientosPorSemana = useCallback(async () => {
     if (!semana.id) return;
     setLoadingReq(true);
+    // Now querying the main 'requerimientos' table
     const { data, error } = await supabase
-      .from('planificacion_requerimientos')
-      .select('*')
+      .from('requerimientos')
+      .select(`
+        *,
+        requerimiento_items (*)
+      `)
       .eq('semana_id', semana.id)
       .order('created_at', { ascending: false });
 
@@ -98,7 +102,8 @@ export const SemanaDetail = ({ semana, onBack }) => {
       >
         <RequerimientosForm
           semanaId={semana.id}
-          onClose={handleCloseRequerimientosForm}
+          onSuccess={() => handleCloseRequerimientosForm(true)}
+          onCancel={() => handleCloseRequerimientosForm(false)}
         />
       </Modal>
     </div>

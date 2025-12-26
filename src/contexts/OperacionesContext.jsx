@@ -146,6 +146,24 @@ export const OperacionesProvider = ({ children }) => {
     });
   }, [inventory]);
 
+  const addRequerimientoItem = useCallback(async (itemData) => {
+    setLoading(true);
+    const { error } = await supabase
+      .from('requerimiento_items')
+      .insert([{
+        ...itemData,
+        status: 'pendiente',
+        cantidad_comprada: 0
+      }]);
+
+    if (error) {
+      console.error('Error inserting requerimiento item:', error);
+    } else {
+      await getRequerimientos();
+    }
+    setLoading(false);
+  }, [getRequerimientos]);
+
   const addRequerimiento = useCallback(async (requerimientoData) => {
     if (!selectedProject) return;
     setLoading(true);
@@ -533,6 +551,7 @@ export const OperacionesProvider = ({ children }) => {
     updateCompra,
     getRequerimientos,
     addRequerimiento,
+    addRequerimientoItem,
     updateRequerimientoItem,
     cancelRequerimientoItem,
     getInventorySummary,
@@ -555,6 +574,7 @@ export const OperacionesProvider = ({ children }) => {
     updateCompra,
     getRequerimientos,
     addRequerimiento,
+    addRequerimientoItem,
     updateRequerimientoItem,
     cancelRequerimientoItem,
     getInventorySummary,

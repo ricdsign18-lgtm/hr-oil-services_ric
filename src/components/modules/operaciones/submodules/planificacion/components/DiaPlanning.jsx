@@ -27,11 +27,11 @@ export const DiaPlanning = ({ dia, onBack, allDias, onNavigate }) => {
         if (!diaId) return;
         setLoading(true);
         const { data, error } = await supabase
-            .from('planificacion_actividades')
+            .from('plan_actividades')
             .select(`
         *,
-        equipos (tag_serial, nombre, tipo_equipo),
-        budget_items (item_number, description, unit, currency, unit_price)
+        subactividades:plan_subactividades(*),
+        personal:plan_actividad_personal(*)
       `)
             .eq('dia_id', diaId)
             .order('created_at');
@@ -52,7 +52,7 @@ export const DiaPlanning = ({ dia, onBack, allDias, onNavigate }) => {
 
     const getDiaData = async (diaId) => {
         const { data, error } = await supabase
-            .from('planificacion_dias')
+            .from('plan_dias')
             .select('*')
             .eq('id', diaId)
             .single();

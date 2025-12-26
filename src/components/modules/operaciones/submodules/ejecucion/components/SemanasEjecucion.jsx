@@ -25,15 +25,15 @@ export const SemanasEjecucion = ({ semanas, onSelectSemana }) => {
 
             <div className="ejecucion-semana-financials">
               <MetricaRow
-                label="Avance Físico"
-                valor={semana.avance_fisico || 0}
+                label="Avance Financiero"
+                valor={porcentajeEjecutado.toFixed(1)}
                 tipo="porcentaje"
               />
 
               <div className="progress-bar-container" style={{ margin: '8px 0' }}>
                 <div
                   className="progress-bar"
-                  style={{ width: `${semana.avance_fisico || 0}%` }}
+                  style={{ width: `${porcentajeEjecutado}%` }}
                 ></div>
               </div>
 
