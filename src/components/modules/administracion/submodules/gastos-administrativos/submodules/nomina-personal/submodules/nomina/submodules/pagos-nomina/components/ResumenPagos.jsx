@@ -1,5 +1,4 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/ResumenPagos.jsx
-import React from "react";
 import * as XLSX from "xlsx";
 import "./ResumenPagos.css";
 
@@ -7,9 +6,14 @@ const ResumenPagos = ({
   pagosCalculados,
   fechaPago,
   tasaCambio,
-  onGuardar,
+  onGuardarEmpleados,
+  onGuardarContratistas,
+  onGuardarTodo,
   onVolver,
+
   selectedProject,
+  pagosContratistas = [], // New Prop
+  contractorsCalculated = [], // New Prop for deferred contractors
 }) => {
   // Calcular período de pago
   const calcularPeriodoPago = (pago) => {
@@ -62,8 +66,20 @@ const ResumenPagos = ({
   };
 
   // Separar pagos por frecuencia
+  // Separar pagos por frecuencia
   const pagosSemanal = pagosCalculados.filter(p => p.empleado.frecuenciaPago === "Semanal");
   const pagosQuincenal = pagosCalculados.filter(p => p.empleado.frecuenciaPago === "Quincenal");
+  
+  // Filter contractors by fechaPago to only show relevant ones for this invoice
+  // and FLATTEN the 'pagos' array from the batch record to get individual payments
+  // UPDATE: If we have 'contractorsCalculated' (Preview Mode), use that directly.
+  const isPreviewMode = contractorsCalculated && contractorsCalculated.length > 0;
+
+  const contractorsForDate = isPreviewMode 
+      ? contractorsCalculated 
+      : pagosContratistas
+          .filter(p => p.fecha_pago === fechaPago)
+          .flatMap(p => p.pagos || []);
 
   const exportToExcel = () => {
     // Función auxiliar para formatear datos
@@ -139,18 +155,21 @@ const ResumenPagos = ({
     XLSX.writeFile(wb, fileName);
   };
 
+
+
   const calcularTotales = (pagos) => {
     return pagos.reduce(
       (totales, pago) => ({
-        totalHorasExtras: totales.totalHorasExtras + pago.totalHorasExtrasUSD,
+        totalHorasExtras: totales.totalHorasExtras + (pago.totalHorasExtrasUSD || 0),
         totalDeduccionesManuales:
-          totales.totalDeduccionesManuales + pago.deduccionesManualesUSD,
+          totales.totalDeduccionesManuales + (pago.deduccionesManualesUSD || 0),
         totalAdelantos: totales.totalAdelantos + (pago.adelantosUSD || 0),
-        totalUSD: totales.totalUSD + pago.subtotalUSD,
+        totalUSD: totales.totalUSD + (pago.subtotalUSD || 0), // Base + Extras - Deductions - Adelantos? No, subtotal usually is before conversion.
+        // Adjust based on object structure. For contractors it might differ.
         totalMontoExtraBs: totales.totalMontoExtraBs + (pago.montoExtraBs || 0),
         totalMontoExtraUSD: totales.totalMontoExtraUSD + (pago.montoExtraUSD || 0),
-        totalMontoTotalUSD: totales.totalMontoTotalUSD + (pago.montoTotalUSD || 0),
-        totalPagar: totales.totalPagar + pago.totalPagarBs,
+        totalMontoTotalUSD: totales.totalMontoTotalUSD + (pago.montoTotalUSD || pago.monto_total_usd || 0),
+        totalPagar: totales.totalPagar + (pago.totalPagarBs || pago.monto_total_bs || 0),
         // Totales de deducciones de ley
         totalIvss: totales.totalIvss + (pago.desgloseDeduccionesLey?.ivss || 0),
         totalParoForzoso:
@@ -159,7 +178,7 @@ const ResumenPagos = ({
         totalFaov: totales.totalFaov + (pago.desgloseDeduccionesLey?.faov || 0),
         totalIslr: totales.totalIslr + (pago.desgloseDeduccionesLey?.islr || 0),
         totalDeduccionesLey:
-          totales.totalDeduccionesLey + pago.deduccionesLeyBs,
+          totales.totalDeduccionesLey + (pago.deduccionesLeyBs || 0),
       }),
       {
         totalHorasExtras: 0,
@@ -179,22 +198,39 @@ const ResumenPagos = ({
     );
   };
 
+  const zeroTotales = {
+    totalHorasExtras: 0,
+    totalDeduccionesManuales: 0,
+    totalAdelantos: 0,
+    totalUSD: 0,
+    totalMontoExtraBs: 0,
+    totalMontoExtraUSD: 0,
+    totalMontoTotalUSD: 0,
+    totalPagar: 0,
+    totalIvss: 0,
+    totalParoForzoso: 0,
+    totalFaov: 0,
+    totalIslr: 0,
+    totalDeduccionesLey: 0,
+  };
+
   const totalesGeneral = calcularTotales(pagosCalculados);
   const totalesSemanal = calcularTotales(pagosSemanal);
   const totalesQuincenal = calcularTotales(pagosQuincenal);
+  
+  // Calculate contractor totals ensuring full structure
+  const totalesContratistas = contractorsForDate.reduce((acc, curr) => ({
+      ...acc,
+      totalMontoTotalUSD: acc.totalMontoTotalUSD + (curr.monto_total_usd || 0),
+      totalPagar: acc.totalPagar + (curr.monto_total_bs || 0)
+  }), { ...zeroTotales });
 
-  const handleGuardar = async () => {
-    try {
-      await onGuardar(pagosCalculados);
-    } catch (error) {
-      console.error("Error guardando pagos:", error);
-    }
-  };
+
 
   const RenderTable = ({ pagos, title, totales }) => {
     // Determinar si esta tabla específica tiene empleados administrativos
     const showLegalDeductions = pagos.some((pago) =>
-      ["Administrativa", "Ejecucion"].includes(pago.empleado.tipoNomina)
+      ["Administrativa", "Ejecucion"].includes(pago.empleado?.tipoNomina)
     );
 
     return (
@@ -240,11 +276,11 @@ const ResumenPagos = ({
           <tbody>
             {pagos.map((pago, index) => {
               const periodoPago = calcularPeriodoPago(pago);
-              const esAdministrativo = ["Administrativa", "Ejecucion"].includes(pago.empleado.tipoNomina);
-
+              const esAdministrativo = ["Administrativa", "Ejecucion"].includes(pago.empleado?.tipoNomina);
+              
               return (
                 <tr key={pago.empleado.id} className={index % 2 === 0 ? "even" : "odd"}>
-                  <td className="employee-name">{pago.empleado.nombre} {pago.empleado.apellido}</td>
+                  <td className="employee-name">{`${pago.empleado.nombre} ${pago.empleado.apellido}`}</td>
                   <td>{pago.empleado.cedula}</td>
                   <td>{pago.empleado.cargo}</td>
                   <td>
@@ -256,15 +292,15 @@ const ResumenPagos = ({
                   <td className="text-right">${pago.montoDiarioCalculado?.toFixed(2) || "0.00"}</td>
                   <td className="text-center">{pago.horasExtras.diurna}</td>
                   <td className="text-center">{pago.horasExtras.nocturna}</td>
-                  <td className="text-right">${pago.totalHorasExtrasUSD.toFixed(2)}</td>
-                  <td className="text-right">${pago.deduccionesManualesUSD.toFixed(2)}</td>
+                  <td className="text-right">${pago.totalHorasExtrasUSD?.toFixed(2)}</td>
+                  <td className="text-right">${pago.deduccionesManualesUSD?.toFixed(2)}</td>
                   <td className="text-right">${(pago.adelantosUSD || 0).toFixed(2)}</td>
-                  <td className="text-right">${pago.subtotalUSD.toFixed(2)}</td>
+                  <td className="text-right">${pago.subtotalUSD?.toFixed(2)}</td>
                   <td className="text-right">Bs {(pago.montoExtraBs || 0).toFixed(2)}</td>
                   <td className="text-right">${(pago.montoExtraUSD || 0).toFixed(2)}</td>
                   <td className="text-right"><strong>${(pago.montoTotalUSD || 0).toFixed(2)}</strong></td>
                   <td className="text-right">Bs {parseFloat(tasaCambio).toFixed(4)}</td>
-                  <td className="text-right total-pagar"><strong>Bs {pago.totalPagarBs.toFixed(2)}</strong></td>
+                  <td className="text-right total-pagar"><strong>Bs {(pago.totalPagarBs || 0).toFixed(2)}</strong></td>
                   <td>{pago.bancoPago || "No especificado"}</td>
                   <td className="periodo-pago">{periodoPago}</td>
                   <td>{selectedProject?.name || "No especificado"}</td>
@@ -331,9 +367,80 @@ const ResumenPagos = ({
     );
   };
 
+  const RenderContractorTable = ({ pagos, title, totales }) => {
+    return (
+      <div className="pagos-table-container">
+        <h4>{title}</h4>
+        <table className="pagos-table">
+          <thead>
+            <tr>
+              <th>Nombre del Contratista</th>
+              <th>Personal (Días Trab.)</th>
+              <th>Monto Diario ($)</th>
+              <th>Monto Total ($)</th>
+              <th>Tasa del Día</th>
+              <th>Total Pagar (Bs)</th>
+              <th>Periodo de Pago</th>
+              <th>Pagado por</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pagos.map((pago, index) => {
+               // Normalización de datos (snake_case DB vs camelCase Local)
+               const nombre = pago.nombre_contratista || pago.empleado?.nombre || "Contratista";
+               const totalDias = pago.total_personal_dias || pago.diasTrabajados || 0;
+               const montoDiario = pago.monto_diario || pago.montoDiarioCalculado || pago.empleado?.montoSalario || 0;
+               const currentTasa = parseFloat(tasaCambio) || 0;
+               const montoTotalUSD = pago.monto_total_usd || pago.montoTotalUSD || 0;
+               let montoTotalBs = pago.monto_total_bs || pago.totalPagarBs || 0;
+
+               // Fallback: Calculate Bs if missing/zero but we have USD and Rate
+               if ((!montoTotalBs || Number(montoTotalBs) === 0) && montoTotalUSD > 0 && currentTasa > 0) {
+                   montoTotalBs = montoTotalUSD * currentTasa;
+               }
+
+               const banco = pago.banco_pago || pago.bancoPago || "No especificado";
+               const obs = pago.observaciones || "";
+               
+               // Calculate period assuming Weekly frequency for contractors
+               const periodoPago = calcularPeriodoPago({
+                   empleado: { frecuenciaPago: "Semanal" },
+                   diasTrabajados: totalDias
+               });
+
+              return (
+                <tr key={pago.id || index} className={index % 2 === 0 ? "even" : "odd"}>
+                  <td className="employee-name">{nombre}</td>
+                  <td className="text-center">{totalDias}</td>
+                  <td className="text-right">${Number(montoDiario).toFixed(2)}</td>
+                  <td className="text-right"><strong>${Number(montoTotalUSD).toFixed(2)}</strong></td>
+                  <td className="text-right">Bs {parseFloat(tasaCambio).toFixed(4)}</td>
+                  <td className="text-right total-pagar"><strong>Bs {Number(montoTotalBs).toFixed(2)}</strong></td>
+                  <td className="periodo-pago">{periodoPago}</td>
+                  <td>{banco}</td>
+                  <td className="observaciones">{obs}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+             <tr className="table-totals">
+                <td colSpan="3" className="text-right"><strong>TOTALES:</strong></td>
+                <td className="text-right"><strong>${totales.totalMontoTotalUSD.toFixed(2)}</strong></td>
+                <td></td>
+                <td className="text-right total-pagar"><strong>Bs {totales.totalPagar.toFixed(2)}</strong></td>
+                <td colSpan="3"></td>
+             </tr>
+          </tfoot>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="resumen-pagos">
-      <div className="resumen-header">
+      <header className="resumen-header">
         <h3>
           Resumen de Pagos -{" "}
           {new Date(fechaPago.replace(/-/g, '\/')).toLocaleDateString("es-ES", {
@@ -355,8 +462,18 @@ const ResumenPagos = ({
             <strong>Contrato:</strong>{" "}
             {selectedProject?.name || "No especificado"}
           </span>
+
+          {/* Boton en donde esta el guardar y exportar */}
+          {/* <div className="action-group" style={{ marginLeft: 'auto' }}>
+             <button className="btn-secondary" onClick={exportToExcel}>
+               📊 Excel
+             </button>
+             <button className="btn-primary" onClick={handleGuardar}>
+               💾 Guardar Pagos
+             </button>
+          </div> */}
         </div>
-      </div>
+      </header>
 
       {pagosSemanal.length > 0 && (
         <RenderTable
@@ -374,24 +491,47 @@ const ResumenPagos = ({
         />
       )}
 
+      {contractorsForDate.length > 0 ? (
+         <RenderContractorTable
+            pagos={contractorsForDate}
+            title="Pago a Contratistas (Guardados)"
+            totales={totalesContratistas}
+         />
+      ) : (
+        <div style={{ padding: '1rem', background: '#f3f4f6', borderRadius: '8px', color: '#6b7280', fontStyle: 'italic' }}>
+            No hay pagos de contratistas registrados para esta fecha ({fechaPago}).
+        </div>
+      )}
+
       <div className="separator-line" style={{ margin: "2rem 0", borderTop: "2px dashed #e5e7eb" }}></div>
+
 
       <RenderTable
         pagos={pagosCalculados}
-        title="Resumen General de Pagos"
+        title="Resumen General de Pagos (Solo Empleados)"
         totales={totalesGeneral}
       />
+      <div className="resumen-total-summary" style={{ padding: '1rem', background: '#f9fafb', borderRadius: '8px', marginBottom: '1rem' }}>
+          <h4>Totales Globales (Empleados + Contratistas)</h4>
+          <p><strong>Total USD:</strong> ${(totalesGeneral.totalMontoTotalUSD + totalesContratistas.totalMontoTotalUSD).toFixed(2)}</p>
+          <p><strong>Total Bs:</strong> Bs {(totalesGeneral.totalPagar + totalesContratistas.totalPagar).toFixed(2)}</p>
+      </div>
 
       <div className="resumen-actions">
         <button className="btn-outline" onClick={onVolver}>
           ← Volver a Calculadora
         </button>
-        <div className="action-group">
+        <div className="action-group" style={{ gap: '1rem' }}>
           <button className="btn-secondary" onClick={exportToExcel}>
             📊 Exportar a Excel
           </button>
-          <button className="btn-primary" onClick={handleGuardar}>
-            💾 Guardar Pagos
+          
+          <button 
+            className="btn-primary" 
+            onClick={onGuardarTodo}
+            style={{ backgroundColor: '#22c55e', borderColor: '#22c55e' }}
+          >
+            💾 Guardar Nómina Completa
           </button>
         </div>
       </div>

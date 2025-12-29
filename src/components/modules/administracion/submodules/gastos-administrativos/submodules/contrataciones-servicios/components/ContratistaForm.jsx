@@ -72,11 +72,11 @@ const ContratistaForm = ({ projectId, contratista, onClose, onSave }) => {
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
+        <main className="modal-overlay">
+            <section className="modal-content">
                 <h2>{contratista ? "Editar Contratista" : "Nuevo Contratista"}</h2>
                 <form onSubmit={handleSubmit}>
-                    <div className="form-group">
+                  
                         <label>Nombre del Contratista / Empresa:</label>
                         <input
                             type="text"
@@ -86,9 +86,9 @@ const ContratistaForm = ({ projectId, contratista, onClose, onSave }) => {
                             required
                             placeholder="Ej. Servicios Eléctricos CA"
                         />
-                    </div>
+                
 
-                    <div className="form-group">
+                    
                         <label>Descripción del Trabajo:</label>
                         <textarea
                             name="descripcion_trabajo"
@@ -96,12 +96,11 @@ const ContratistaForm = ({ projectId, contratista, onClose, onSave }) => {
                             onChange={handleChange}
                             rows="3"
                         />
-                    </div>
+                    
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Cantidad de Personal:</label>
-                            <input
+                    
+                        <label>Cantidad de Personal:</label>
+                        <input
                                 type="number"
                                 name="cantidad_personal"
                                 value={formData.cantidad_personal}
@@ -109,9 +108,8 @@ const ContratistaForm = ({ projectId, contratista, onClose, onSave }) => {
                                 min="1"
                                 required
                             />
-                        </div>
-                        <div className="form-group">
-                            <label>Frecuencia de Pago:</label>
+                        
+                        <label>Frecuencia de Pago:</label>
                             <select
                                 name="frecuencia_pago"
                                 value={formData.frecuencia_pago}
@@ -120,10 +118,10 @@ const ContratistaForm = ({ projectId, contratista, onClose, onSave }) => {
                                 <option value="Semanal">Semanal</option>
                                 <option value="Quincenal">Quincenal</option>
                             </select>
-                        </div>
-                    </div>
+                        
+                    
 
-                    <div className="form-group">
+                    
                         <label>Monto Diario ($):</label>
                         <input
                             type="number"
@@ -134,9 +132,8 @@ const ContratistaForm = ({ projectId, contratista, onClose, onSave }) => {
                             min="0"
                             required
                         />
-                    </div>
-
-                    <div className="modal-actions">
+                    
+                        <div className="modal-actions">
                         <button type="button" className="btn-secondary" onClick={onClose}>
                             Cancelar
                         </button>
@@ -145,8 +142,8 @@ const ContratistaForm = ({ projectId, contratista, onClose, onSave }) => {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </section>
+        </main>
     );
 };
 

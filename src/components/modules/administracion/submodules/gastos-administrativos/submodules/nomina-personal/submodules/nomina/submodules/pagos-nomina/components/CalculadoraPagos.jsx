@@ -1,11 +1,11 @@
 // src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/components/CalculadoraPagos.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useProjects } from "../../../../../../../../../../../../contexts/ProjectContext";
 import { usePersonal } from "../../../../../../../../../../../../contexts/PersonalContext";
 import { useNotification } from "../../../../../../../../../../../../contexts/NotificationContext";
 import "./CalculadoraPagos.css";
 
-const CalculadoraPagos = ({
+const CalculadoraPagos = forwardRef(({
   employees,
   asistencias,
   fechaPago,
@@ -13,7 +13,7 @@ const CalculadoraPagos = ({
   onCalcular,
   selectedProject,
   initialData, // NUEVO PROP
-}) => {
+}, ref) => {
   const { selectedProject: contextProject } = useProjects();
   const { showToast } = useNotification();
   const project = selectedProject || contextProject;
@@ -561,6 +561,9 @@ const CalculadoraPagos = ({
         );
         return totalMensual / diasRealesMes;
       }
+    } else if (empleado.tipoNomina === "Contratista") {
+      // New Logic for Contractors: Their `montoSalario` IS the daily rate
+      return parseFloat(empleado.montoSalario || 0);
     } else {
       const montoSalario = parseFloat(empleado.montoSalario || 0);
       switch (empleado.tipoSalario) {
@@ -789,7 +792,11 @@ const CalculadoraPagos = ({
     };
   };
 
-  const handleCalcular = () => {
+  useImperativeHandle(ref, () => ({
+    calculate: handleCalcular
+  }));
+
+  const handleCalcular = (skipContractors = false) => {
     if (!tasaCambio || parseFloat(tasaCambio) <= 0) {
       showToast("Por favor ingrese una tasa de cambio válida", "warning");
       return;
@@ -800,20 +807,21 @@ const CalculadoraPagos = ({
       return;
     }
 
-    // Confirmación antes de proceder
-    const confirmar = window.confirm(
-      "¿Está seguro de que desea calcular y proceder a guardar los pagos?"
-    );
-
-    if (!confirmar) {
-      return;
-    }
+    // Confirmación removida para agilizar flujo
+    // const confirmar = window.confirm(...);
+    // if (!confirmar) return;
 
     try {
       // Filtrar empleados según las reglas de visualización
       const empleadosACalcular = employees.filter(emp => {
         // Excluir inactivos
         if (emp.estado === "Inactivo") return false;
+
+         // Check if contractor
+        if (emp.tipoNomina === "Contratista") {
+          // Contractors are treated as Semanal
+          return incluirSemanal;
+        }
 
         // Excluir quincenales si no está marcado el check
         if (emp.frecuenciaPago === "Quincenal" && !incluirQuincenal) return false;
@@ -826,7 +834,7 @@ const CalculadoraPagos = ({
 
       const pagos = empleadosACalcular.map((empleado) => calcularPagoEmpleado(empleado));
       setPagosCalculados(pagos);
-      onCalcular(pagos);
+      onCalcular(pagos, skipContractors);
     } catch (error) {
       console.error("Error calculando pagos:", error);
       showToast("Error al calcular pagos. Verifique la consola para más detalles.", "error");
@@ -1240,6 +1248,8 @@ const CalculadoraPagos = ({
               );
             })}
           </div>
+
+
         </div>
       )}
 
@@ -1503,19 +1513,22 @@ const CalculadoraPagos = ({
                 );
               })}
             </div>
+
           </div>
         )}
 
 
-      <div className="calculadora-actions">
-        <button
-          className="btn-primary large"
-          onClick={handleCalcular}
-          disabled={employees.length === 0 || !tasaCambio || !fechaPago}
-        >
-          🧮 Calcular Pagos
-        </button>
-      </div>
+
+
+      {/* Unified Actions Footer */}
+      {(empleadosPorTipo.operativaSemanal.length > 0 || 
+        [...empleadosPorTipo.operativaEspecialQuincenal, ...empleadosPorTipo.administrativaQuincenal].length > 0) && (
+        <div className="section-actions">
+            <button className="btn-guardar-pagos" onClick={() => handleCalcular(false)}>
+                {initialData ? "Actualizar Pagos" : "Seguir y Agregar Contratistas"}
+            </button>
+        </div>
+      )}
 
       {/* Modal para agregar nuevo banco */}
       {showBancoModal && (
@@ -1545,6 +1558,6 @@ const CalculadoraPagos = ({
       )}
     </div>
   );
-};
+});
 
 export default CalculadoraPagos;

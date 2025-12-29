@@ -48,7 +48,23 @@
   color: var(--text-primary);
   font-size: 0.9rem;
 }
+.section-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 
+  .btn-guardar-pagos {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 2rem;
+  }
+}
 .deduccion-item input {
   padding: 0.5rem;
   border: 1px solid var(--border-color);

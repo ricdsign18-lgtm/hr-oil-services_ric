@@ -1,5 +1,4 @@
-// src/components/modules/administracion/submodules/gastos-administrativos/submodules/nomina-personal/submodules/nomina/submodules/pagos-nomina/PagosNominaMain.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../../../../../../../../../../../api/supaBase";
 import { useProjects } from "../../../../../../../../../../../contexts/ProjectContext";
@@ -13,7 +12,7 @@ import ResumenPagos from "./components/ResumenPagos";
 import ReportesNomina from "./components/ReportesNomina";
 import FeedbackModal from "../../../../../../../../../../../components/common/FeedbackModal/FeedbackModal";
 import "./PagosNominaMain.css";
-import CalculadoraContratistas from "./components/CalculadoraContratistas";
+import CalculadoraPagosContratistas from "../asistencia-diaria/components/CalculadoraPagosContratistas";
 
 const PagosNominaMain = () => {
   const navigate = useNavigate();
@@ -23,6 +22,7 @@ const PagosNominaMain = () => {
     getEmployeesByProject,
     getAsistenciasByProject,
     savePagos,
+    savePagosContratistas,
     getPagosByProject,
     deletePago,
   } = usePersonal();
@@ -34,6 +34,7 @@ const PagosNominaMain = () => {
   const [fechaPago, setFechaPago] = useState("");
   const [tasaCambio, setTasaCambio] = useState("");
   const [pagosCalculados, setPagosCalculados] = useState([]);
+  const [contractorsCalculated, setContractorsCalculated] = useState([]); // New state for deferred contractor payments
   const [pagosGuardados, setPagosGuardados] = useState([]);
   const [pagosContratistas, setPagosContratistas] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -48,6 +49,8 @@ const PagosNominaMain = () => {
   });
 
   const [pagoParaEditar, setPagoParaEditar] = useState(null);
+  
+  const calculatorRef = useRef(null);
 
   // Cargar empleados, asistencias y pagos del proyecto
   useEffect(() => {
@@ -109,51 +112,191 @@ const PagosNominaMain = () => {
     navigate(-1);
   };
 
-  const handleCalcularPagos = (pagosCalculados) => {
+  const handleCalcularPagos = (pagosCalculados, skipContractors = false) => {
     setPagosCalculados(pagosCalculados);
-    setCurrentView("resumen");
+
+    // EDIT MODE: Direct Update for Employees
+    if (pagoParaEditar && pagoParaEditar.type === 'personal') {
+        handleGuardarEmpleados(pagosCalculados);
+        return;
+    }
+    
+    // NORMAL MODE
+    if (skipContractors) {
+        setContractorsCalculated([]);
+        setCurrentView("resumen");
+    } else {
+        setCurrentView("contratistas");
+    }
   };
 
-  const handleGuardarPagos = async (pagosData) => {
+  const handleCalcularContratistas = (contractorsData) => {
+      setContractorsCalculated(contractorsData);
+      setCurrentView("resumen");
+  };
+
+  const handleGuardarEmpleados = async (pagosData) => {
     try {
+      const regularPagos = pagosData.filter(p => !p.empleado.isContractor);
+
+      if (regularPagos.length === 0) {
+          showToast("No hay pagos de empleados para guardar.", "warning");
+          return;
+      }
+
+      // Handle Edit Mode for Employees
+      if (pagoParaEditar && pagoParaEditar.id && pagoParaEditar.type !== 'contratista') {
+           await deletePago(pagoParaEditar.id, true);
+      }
+
       const nuevoPago = {
         fechaPago,
         tasaCambio: parseFloat(tasaCambio),
-        pagos: pagosData,
+        pagos: regularPagos,
         projectId: selectedProject?.id,
       };
 
-      // Si estamos editando, podríamos querer reemplazar el pago existente o guardar uno nuevo.
-      // Por simplicidad y seguridad, la lógica actual "savePagos" típicamente crea uno nuevo.
-      // Si queremos actualizar, necesitaríamos un método "updatePago" en el contexto.
-      // Asumiremos comportamiento de "Guardar nuevo" o "Sobrescribir si ID existe" dependiendo de savePagos.
-      // Si savePagos genera nuevo ID siempre, entonces duplicará.
-      // Para un flujo de edición completo, idealmente updatePago.
-      // Si pagoParaEditar existe, usamos su ID si la API lo soporta, o borramos el anterior y creamos nuevo.
-
-      if (pagoParaEditar && pagoParaEditar.id) {
-        // Opción: Eliminar el anterior y guardar el nuevo para simular edición
-        await deletePago(pagoParaEditar.id);
-      }
-
       await savePagos(nuevoPago);
-      await loadData(); // Recargar datos
-      setCurrentView("historial");
-      const wasEditing = !!pagoParaEditar;
-      setPagoParaEditar(null); // Limpiar estado de edición
+      
+      await loadData();
+      
       setFeedback({
         isOpen: true,
         type: 'success',
-        title: 'Pagos Guardados',
-        message: wasEditing ? 'El pago ha sido actualizado exitosamente.' : 'Los pagos de nómina han sido guardados exitosamente.'
+        title: 'Nómina Guardada',
+        message: 'La nómina de empleados ha sido guardada exitosamente.'
       });
+
+
+      if (pagoParaEditar && pagoParaEditar.type !== 'contratista') {
+          setPagoParaEditar(null);
+          setCurrentView("historial"); 
+      }
+
     } catch (error) {
+      console.error(error);
       setFeedback({
         isOpen: true,
         type: 'error',
         title: 'Error',
-        message: 'Error al guardar pagos: ' + error.message
+        message: 'Error al guardar nómina: ' + error.message
       });
+    }
+  };
+
+  const handleGuardarContratistas = async () => {
+    try {
+      if (contractorsCalculated.length === 0) {
+          showToast("No hay pagos de contratistas para guardar.", "warning");
+          return;
+      }
+
+      // Handle Edit Mode for Contractors
+      if (pagoParaEditar && pagoParaEditar.id && pagoParaEditar.type === 'contratista') {
+          const { error: deleteError } = await supabase
+              .from('pagos_contratistas')
+              .delete()
+              .eq('id', pagoParaEditar.id);
+          
+          if (deleteError) throw deleteError;
+      }
+
+      const contractorPayload = {
+          projectId: selectedProject?.id,
+          fechaPago: fechaPago,
+          tasaCambio: parseFloat(tasaCambio),
+          pagos: contractorsCalculated
+      };
+
+      await savePagosContratistas(contractorPayload);
+      setContractorsCalculated([]); // Clear temp state after save
+      
+      await loadData();
+
+      setFeedback({
+        isOpen: true,
+        type: 'success',
+        title: 'Pagos Contratistas Guardados',
+        message: 'Los pagos de contratistas han sido guardados exitosamente.'
+      });
+      
+      if (pagoParaEditar && pagoParaEditar.type === 'contratista') {
+        setPagoParaEditar(null);
+        setCurrentView("historial");
+      }
+
+    } catch (error) {
+       console.error(error);
+       setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Error',
+        message: 'Error al guardar contratistas: ' + error.message
+      });
+    }
+  };
+
+  const handleGuardarTodo = async () => {
+    try {
+        let savedEmp = false;
+        let savedCont = false;
+
+        // 1. Save Employees
+        const regularPagos = pagosCalculados.filter(p => !p.empleado.isContractor);
+        if (regularPagos.length > 0) {
+            const nuevoPago = {
+                fechaPago,
+                tasaCambio: parseFloat(tasaCambio),
+                pagos: regularPagos,
+                projectId: selectedProject?.id,
+            };
+            await savePagos(nuevoPago);
+            savedEmp = true;
+        }
+
+        // 2. Save Contractors
+        if (contractorsCalculated.length > 0) {
+            const contractorPayload = {
+                projectId: selectedProject?.id,
+                fechaPago: fechaPago,
+                tasaCambio: parseFloat(tasaCambio),
+                pagos: contractorsCalculated
+            };
+            await savePagosContratistas(contractorPayload);
+            savedCont = true;
+        }
+
+        if (!savedEmp && !savedCont) {
+             showToast("No hay datos para guardar", "warning");
+             return;
+        }
+
+        // 3. Cleanup and Notify
+        setPagosCalculados([]);
+        setContractorsCalculated([]);
+        await loadData();
+        setCurrentView("historial");
+
+        let msg = "Datos guardados exitosamente";
+        if (savedEmp && savedCont) msg = "Nómina de Empleados y Contratistas guardada exitosamente";
+        else if (savedEmp) msg = "Nómina de Empleados guardada exitosamente";
+        else if (savedCont) msg = "Pagos de Contratistas guardados exitosamente";
+
+        setFeedback({
+            isOpen: true,
+            type: 'success',
+            title: 'Guardado Exitoso',
+            message: msg
+        });
+
+    } catch (error) {
+        console.error("Error guardando todo:", error);
+        setFeedback({
+            isOpen: true,
+            type: 'error',
+            title: 'Error',
+            message: 'Error al guardar: ' + error.message
+        });
     }
   };
 
@@ -181,10 +324,12 @@ const PagosNominaMain = () => {
     // Inject type into the object for downstream logic
     const pagoWithMeta = { ...pago, type };
     setPagoParaEditar(pagoWithMeta);
+    setContractorsCalculated([]); // Clear any stale contractor calculation state
 
     // Set common fields
     setFechaPago(pago.fechaPago || pago.fecha_pago); // Handle both naming conventions
-    setTasaCambio(pago.tasaCambio || pago.tasa_cambio);
+    const tasa = pago.tasaCambio || pago.tasa_cambio;
+    setTasaCambio(tasa ? tasa.toString() : "");
 
     if (type === "contratista") {
       setCurrentView("contratistas");
@@ -229,6 +374,8 @@ const PagosNominaMain = () => {
             />
           </div>
         </div>
+        
+       
 
         <div className="view-toggle">
           {hasPermissionSync("administracion", "write") && (
@@ -253,7 +400,7 @@ const PagosNominaMain = () => {
           <button
             className={currentView === "resumen" ? "active" : ""}
             onClick={() => setCurrentView("resumen")}
-            disabled={!pagosCalculados.length || loading}
+            disabled={(!pagosCalculados.length && !contractorsCalculated.length) || loading}
           >
             Resumen
           </button>
@@ -282,13 +429,14 @@ const PagosNominaMain = () => {
         <div className="module-content">
           {currentView === "calculadora" && (
             <CalculadoraPagos
-              employees={employees}
+              employees={employees.filter(e => !e.isContractor)}
               asistencias={asistencias}
               fechaPago={fechaPago}
               tasaCambio={tasaCambio}
               onCalcular={handleCalcularPagos}
               selectedProject={selectedProject}
               initialData={pagoParaEditar}
+              ref={calculatorRef}
             />
           )}
 
@@ -297,9 +445,11 @@ const PagosNominaMain = () => {
               pagosCalculados={pagosCalculados}
               fechaPago={fechaPago}
               tasaCambio={tasaCambio}
-              onGuardar={handleGuardarPagos}
+              onGuardarTodo={handleGuardarTodo}
+              contractorsCalculated={contractorsCalculated}
               onVolver={() => setCurrentView("calculadora")}
               selectedProject={selectedProject}
+              pagosContratistas={pagosContratistas}
             />
           )}
 
@@ -332,14 +482,18 @@ const PagosNominaMain = () => {
           )}
 
           {currentView === "contratistas" && (
-            <CalculadoraContratistas
+            <CalculadoraPagosContratistas
               projectId={selectedProject?.id}
               fechaPago={fechaPago}
               tasaCambio={tasaCambio}
               onGuardar={() => {
                 loadData();
                 setPagoParaEditar(null); // Clear edit state after save
+                setCurrentView("historial"); // Return to list
               }}
+              // If Editing Contractor (initialData present with type), disable onCalcular 
+              // to prevent redirection to Summary and allow Direct Update in component.
+              onCalcular={pagoParaEditar && pagoParaEditar.type === 'contratista' ? null : handleCalcularContratistas}
               initialData={pagoParaEditar && pagoParaEditar.type === 'contratista' ? pagoParaEditar : null}
             />
           )}

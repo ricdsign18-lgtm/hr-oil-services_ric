@@ -13,6 +13,7 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
   const [filterMonth, setFilterMonth] = useState(
     new Date().toISOString().slice(0, 7)
   );
+  /* Ref removed */
   const [selectedPaymentDetail, setSelectedPaymentDetail] = useState(null);
   const [paymentToDelete, setPaymentToDelete] = useState(null);
   const [expandedPaymentId, setExpandedPaymentId] = useState(null);
@@ -23,13 +24,19 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
 
   // Filter Logic
   const filteredPersonal = (pagosGuardados || [])
-    .filter((pago) => pago.fechaPago.startsWith(filterMonth))
+    .filter((pago) => !filterMonth || pago.fechaPago.startsWith(filterMonth))
     .sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago));
 
   const filteredContratistas = (pagosContratistas || [])
-    .filter((pago) => pago.fecha_pago.startsWith(filterMonth))
+    .filter((pago) => {
+      const matchDate = !filterMonth || pago.fecha_pago.startsWith(filterMonth);
+      // const isPayroll = parseFloat(pago.tasa_cambio) > 0; // REMOVED: potentially hiding valid payments with rate 0
+      return matchDate;
+    })
     .sort((a, b) => new Date(b.fecha_pago) - new Date(a.fecha_pago));
 
+  /* REMOVED SMART FILTER LOGIC AS PER USER REQUEST */
+  
   // --- Helper Functions ---
   const calcularPeriodoPago = (empleado, fechaPago) => {
     const fecha = new Date(fechaPago.replace(/-/g, '\/'));
@@ -143,6 +150,28 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
     }
 
     const fileName = `pagos_nomina_${pago.fechaPago}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
+  const exportContractorToExcel = (pago) => {
+    const formatContractorData = (c) => ({
+      "Contratista": c.nombre_contratista,
+      "Descripción": c.descripcion_trabajo || "",
+      "Total Días": c.total_personal_dias,
+      "Monto Diario ($)": parseFloat(c.monto_diario).toFixed(2),
+      "Total ($)": parseFloat(c.monto_total_usd).toFixed(2),
+      "Tasa Cambio": parseFloat(pago.tasa_cambio).toFixed(4),
+      "Total (Bs)": parseFloat(c.monto_total_bs).toFixed(2),
+      "Banco": c.banco_pago || "",
+      "Observaciones": c.observaciones || ""
+    });
+
+    const data = (pago.pagos || []).map(formatContractorData);
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, "Pagos Contratistas");
+    
+    const fileName = `pagos_contratistas_${pago.fecha_pago}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 

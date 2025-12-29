@@ -27,16 +27,27 @@ export const PersonalProvider = ({ children }) => {
     }
 
     try {
-      const { data, error } = await supabase
+      // 1. Fetch Employees
+      const { data: employeesData, error: employeesError } = await supabase
         .from("employees")
         .select("*")
         .eq("project_id", projectToUse)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (employeesError) throw employeesError;
 
-      // Transformar datos de la base de datos al formato de la app
-      const formattedData = data.map((emp) => ({
+      // 2. Fetch Contractors
+      const { data: contractorsData, error: contractorsError } = await supabase
+        .from("contratistas")
+        .select("*")
+        .eq("project_id", projectToUse)
+        .eq("activo", true) // Only active contractors
+        .order("nombre_contratista", { ascending: true });
+
+      if (contractorsError) throw contractorsError;
+
+      // 3. Transform Employees
+      const formattedEmployees = employeesData.map((emp) => ({
         id: emp.id,
         projectId: emp.project_id,
         nombre: emp.nombre,
@@ -60,15 +71,40 @@ export const PersonalProvider = ({ children }) => {
         fechaReactivacion: emp.fecha_reactivacion,
         createdAt: emp.created_at,
         updatedAt: emp.updated_at,
+        isContractor: false,
       }));
 
+      // 4. Transform Contractors to look like Employees
+      const formattedContractors = (contractorsData || []).map((c) => ({
+        id: `contractor-${c.id}`, // Synthetic ID
+        originalId: c.id,
+        projectId: c.project_id,
+        nombre: c.nombre_contratista,
+        apellido: "(Contratista)", // Visual indicator
+        cedula: "N/A",
+        cargo: c.descripcion_trabajo || "Contratista",
+        tipoNomina: "Contratista", // Special type
+        tipoSalario: "Diario", // They have daily rate
+        frecuenciaPago: "Semanal", // Integrated into weekly
+        montoSalario: parseFloat(c.monto_diario || 0),
+        montoLey: 0,
+        bonificacionEmpresa: 0,
+        porcentajeIslr: 0,
+        fechaIngreso: c.created_at,
+        estado: c.activo ? "Activo" : "Inactivo",
+        isContractor: true,
+        cantidadPersonal: c.cantidad_personal, // Extra field for reference
+      }));
+
+      // 5. Merge
+      const allPersonnel = [...formattedEmployees, ...formattedContractors];
+
       console.log(
-        `👥 PersonalContext: Empleados del proyecto ${projectToUse}:`,
-        formattedData.length
+        `👥 PersonalContext: ${formattedEmployees.length} Empleados + ${formattedContractors.length} Contratistas del proyecto ${projectToUse}`
       );
-      return formattedData;
+      return allPersonnel;
     } catch (error) {
-      console.error("Error cargando empleados:", error);
+      console.error("Error cargando personal (empleados + contratistas):", error);
       return [];
     }
   }, [selectedProject?.id]);
@@ -322,17 +358,24 @@ export const PersonalProvider = ({ children }) => {
 
       if (attendanceError) throw attendanceError;
 
-      // 2. Preparar registros individuales
-      const records = asistenciaData.registros.map((registro) => ({
-        attendance_id: attendance.id,
-        employee_id: registro.empleadoId,
-        nombre: registro.nombre, // Guardar nombre para fácil acceso
-        cedula: registro.cedula, // Guardar cédula para fácil acceso
-        cargo: registro.cargo, // Guardar cargo para fácil acceso
-        asistio: registro.asistio,
-        horas_trabajadas: parseFloat(registro.horasTrabajadas || 0),
-        observaciones: registro.observaciones || "",
-      }));
+      // 2. Preparar registros individuales (Excluir Contratistas)
+      const records = asistenciaData.registros
+        .filter(registro => !String(registro.empleadoId).startsWith('contractor-'))
+        .map((registro) => ({
+          attendance_id: attendance.id,
+          employee_id: registro.empleadoId,
+          nombre: registro.nombre, // Guardar nombre para fácil acceso
+          cedula: registro.cedula, // Guardar cédula para fácil acceso
+          cargo: registro.cargo, // Guardar cargo para fácil acceso
+          asistio: registro.asistio,
+          horas_trabajadas: parseFloat(registro.horasTrabajadas || 0),
+          observaciones: registro.observaciones || "",
+        }));
+
+      if (records.length === 0 && asistenciaData.registros.length > 0) {
+        console.warn("⚠️ PersonalContext: Todos los registros eran contratistas, no se guardó detalle de asistencia.");
+        // We still return attendance object as main record was created
+      }
 
       // 3. Eliminar registros existentes para esta fecha
       const { error: deleteError } = await supabase
@@ -528,6 +571,58 @@ export const PersonalProvider = ({ children }) => {
       return payrollPayment;
     } catch (error) {
       console.error("Error guardando pagos:", error);
+      throw error;
+    }
+  }, []);
+
+  const savePagosContratistas = useCallback(async (paymentData) => {
+    if (!paymentData.projectId) {
+      throw new Error("Project ID es requerido");
+    }
+
+    console.log("👷‍♂️ PersonalContext: Guardando pagos contratistas:", paymentData.pagos.length);
+
+    // Filter valid entries (must have contractor ID and some amount)
+    const validPagos = paymentData.pagos.filter(p => p.contratista_id && p.monto_total_usd > 0);
+
+    if (validPagos.length === 0) return;
+
+    try {
+      const payload = {
+        project_id: paymentData.projectId,
+        fecha_pago: paymentData.fechaPago,
+        tasa_cambio: parseFloat(paymentData.tasaCambio),
+        pagos: validPagos
+      };
+
+      // We are inserting a new record for the batch of payments for this date
+      // Note: The existing 'pagos_contratistas' table seems to store one ROW per payment batch (jsonb 'pagos')?
+      // Re-checking CalculadoraContratistas logic:
+      // It inserts/updates 'pagos_contratistas'. The schema seems to be:
+      // id, project_id, fecha_pago, tasa_cambio, pagos (JSONB)
+      
+      // We will check if a record already exists for this date and project to Update it, or Insert new.
+      // Ideally we would APPEND to the existing JSONB, but simple overwrite/upsert of the whole day's payment is safer/easier
+      // IF the user is saving everything from the main Calculator.
+      
+      // Strategy: Upsert based on project_id and fecha_pago IF there's a constraint, but generally we want to add to it.
+      // However, managing partial updates to a JSONB array is hard.
+      // For now, we will INSERT a new record. The 'CalculadoraPagos' saves a snapshot. 
+      // BEWARE: If multiple saves happen, multiple records might appear. 
+      // CalculadoraContratistas logic: 
+      // ".eq('id', initialData.id)" -> it edits a specific record. 
+      // Here we are creating a NEW one from the main payroll flow.
+      
+      const { error } = await supabase
+        .from("pagos_contratistas")
+        .insert([payload]);
+
+      if (error) throw error;
+
+      console.log("✅ PersonalContext: Pagos de contratistas guardados exitosamente");
+      return true;
+    } catch (error) {
+      console.error("Error guardando pagos contratistas:", error);
       throw error;
     }
   }, []);
@@ -739,6 +834,7 @@ export const PersonalProvider = ({ children }) => {
 
     // Pagos
     savePagos,
+    savePagosContratistas,
     getPagosByProject,
     getPagoById,
     deletePago,
@@ -758,6 +854,7 @@ export const PersonalProvider = ({ children }) => {
     getAsistenciasByProject,
     deleteAsistencia,
     savePagos,
+    savePagosContratistas,
     getPagosByProject,
     getPagoById,
     deletePago,

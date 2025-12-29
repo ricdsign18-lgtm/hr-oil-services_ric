@@ -5,14 +5,17 @@ import { usePersonal } from "../../../../../../../../../../../contexts/PersonalC
 import ModuleDescription from "../../../../../../../../../_core/ModuleDescription/ModuleDescription";
 import AsistenciaForm from "./components/AsistenciaForm";
 import HistorialAsistencias from "./components/HistorialAsistencias";
+import AsistenciaContratistas from "./components/AsistenciaContratistas";
+import supabase from "../../../../../../../../../../../api/supaBase";
+import InventoryHeader from "../../../../../../../../../operaciones/submodules/inventario/InventoryHeader";
 import "./AsistenciaDiariaMain.css";
 
-import { useAuth } from "../../../../../../../../../../../contexts/AuthContext"; // Import useAuth
+import { useAuth } from "../../../../../../../../../../../contexts/AuthContext";
 
 const AsistenciaDiariaMain = () => {
   const navigate = useNavigate();
   const { selectedProject } = useProjects();
-  const { hasPermissionSync } = useAuth(); // Destructure hasPermissionSync
+  const { hasPermissionSync } = useAuth();
   const {
     getEmployeesByProject,
     saveAsistencia,
@@ -29,8 +32,6 @@ const AsistenciaDiariaMain = () => {
   const [asistencias, setAsistencias] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ... (rest of the component logic remains the same until the button)
-
   // Cargar empleados y asistencias del proyecto actual
   useEffect(() => {
     loadData();
@@ -41,12 +42,49 @@ const AsistenciaDiariaMain = () => {
 
     setLoading(true);
     try {
-      const [employeesData, asistenciasData] = await Promise.all([
+      const [employeesData, asistenciasData, contratistasData] = await Promise.all([
         getEmployeesByProject(selectedProject.id),
         getAsistenciasByProject(selectedProject.id),
+        supabase
+          .from("asistencia_contratistas")
+          .select("*, contratistas(nombre_contratista)")
+          .eq("project_id", selectedProject.id)
+          .order("fecha", { ascending: false })
       ]);
-      setEmployees(employeesData);
-      setAsistencias(asistenciasData);
+
+      setEmployees(employeesData.filter(e => !e.isContractor));
+
+      // Group Contractor Attendance by Date to create History Cards
+      const groupedByDate = {};
+      (contratistasData.data || []).forEach(record => {
+          if (!groupedByDate[record.fecha]) {
+              groupedByDate[record.fecha] = [];
+          }
+          groupedByDate[record.fecha].push(record);
+      });
+
+      const contratistasHistory = Object.keys(groupedByDate).map(date => {
+          const records = groupedByDate[date];
+          return {
+              id: `contractor-attendance-${date}`,
+              fecha: date,
+              registros: records.map(r => ({
+                  empleadoId: r.contratista_id,
+                  nombre: r.contratistas?.nombre_contratista || "Contratista",
+                  cedula: "Contratista",
+                  asistio: r.asistio, 
+                  isContractor: true,
+                  details: `Personal: ${r.cantidad_personal_asistente}` 
+              })),
+              isContractorRecord: true
+          };
+      });
+
+      // Merge and sort
+      const allAsistencias = [...asistenciasData, ...contratistasHistory]
+          .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+      setAsistencias(allAsistencias);
     } catch (error) {
       console.error("Error cargando datos:", error);
       alert("Error al cargar datos: " + error.message);
@@ -82,13 +120,27 @@ const AsistenciaDiariaMain = () => {
         alert("No tienes permisos para realizar esta acción");
         return;
     }
-    if (window.confirm("¿Estás seguro de que deseas eliminar este registro de asistencia?")) {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este registro?")) {
       try {
-        await deleteAsistencia(id); // Asumiendo que deleteAsistencia está disponible en usePersonal
-        await loadData(); // Recargar datos
-        alert("Asistencia eliminada exitosamente");
+        // Check if it's a contractor record (ID Pattern: contractor-attendance-YYYY-MM-DD)
+        if (typeof id === 'string' && id.startsWith('contractor-attendance-')) {
+             const dateToDelete = id.replace('contractor-attendance-', '');
+             const { error } = await supabase
+                .from('asistencia_contratistas')
+                .delete()
+                .eq('project_id', selectedProject.id)
+                .eq('fecha', dateToDelete);
+             
+             if (error) throw error;
+        } else {
+             // Regular employee attendance
+             await deleteAsistencia(id); 
+        }
+
+        await loadData(); 
+        alert("Registro eliminado exitosamente");
       } catch (error) {
-        alert("Error al eliminar asistencia: " + error.message);
+        alert("Error al eliminar registro: " + error.message);
       }
     }
   };
@@ -100,8 +152,8 @@ const AsistenciaDiariaMain = () => {
       selectedProject.id
     );
   };
-  const estadisticasDelDia = () => {
 
+  const estadisticasDelDia = () => {
     return {
       total: employees.length,
       presentes: 0,
@@ -110,6 +162,7 @@ const AsistenciaDiariaMain = () => {
     };
   };
   const stats = estadisticasDelDia();
+  
   const statsCards =[
     {
       number: stats.total,
@@ -127,10 +180,11 @@ const AsistenciaDiariaMain = () => {
       number: stats.porcentaje,
       label: "Porcentaje",
     }
-  ]
+  ];
 
   return (
-    <div className="asistencia-diaria-main">
+    <main className="asistencia-diaria-main">
+      
       <button className="back-button" onClick={handleBack}>
         ← Volver a Nómina
       </button>
@@ -141,8 +195,30 @@ const AsistenciaDiariaMain = () => {
           selectedProject?.name || ""
         }`}
       />
+      
+      <section className="stats-cards-asistencia">
+        {statsCards.map((stat, index) => (
+          <div className="stat-card" key={index}>
+            <div className="stat-number-asistencia">{stat.number}</div>
+            <div className="stat-label-asistencia">{stat.label}</div>
+          </div>
+        ))}
+      </section>
 
-      <div className="asistencia-controls">
+    <section className="asistencia-content">
+      <header>
+
+        <InventoryHeader
+        tabs={[
+            { label: "Empleados", value: "registrar"},
+            { label: "Contratistas", value: "contratistas"},
+            { label: "Historial", value: "historial"},
+        ]}
+
+        activeTab={currentView}
+        onTabChange={setCurrentView}
+        />
+
         <div className="date-selector-asistencia">
           <label>Fecha de Asistencia:</label>
           <input
@@ -151,47 +227,17 @@ const AsistenciaDiariaMain = () => {
             onChange={(e) => setSelectedDate(e.target.value)}
             max={new Date().toISOString().split("T")[0]}
             disabled={loading}
-          />
+            />
         </div>
-
-        <div className="view-toggle">
-          {hasPermissionSync("administracion", "write") && (
-            <button
-                className={currentView === "registrar" ? "active" : ""}
-                onClick={() => setCurrentView("registrar")}
-                disabled={loading}
-            >
-                Registrar Asistencia
-            </button>
-          )}
-          <button
-            className={currentView === "historial" ? "active" : ""}
-            onClick={() => setCurrentView("historial")}
-            disabled={loading}
-          >
-            Ver Historial
-          </button>
-        </div>
-      </div>
-
+      </header>
       {loading ? (
         <div className="loading-state">
           <p>Cargando datos...</p>
         </div>
       ) : (
         <>
-            <div className="stats-cards-asistencia">
-            {statsCards.map((stat, index) => (
-              <div className="stat-card" key={index}>
-                <div className="stat-number-asistencia">{stat.number}</div>
-                <div className="stat-label-asistencia">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-
-          <div className="module-content">
-            {currentView === "registrar" ? (
+          <section className="module-content">
+            {currentView === "registrar" && (
               <AsistenciaForm
                 employees={employees}
                 selectedDate={selectedDate}
@@ -199,7 +245,9 @@ const AsistenciaDiariaMain = () => {
                 onSave={handleSaveAsistencia}
                 readOnly={!hasPermissionSync("administracion", "write")}
               />
-            ) : (
+            )}
+
+            {currentView === "historial" && (
               <HistorialAsistencias
                 asistencias={asistencias}
                 employees={employees}
@@ -210,10 +258,21 @@ const AsistenciaDiariaMain = () => {
                 onDelete={handleDeleteAsistencia}
               />
             )}
-          </div>
+            
+            {currentView === "contratistas" && (
+             <AsistenciaContratistas
+               projectId={selectedProject?.id}
+               fecha={selectedDate}
+               onGuardar={() => {
+                 loadData();
+               }}
+             />
+           )}
+          </section>
         </>
       )}
-    </div>
+    </section>
+    </main>
   );
 };
 

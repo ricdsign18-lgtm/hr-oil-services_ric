@@ -1,7 +1,6 @@
 .contrataciones-main {
     padding: 1.5rem;
     background-color: #111827;
-    /* Dark background */
     min-height: 100vh;
     color: #f3f4f6;
 }
@@ -112,7 +111,7 @@
     background-color: transparent;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
     .header-title-row {
         flex-direction: column;

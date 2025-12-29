@@ -51,6 +51,10 @@
     vertical-align: middle;
 }
 
+.contratistas-pay-table tr:hover {
+    background-color: transparent !important;
+}
+
 .days-inputs {
     display: flex;
     gap: 0.5rem;
@@ -75,49 +79,104 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.5rem;
 }
 
+/* Single Day Mode: Horizontal Layout */
+.single-day-mode .check-input-stack {
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+}
+
+.single-day-mode .day-checkbox-small {
+    margin-top: 0;
+}
+
+.single-day-mode .day-number-input:not(.dimmed) {
+    margin-top: 0;
+}
+
+/* Toggle Switch Style */
 .day-checkbox-small {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 42px;
+    height: 24px;
+    background: #374151;
+    border-radius: 24px;
+    position: relative;
     cursor: pointer;
-    width: 14px;
-    height: 14px;
-    margin: 0;
-    accent-color: #3b82f6;
+    outline: none;
+    transition: background 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
+    border: 1px solid #4b5563;
 }
 
+.day-checkbox-small::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: #9ca3af;
+    border-radius: 50%;
+    transition: transform 0.3s ease, background 0.3s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.day-checkbox-small:checked {
+    background: #2563eb;
+    border-color: #3b82f6;
+}
+
+.day-checkbox-small:checked::after {
+    transform: translateX(18px);
+    background: white;
+}
+
+/* Styled Number Input */
 .day-number-input {
-    width: 36px;
-    background-color: #374151;
+    width: 60px;
+    background-color: #1f2937;
     border: 1px solid #4b5563;
     color: white;
     text-align: center;
-    border-radius: 0.25rem;
-    padding: 0.2rem;
-    font-size: 0.8rem;
-    height: 24px;
+    border-radius: 0.5rem;
+    padding: 0.4rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    height: 40px;
+    transition: all 0.2s ease;
     /* Hide spinners in Firefox */
     -moz-appearance: textfield;
-}
-
-/* Hide spinners in Chrome, Safari, Edge, Opera */
-.day-number-input::-webkit-inner-spin-button,
-.day-number-input::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
 }
 
 .day-number-input:focus {
     outline: none;
     border-color: #60a5fa;
-    background-color: #1f2937;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+    background-color: #111827;
 }
 
 .day-number-input.dimmed {
-    opacity: 0.3;
-    border-color: #374151;
-    background-color: #1f2937;
-    cursor: not-allowed;
+    opacity: 0.0; /* Hide completely when disabled/unchecked for cleaner look */
+    pointer-events: none;
+    height: 0; 
+    margin: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    /* Transition for smooth hide */
+    transition: all 0.3s ease;
+}
+
+/* When not dimmed (active), ensure it animates in */
+.day-number-input:not(.dimmed) {
+    opacity: 1;
+    height: 40px;
+    margin-top: 0.25rem;
 }
 
 .c-name {
@@ -247,9 +306,9 @@
     width: 100%;
     padding: 0.5rem;
     margin: 1rem 0;
-    background: #374151;
+   
     border: 1px solid #4b5563;
-    color: white;
+
     border-radius: 0.25rem;
 }
 
@@ -269,4 +328,56 @@
 .confirm-btn {
     background: #2563eb;
     color: white;
+}
+
+/* Read-only breakdown styles */
+.daily-breakdown-readonly {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.day-val-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #374151;
+  border-radius: 4px;
+  padding: 4px 6px;
+  min-width: 32px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.day-label-sm {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.day-val-num {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6b7280; /* Dimmed if 0 */
+}
+
+.day-val-num.has-val {
+  color: #ffffff;
+  font-weight: 700;
+  color: #60a5fa; /* Blue accent */
+}
+
+.stats-total-dias {
+  font-size: 1.1rem;
+  color: #34d399; /* Green for total */
+}
+
+/* Adjust table widths if needed */
+.contratistas-pay-table th {
+  white-space: nowrap;
 }

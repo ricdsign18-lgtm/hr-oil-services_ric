@@ -16,8 +16,46 @@
 .asistencia-diaria-main {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 1rem;
+
+  .back-button{
+    padding: 10px;
+    margin: 10px 0px 0px 30px;
+ 
+  }
+
+  .asistencia-content {
+    background-color: var(--gray-800);
+    margin: 30px;
+    padding: 1rem;
+    border-radius: 15px;
+  }
+
+  .stats-cards-asistencia {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    padding: 0 10px;
+    background: transparent;
+    
+    .stat-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-800);
+      width: 30vh;
+      border: 1px solid var(--gray-700);
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+  }
 }
+
 
 .asistencia-controls {
   display: flex;
@@ -33,6 +71,7 @@
 
 .date-selector-asistencia {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
   gap: 1rem;
 }
@@ -87,27 +126,7 @@
   color: var(--gray-200);
 }
 
-.stats-cards-asistencia {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  padding: 0 10px;
-  background: transparent;
-}
 
-.stat-card {
-  background: var(--gray-800) !important;
-  border: 1px solid var(--gray-700) !important;
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
-  text-align: center;
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
 
 .stat-card.total-asistencia,
 .stat-card.present-asistencia,
@@ -133,29 +152,6 @@
   letter-spacing: 0.05em;
 }
 
-.back-button {
-  background: none;
-  border: none;
-  color: var(--gray-400);
-  cursor: pointer;
-  padding: 0.5rem 0;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: color 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border: 1px solid var(--gray-700);
-  padding: 8px 16px;
-  border-radius: 4px;
-  width: fit-content;
-}
-
-.back-button:hover {
-  background-color: var(--gray-800);
-  color: var(--gray-200);
-}
 
 @media (max-width: 768px) {
   .asistencia-controls {

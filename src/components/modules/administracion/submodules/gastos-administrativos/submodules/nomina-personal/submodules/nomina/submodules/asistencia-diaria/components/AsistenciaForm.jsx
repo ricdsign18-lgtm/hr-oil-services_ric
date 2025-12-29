@@ -10,6 +10,7 @@ import {
   InfoIcon,
 } from "../../../../../../../../../../../../assets/icons/Icons";
 
+
 const AsistenciaForm = ({
   employees,
   selectedDate,
@@ -25,6 +26,7 @@ const AsistenciaForm = ({
 
   const [showInstructions, setShowInstructions] = useState(false);
 
+
   useEffect(() => {
     loadExistingAsistencia();
   }, [employees, selectedDate]);
@@ -37,6 +39,7 @@ const AsistenciaForm = ({
       if (existingAsistencia) {
         setAsistencias(existingAsistencia.registros);
         setIsEditing(true);
+
       } else {
         // Inicializar con todos los empleados ACTIVOS como presentes por defecto
         const activeEmployees = employees.filter(emp => emp.estado !== "Inactivo");
@@ -287,22 +290,27 @@ const AsistenciaForm = ({
 
             <div className="employees-scroll-container-asistencia-form">
               {asistencias.map((registro) => (
-                <div
+                <section
                   key={registro.empleadoId}
                   className={`employee-row ${registro.asistio ? "present" : "absent"}`}
                 >
-                  <div className="employee-info">
-                    <div className="employee-name">{registro.nombre}</div>
+                  <section className="employee-info">
+
+                    <h2>{registro.nombre}</h2>
+
                     <div className="employee-details">
-                      <span className="cedula-badge">C.I. {registro.cedula}</span>
+
+                      <span className="cedula-badge">
+                        C.I. {registro.cedula}
+                      </span>
+
                       <span className="cargo-badge">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                         {registro.cargo}
                       </span>
                     </div>
-                  </div>
+                  </section>
 
-                  <div className="card-section">
+                  <section className="card-section">
                     <div className="card-section-title">ASISTENCIA</div>
                     <div className="attendance-toggle-segmented">
                       <button 
@@ -326,9 +334,9 @@ const AsistenciaForm = ({
                         </div>
                       </button>
                     </div>
-                  </div>
+                  </section>
 
-                  <div className="card-section">
+                  <section className="card-section">
                      <div className="card-section-title">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px'}}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         HORAS TRABAJADAS
@@ -367,9 +375,9 @@ const AsistenciaForm = ({
                           +
                         </button>
                      </div>
-                  </div>
+                  </section>
 
-                  <div className="card-section">
+                  <section className="card-section">
                     <div className="card-section-title">OBSERVACIONES</div>
                     <div className="observations-input-wrapper">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="input-icon"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -387,8 +395,8 @@ const AsistenciaForm = ({
                         className="custom-input"
                       />
                     </div>
-                  </div>
-                </div>
+                  </section>
+                </section>
               ))}
             </div>
           </>
@@ -396,9 +404,9 @@ const AsistenciaForm = ({
       </div>
 
       {!readOnly && (
-        <div className="form-actions">
+        <div className="form-actions-save-btn">
           <button
-            className="btn-save-asistencia-form"
+            className="btn-save-asistencia"
             onClick={handleSave}
             disabled={asistencias.length === 0 || isFutureDate}
           >
@@ -407,14 +415,14 @@ const AsistenciaForm = ({
               : "💾 Guardar Asistencia del Día"}
           </button>
 
-          {isEditing && (
+          {/* {isEditing && (
             <div className="saved-info">
               <p>
                 ✅ <strong>Asistencia registrada anteriormente</strong>
               </p>
               <small>Puedes modificar los registros y guardar los cambios.</small>
             </div>
-          )}
+          )} */}
         </div>
       )}
 
@@ -456,6 +464,8 @@ const AsistenciaForm = ({
           </div>
         </div>
       )}
+
+
     </div>
   );
 };

@@ -109,8 +109,8 @@ const HistorialAsistencias = ({ asistencias, employees, onDateSelect, onDelete }
                         key={registro.empleadoId}
                         className="employee-detail"
                       >
-                        <span className="employee-name">{registro.nombre}</span>
-                        <span className="employee-cedula">
+                        <span className="employee-name-historial">{registro.nombre}</span>
+                        <span className="employee-cedula-historial">
                           C.I. {registro.cedula}
                         </span>
                         <span
