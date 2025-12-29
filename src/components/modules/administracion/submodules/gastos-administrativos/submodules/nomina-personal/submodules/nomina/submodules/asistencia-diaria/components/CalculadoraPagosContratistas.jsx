@@ -236,7 +236,7 @@ const CalculadoraPagosContratistas = ({ projectId, fechaPago, tasaCambio, onGuar
                         <tr>
                             <th className="text-left">Contratista</th>
                             <th className="text-center">Detalle Asistencia (Personas x Día)</th>
-                            <th className="text-right">Monto Diario ($)</th>
+                            <th className="text-right">Monto Diario X Persona($)</th>
                             <th className="text-right">Total ($)</th>
                             <th className="text-right">Total (Bs)</th>
                             <th className="text-left">Banco</th>
