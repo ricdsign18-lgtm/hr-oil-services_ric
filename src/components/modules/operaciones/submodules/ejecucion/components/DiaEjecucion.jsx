@@ -11,12 +11,11 @@ export const DiaEjecucion = ({ dia, onBack }) => {
     if (!diaId) return;
     setLoading(true);
     const { data, error } = await supabase
-      .from('planificacion_actividades')
+      .from('plan_actividades')
       .select(`
         *,
-        equipos (nombre, tag_serial),
-        budget_items (description, unit),
-        ejecucion_actividades ( id, estado, avance_fisico )
+        subactividades:plan_subactividades(*),
+        personal:plan_actividad_personal(*)
       `)
       .eq('dia_id', diaId)
       .order('created_at');

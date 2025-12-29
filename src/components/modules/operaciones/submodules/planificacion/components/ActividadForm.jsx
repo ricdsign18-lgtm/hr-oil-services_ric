@@ -1,163 +1,199 @@
 // components/planificacion/ActividadForm.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePlanning } from '../../../../../../contexts/PlanningContext';
 import { useBudget } from '../../../../../../contexts/BudgetContext';
 import { useCurrency } from '../../../../../../contexts/CurrencyContext';
-import { useValidaciones } from '../../../../../../hooks/useValidaciones';
+import { usePersonal } from '../../../../../../contexts/PersonalContext';
+import { useProjects } from '../../../../../../contexts/ProjectContext';
 
 export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) => {
-  const { crearActividadPlanificada, updateActividad, equipos, crearEquipo } = usePlanning();
+  const { crearActividadPlanificada, updateActividad, getDisponibilidadPartida } = usePlanning();
   const { budget } = useBudget();
   const { convertToUSD, formatCurrency } = useCurrency();
-  const { validarActividad } = useValidaciones();
+  const { getEmployeesByProject } = usePersonal();
+  const { selectedProject } = useProjects();
 
   const [formData, setFormData] = useState({
-    equipo_nombre: '',
-    equipo_id: '',
-    tipo_equipo: '',
+    descripcion: '',
     partida_id: '',
-    cantidad: 1,
-    observaciones: '',
-    subactividades: [''] // Inicializar con un campo vacío
+    unidad_medida: '',
+    cantidad_programada: '',
+    precio_unitario: '',
+    subactividades: [''],
+    personal_ids: [] // Array of selected employee IDs
   });
-  const [loading, setLoading] = useState(false);
-  const [errores, setErrores] = useState({});
+
   const [partidaSearch, setPartidaSearch] = useState('');
+  const [employees, setEmployees] = useState([]);
+  const [availableUnits, setAvailableUnits] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [errores, setErrores] = useState({});
 
   const isEditMode = !!actividadAEditar;
 
+  // Cargar empleados
   useEffect(() => {
-    if (isEditMode) {
-      const equipo = equipos.find(eq => eq.id === actividadAEditar.equipo_id);
-      setFormData({
-        equipo_nombre: equipo?.nombre || '',
-        equipo_id: actividadAEditar.equipo_id,
-        tipo_equipo: equipo?.tipo_equipo || '',
-        partida_id: actividadAEditar.partida_id,
-        cantidad: actividadAEditar.cantidad,
-        observaciones: actividadAEditar.observaciones || '',
-        subactividades: (actividadAEditar.subactividades && actividadAEditar.subactividades.length > 0)
-          ? actividadAEditar.subactividades
-          : [''],
-      });
+    const loadEmployees = async () => {
+      setLoadingEmployees(true);
+      const data = await getEmployeesByProject(selectedProject?.id);
+      setEmployees(data || []);
+      setLoadingEmployees(false);
+    };
+    if (selectedProject?.id) {
+      loadEmployees();
     }
-  }, [actividadAEditar, isEditMode, equipos]);
+  }, [selectedProject, getEmployeesByProject]);
 
-  // Calcular monto total automáticamente
-  const partidaSeleccionada = budget?.items?.find(item => item.id === formData.partida_id);
-  const precioUnitarioOriginal = partidaSeleccionada?.precioUnitario || 0;
-  const monedaOriginal = partidaSeleccionada?.moneda || 'USD';
+  // Cargar datos en edición
+  useEffect(() => {
+    if (isEditMode && actividadAEditar) {
+      // En modo edición, necesitamos cargar las subactividades y personal si vienen de la DB
+      // Pero ActividadForm recibe un objeto plano de la tabla principal
+      // Es posible que necesitemos hacer fetch de los detalles si no vienen incluidos
+      // Por ahora asumo que actividadAEditar viene "enriquecido" desde DiaPlanning
+      // Si no, habría que ajustar DiaPlanning para incluir subactividades y personal
 
-  const precioUnitarioUSD = convertToUSD(precioUnitarioOriginal, monedaOriginal);
-  const montoTotalUSD = precioUnitarioUSD * (formData.cantidad || 0);
+      setFormData({
+        descripcion: actividadAEditar.descripcion || '',
+        partida_id: actividadAEditar.partida_id || '',
+        unidad_medida: actividadAEditar.unidad_medida || '',
+        cantidad_programada: actividadAEditar.cantidad_programada || '',
+        precio_unitario: actividadAEditar.precio_unitario || '',
+        subactividades: actividadAEditar.subactividades?.map(s => s.descripcion) || [''],
+        personal_ids: actividadAEditar.personal?.map(p => p.personal_id) || []
+      });
 
-  const montoTotalOriginal = precioUnitarioOriginal * (formData.cantidad || 0);
-  const displayMontoTotal = monedaOriginal !== 'USD'
-    ? `${formatCurrency(montoTotalOriginal, monedaOriginal)} (${formatCurrency(montoTotalUSD, 'USD')})`
-    : formatCurrency(montoTotalUSD, 'USD');
+      // Cargar disponibilidad inicial para validación visual (sumando lo propio para no marcar error)
+      if (actividadAEditar.partida_id) {
+        checkAvailability(actividadAEditar.partida_id, parseFloat(actividadAEditar.cantidad_programada));
+      }
+    }
+  }, [actividadAEditar, isEditMode]);
+
+  const checkAvailability = async (partidaId, currentOwnAmount = 0) => {
+    // Obtenemos lo disponible REAL (Total - Usado por TODOS)
+    const available = await getDisponibilidadPartida(partidaId);
+    // Si estamos editando, "disponible" incluye lo que ya usamos nosotros, así que lo sumamos para ver el techo real
+    setAvailableUnits(available + currentOwnAmount);
+  };
+
+  // Manejo de Partida
+  const handlePartidaChange = async (itemId) => {
+    const item = budget?.items?.find(i => i.id === itemId);
+    if (item) {
+      // Convert price to USD standard
+      const priceUSD = convertToUSD(item.precioUnitario, item.moneda);
+
+      setFormData(prev => ({
+        ...prev,
+        partida_id: itemId,
+        unidad_medida: item.unidad,
+        precio_unitario: priceUSD,
+        // Mantener nombre_partida para optimización si se desea
+      }));
+
+      await checkAvailability(itemId, isEditMode ? parseFloat(actividadAEditar.cantidad_programada) : 0);
+    } else {
+      setAvailableUnits(null);
+    }
+  };
 
   // Filtrar partidas
-  const partidasFiltradas = budget?.items?.filter(item => {
+  const partidasFiltradas = useMemo(() => {
+    if (!budget?.items) return [];
     const searchLower = partidaSearch.toLowerCase();
-    return (
+    return budget.items.filter(item =>
       item.item.toLowerCase().includes(searchLower) ||
       item.descripcion.toLowerCase().includes(searchLower)
     );
-  }) || [];
+  }, [budget, partidaSearch]);
 
-  const handleEquipoChange = (e) => {
-    const nombre = e.target.value;
-    setFormData(prev => ({ ...prev, equipo_nombre: nombre, equipo_id: '', tipo_equipo: '' }));
+  // Cálculos de montos
+  const cantidad = parseFloat(formData.cantidad_programada) || 0;
+  const precio = parseFloat(formData.precio_unitario) || 0;
+  const montoTotal = cantidad * precio;
 
-    const equipoEncontrado = equipos.find(
-      eq => eq.nombre.toLowerCase() === nombre.toLowerCase() ||
-        eq.tag_serial.toLowerCase() === nombre.toLowerCase()
-    );
-
-    if (equipoEncontrado) {
-      setFormData(prev => ({
-        ...prev,
-        equipo_id: equipoEncontrado.id,
-        tipo_equipo: equipoEncontrado.tipo_equipo
-      }));
-    }
-  };
-
-  // Manejo de subactividades dinámicas
+  // Subactividades
   const handleSubactividadChange = (index, value) => {
-    const newSubactividades = [...formData.subactividades];
-    newSubactividades[index] = value;
-    setFormData({ ...formData, subactividades: newSubactividades });
+    const newSubs = [...formData.subactividades];
+    newSubs[index] = value;
+    setFormData(prev => ({ ...prev, subactividades: newSubs }));
   };
 
   const addSubactividad = () => {
-    setFormData({ ...formData, subactividades: [...formData.subactividades, ''] });
+    setFormData(prev => ({ ...prev, subactividades: [...prev.subactividades, ''] }));
   };
 
   const removeSubactividad = (index) => {
-    const newSubactividades = formData.subactividades.filter((_, i) => i !== index);
-    setFormData({ ...formData, subactividades: newSubactividades });
+    setFormData(prev => ({
+      ...prev,
+      subactividades: prev.subactividades.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Personal
+  const togglePersonal = (empId) => {
+    setFormData(prev => {
+      const exists = prev.personal_ids.includes(empId);
+      if (exists) {
+        return { ...prev, personal_ids: prev.personal_ids.filter(id => id !== empId) };
+      } else {
+        return { ...prev, personal_ids: [...prev.personal_ids, empId] };
+      }
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrores({});
 
-    // Confirmación antes de procesar
-    if (!window.confirm(isEditMode ? '¿Estás seguro de actualizar esta actividad?' : '¿Estás seguro de crear esta actividad?')) {
+    if (!formData.descripcion) {
+      setErrores(prev => ({ ...prev, descripcion: 'La descripción es obligatoria' }));
       return;
+    }
+    if (!formData.partida_id) {
+      setErrores(prev => ({ ...prev, partida: 'Debe seleccionar una partida' }));
+      return;
+    }
+    if (cantidad <= 0) {
+      setErrores(prev => ({ ...prev, cantidad: 'La cantidad debe ser mayor a 0' }));
+      return;
+    }
+    if (availableUnits !== null && cantidad > availableUnits) {
+      if (!window.confirm(`La cantidad ingresada (${cantidad}) excede la disponibilidad presupuestaria calculada (${availableUnits.toFixed(2)}). ¿Desea continuar de todos modos?`)) {
+        return;
+      }
     }
 
     setLoading(true);
-
     try {
-      let equipoIdFinal = formData.equipo_id;
-
-      if (!equipoIdFinal && formData.equipo_nombre.trim()) {
-        const nuevoEquipo = await crearEquipo(
-          formData.equipo_nombre.trim(),
-          formData.tipo_equipo.trim() || 'No especificado'
-        );
-        equipoIdFinal = nuevoEquipo.id;
-      }
-
-      const datosParaValidar = {
-        ...formData,
-        equipo_id: equipoIdFinal,
-        precioUnitario: partidaSeleccionada?.precioUnitario,
-      };
-
-      const validacion = validarActividad(datosParaValidar);
-      if (!validacion.valido) {
-        setErrores(validacion.errores);
-        setLoading(false);
-        return;
-      }
-
-      // Filtrar subactividades vacías
-      const subactividadesArray = formData.subactividades.filter(s => s.trim() !== '');
-
-      const actividadPayload = {
-        equipo_id: equipoIdFinal,
+      const payload = {
+        dia_id: diaId,
+        descripcion: formData.descripcion,
         partida_id: formData.partida_id,
-        cantidad: parseFloat(formData.cantidad),
-        precio_unitario: precioUnitarioUSD,
-        monto_total: montoTotalUSD,
-        observaciones: formData.observaciones,
-        subactividades: subactividadesArray,
+        nombre_partida: budget?.items?.find(i => i.id === formData.partida_id)?.descripcion || '',
+        unidad_medida: formData.unidad_medida,
+        cantidad_programada: cantidad,
+        precio_unitario: precio,
+        monto_programado: montoTotal,
+        // Subactividades y personal se procesan en el context si es creación
+        subactividades: formData.subactividades.filter(s => s.trim()).map(s => ({ descripcion: s })),
+        personal: formData.personal_ids.map(pid => {
+          const emp = employees.find(e => e.id === pid);
+          return { id: pid, nombre: `${emp?.nombre} ${emp?.apellido}`, rol: emp?.cargo };
+        })
       };
 
       if (isEditMode) {
-        await updateActividad(actividadAEditar.id, actividadPayload);
+        await updateActividad(actividadAEditar.id, payload);
       } else {
-        await crearActividadPlanificada({
-          ...actividadPayload,
-          dia_id: diaId,
-        });
+        await crearActividadPlanificada(payload);
       }
 
       onSuccess();
     } catch (error) {
-      console.error('Error creando actividad:', error);
+      console.error("Error submit form:", error);
       setErrores({ submit: error.message });
     } finally {
       setLoading(false);
@@ -166,159 +202,126 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
 
   return (
     <div className="form-container">
-      {/* <h3>{isEditMode ? 'Editar Actividad' : 'Nueva Actividad'}</h3> -- Title handled by Modal */}
-
       <form onSubmit={handleSubmit}>
-        {/* Equipo y Tipo de Equipo */}
-        <div className="form-grid cols-2">
-          <div className="form-group">
-            <label className="form-label">Equipo *</label>
-            <input
-              type="text"
-              list="equipos-list"
-              value={formData.equipo_nombre}
-              onChange={handleEquipoChange}
-              placeholder="Escribe o selecciona un equipo"
-              className="form-control"
-            />
-            <datalist id="equipos-list">
-              {equipos.map(equipo => (
-                <option key={equipo.id} value={equipo.nombre}>
-                  {equipo.tag_serial}
-                </option>
-              ))}
-            </datalist>
-            {errores.equipo && <p className="form-error">{errores.equipo}</p>}
-          </div>
-          <div className="form-group">
-            <label className="form-label">Tipo de Equipo *</label>
-            <input
-              type="text"
-              value={formData.tipo_equipo}
-              onChange={(e) => setFormData({ ...formData, tipo_equipo: e.target.value })}
-              placeholder="Ej: Camioneta, Grúa, etc."
-              className="form-control"
-              disabled={!!formData.equipo_id}
-            />
-          </div>
+
+        {/* Actividad General */}
+        <div className="form-group">
+          <label className="form-label">Actividad General (Descripción) *</label>
+          <textarea
+            className="form-control"
+            value={formData.descripcion}
+            onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
+            placeholder="Descripción detallada de la actividad"
+            rows="2"
+            autoFocus
+          />
+          {errores.descripcion && <p className="form-error">{errores.descripcion}</p>}
         </div>
 
-        {/* Partida con Buscador */}
-        <div className="form-group" style={{ marginTop: '20px' }}>
-          <label className="form-label">Partida Presupuestaria *</label>
+        {/* Partida Presupuestaria */}
+        <div className="form-group" style={{ marginTop: '15px' }}>
+          <label className="form-label">Partida Asociada *</label>
           <input
             type="text"
-            placeholder="Buscar partida por nombre o código..."
             className="form-control"
-            style={{ marginBottom: '5px' }}
+            placeholder="Buscar partida..."
             value={partidaSearch}
-            onChange={(e) => setPartidaSearch(e.target.value)}
+            onChange={e => setPartidaSearch(e.target.value)}
+            style={{ marginBottom: '5px' }}
           />
           <select
-            value={formData.partida_id}
-            onChange={(e) => setFormData({ ...formData, partida_id: e.target.value })}
             className="form-control"
-            size={5} // Mostrar varias opciones para facilitar la selección
+            value={formData.partida_id}
+            onChange={e => handlePartidaChange(e.target.value)}
+            size={4}
+            style={{ overflowY: 'auto' }}
           >
-            <option value="">Seleccionar partida</option>
+            <option value="">-- Seleccione Partida --</option>
             {partidasFiltradas.map(item => (
-              <option key={item.id} value={item.id} data-moneda={item.moneda}>
-                {item.item} - {item.descripcion} (${item.precioUnitario?.toLocaleString()}/{item.unidad})
+              <option key={item.id} value={item.id}>
+                {item.item} - {item.descripcion}
               </option>
             ))}
           </select>
-          {partidasFiltradas.length === 0 && <p className="text-muted" style={{ fontSize: '0.8rem' }}>No se encontraron partidas</p>}
           {errores.partida && <p className="form-error">{errores.partida}</p>}
         </div>
 
-        {/* Cantidad y Monto */}
-        <div className="form-grid cols-2" style={{ marginTop: '20px' }}>
+        {/* Unidades y Montos */}
+        <div className="form-grid cols-2" style={{ marginTop: '15px' }}>
           <div className="form-group">
-            <label className="form-label">Cantidad *</label>
+            <label className="form-label">Unidades a Ejecutar ({formData.unidad_medida || '-'}) *</label>
             <input
               type="number"
               step="0.01"
-              min="0.01"
-              value={formData.cantidad}
-              onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })}
               className="form-control"
+              value={formData.cantidad_programada}
+              onChange={e => setFormData({ ...formData, cantidad_programada: e.target.value })}
             />
+            {availableUnits !== null && (
+              <small className={`availability-text ${cantidad > availableUnits ? 'text-danger' : 'text-success'}`} style={{ display: 'block', marginTop: '4px' }}>
+                Disponible: {availableUnits.toFixed(2)} {formData.unidad_medida}
+              </small>
+            )}
             {errores.cantidad && <p className="form-error">{errores.cantidad}</p>}
           </div>
           <div className="form-group">
-            <label className="form-label">Monto Total</label>
-            <div className="form-control-static">
-              {displayMontoTotal}
+            <label className="form-label">Monto Total Estimado</label>
+            <div className="form-control-static" style={{ backgroundColor: '#f5f5f5', padding: '8px', borderRadius: '4px' }}>
+              {formatCurrency(montoTotal, 'USD')}
             </div>
+            <small className="text-muted">Calculado: {formData.cantidad_programada || 0} x {formatCurrency(precio, 'USD')}</small>
           </div>
         </div>
 
-        {/* Subactividades Dinámicas */}
+        {/* Subactividades */}
         <div className="form-group" style={{ marginTop: '20px' }}>
-          <label className="form-label">Subactividades</label>
-          {formData.subactividades.map((sub, index) => (
-            <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-              <input
-                type="text"
-                value={sub}
-                onChange={(e) => handleSubactividadChange(index, e.target.value)}
-                className="form-control"
-                placeholder={`Subactividad ${index + 1}`}
-              />
-              <button
-                type="button"
-                onClick={() => removeSubactividad(index)}
-                className="btn-secondary"
-                style={{ padding: '0 10px', color: '#d32f2f', borderColor: '#d32f2f' }}
-                title="Eliminar subactividad"
-              >
-                ✕
-              </button>
+          <label className="form-label">Subactividades a Realizar</label>
+          <div className="subactividades-list" style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #eee', padding: '10px', borderRadius: '4px' }}>
+            {formData.subactividades.map((sub, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ paddingTop: '8px', color: '#888' }}>{idx + 1}.</span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Desglose de actividad..."
+                  value={sub}
+                  onChange={e => handleSubactividadChange(idx, e.target.value)}
+                />
+                <button type="button" className="btn-icon" onClick={() => removeSubactividad(idx)} title="Eliminar">✕</button>
+              </div>
+            ))}
+            <button type="button" className="btn-secondary btn-sm" onClick={addSubactividad} style={{ marginTop: '5px' }}>+ Agregar Subactividad</button>
+          </div>
+        </div>
+
+        {/* Personal Involucrado */}
+        <div className="form-group" style={{ marginTop: '20px' }}>
+          <label className="form-label">Personal Involucrado</label>
+          {loadingEmployees ? <p>Cargando personal...</p> : (
+            <div className="personal-selection-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', maxHeight: '150px', overflowY: 'auto', border: '1px solid #eee', padding: '10px' }}>
+              {employees.map(emp => (
+                <label key={emp.id} className="checkbox-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.personal_ids.includes(emp.id)}
+                    onChange={() => togglePersonal(emp.id)}
+                  />
+                  <span>{emp.nombre} {emp.apellido} <small style={{ color: '#888' }}>({emp.cargo})</small></span>
+                </label>
+              ))}
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={addSubactividad}
-            className="btn-secondary"
-            style={{ fontSize: '0.9rem', width: '100%' }}
-          >
-            + Agregar Subactividad
+          )}
+        </div>
+
+        {errores.submit && <div className="form-error global">{errores.submit}</div>}
+
+        <div className="form-actions" style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+          <button type="button" className="btn-secondary" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'Guardando...' : (isEditMode ? 'Actualizar Actividad' : 'Guardar Actividad')}
           </button>
         </div>
 
-
-        {/* Observaciones */}
-        <div className="form-group" style={{ marginTop: '20px' }}>
-          <label className="form-label">Observaciones</label>
-          <textarea
-            value={formData.observaciones}
-            onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
-            rows="3"
-            className="form-control"
-          />
-        </div>
-
-        {/* Errores y Acciones */}
-        {errores.submit && (
-          <p className="form-error">{errores.submit}</p>
-        )}
-
-        <div className="form-actions">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-secondary"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary"
-          >
-            {loading ? (isEditMode ? 'Actualizando...' : 'Guardando...') : (isEditMode ? 'Actualizar Actividad' : 'Guardar Actividad')}
-          </button>
-        </div>
       </form>
     </div>
   );

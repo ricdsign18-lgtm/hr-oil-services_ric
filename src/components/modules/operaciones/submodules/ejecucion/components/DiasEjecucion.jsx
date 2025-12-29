@@ -12,7 +12,7 @@ export const DiasEjecucion = ({ semanaId }) => {
     if (!id) return;
     setLoading(true);
     const { data, error } = await supabase
-      .from('planificacion_dias')
+      .from('plan_dias')
       .select('*')
       .eq('semana_id', id)
       .order('fecha');

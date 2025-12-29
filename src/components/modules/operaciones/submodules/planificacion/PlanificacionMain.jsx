@@ -13,7 +13,7 @@ import './Planning.css';
 
 
 const PlanificacionMain = () => {
-    const { semanas, loading, guardarSemanasGeneradas, getSemanasPlanificacion, eliminarPlanificacion } = usePlanning();
+    const { semanas, loading, guardarSemanasGeneradas, getSemanasPlanificacion, eliminarPlanificacion, syncProjectTotals } = usePlanning();
     const { generarSemanasProyecto } = useGeneradorSemanas();
     const { selectedProject } = useProjects();
     const { showToast } = useNotification();
@@ -74,6 +74,17 @@ const PlanificacionMain = () => {
                             description={semanas.length > 0 ? `${semanas.length} semanas planificadas` : "Gestión y generación de semanas de trabajo"}
                             action={
                                 <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button
+                                        className="btn-info-circle"
+                                        onClick={async () => {
+                                            await syncProjectTotals();
+                                            showToast("Sincronización de montos detallada completada", "success");
+                                        }}
+                                        title="Recalcular y Sincronizar Totales"
+                                        style={{ backgroundColor: '#e0f2f1', color: '#00695c', borderColor: '#80cbc4' }}
+                                    >
+                                        🔄
+                                    </button>
                                     {semanas.length > 0 && (
                                         <button
                                             className="btn-info-circle"
