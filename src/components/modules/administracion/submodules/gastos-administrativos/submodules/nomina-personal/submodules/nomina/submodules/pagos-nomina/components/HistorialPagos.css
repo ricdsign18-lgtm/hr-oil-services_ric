@@ -46,7 +46,8 @@
 .pago-item {
   background-color: #1f2937;
   display: flex;
-  max-width: 30vh;
+  min-width: 320px;
+  max-width: 350px;
   flex-direction: column;
   border: 1px solid #374151;
   border-radius: 0.5rem;
@@ -76,24 +77,109 @@
 }
 
 .pago-info h4 {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
   color: #60a5fa;
   /* Blue title */
   font-size: 1.1rem;
+  text-transform: capitalize;
 }
 
-.pago-details {
+/* New Grid Layout for Details */
+.pago-details-grid {
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 100px auto auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.85rem;
+  color: #d1d5db;
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.detail-label {
+  font-weight: 600;
   color: #9ca3af;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  color: #f3f4f6;
+  font-weight: 600;
+}
+
+.detail-amount {
+  font-weight: bold;
+  color: #10b981;
+}
+
+.detail-rate {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: right;
+}
+
+.btn-icon-delete {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  color: #ef4444;
+}
+
+.btn-icon-delete:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.btn-icon-delete svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+
+.pago-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #374151;
+  justify-content: center;
+}
+
+/* Force icon size within buttons */
+.pago-employees-list button svg,
+.btn-icon-delete svg {
+  width: 1.2rem !important;
+  height: 1.2rem !important;
+  min-width: 1.2rem;
+  min-height: 1.2rem;
+  fill: currentColor;
+  object-fit: contain;
 }
 
 .pago-totales {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.25rem;
+  width: 100%;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #374151;
 }
 
 .pago-total {
@@ -107,150 +193,100 @@
   font-weight: bold;
   color: #4ade80;
   /* Green */
-  margin-top: 0.25rem;
+  align-items: center;
 }
 
 .pago-total .label {
   color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: normal;
 }
 
-.pago-actions {
+/* Action Buttons Container (Footer) */
+.pago-employees-list {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #374151;
-  justify-content: center;
-}
-
-button svg {
-  width: 1rem;
-  height: 1rem;
-  fill: #fff;
-}
-
-.btn-historial-pagos {
-  background-color: #374151;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.25rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #4b5563;
-  }
-}
-
-/* Employee List Expansion */
-.employees-toggle-header {
-  margin-top: 1rem;
-  cursor: pointer;
-  font-size: 0.85rem;
-  color: #9ca3af;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  user-select: none;
-}
-
-.employees-toggle-header:hover {
-  color: white;
-}
-
-.toggle-icon {
-  font-size: 0.7rem;
-  transition: transform 0.2s;
-}
-
-.toggle-icon.expanded {
-  transform: rotate(180deg);
-}
-
-.employees-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background-color: #111827;
-  border-radius: 0.375rem;
-}
-
-.modal-employee-card {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.8rem;
-  padding: 0.4rem;
-  border-radius: 0.25rem;
-  background-color: #1f2937;
-  /* slightly lighter than grid bg */
-  border: 1px solid #374151;
-}
-
-.employee-preview .name {
-  color: #e5e7eb;
-  font-weight: 500;
-  margin-bottom: 0.2rem;
-}
-
-.employee-preview .amounts {
-  color: #9ca3af;
-}
-
-/* Empty State */
-.empty-historial {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: #6b7280;
-  border: 2px dashed #374151;
-  border-radius: 0.75rem;
-}
-
-.employee-amounts .amount-deduc {
-  color: #ef4444;
-  font-size: 0.85rem;
-}
-
-.no-results {
-  text-align: center;
-  padding: 2rem;
-  color: #9ca3af;
-  background-color: #1f2937;
-  border-radius: 0.5rem;
-}
-
-/* TABS */
-.historial-tabs {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid #374151;
-}
-
-.tab-btn {
-  background: transparent;
-  border: none;
-  color: #9ca3af;
+  /* Critical for vertical alignment */
+  gap: 0.75rem;
   padding: 0.75rem 1rem;
+  border-top: 1px solid #374151;
+  background-color: rgba(0, 0, 0, 0.2);
+
+  /* Stretch to edges */
+  margin-left: -1rem;
+  margin-right: -1rem;
+  margin-bottom: -1rem;
+  margin-top: auto;
+
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+/* Shared Button Styles */
+.pago-employees-list button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.5rem;
+  /* Vertical padding handled by height */
+  font-size: 0.8rem;
+  height: 36px;
+  /* Restored to 36px for better proportions */
+  flex: 1;
+  border-radius: 0.25rem;
   cursor: pointer;
-  font-weight: 600;
-  border-bottom: 2px solid transparent;
   transition: all 0.2s;
+  white-space: nowrap;
+  margin: 0;
+  /* Ensure no external margins shift alignment */
+  line-height: 1;
+  /* Fix vertical text centering */
 }
 
-.tab-btn:hover {
+/* Force icon size within buttons */
+.pago-employees-list button svg,
+.btn-icon-delete svg {
+  width: 1rem !important;
+  height: 1rem !important;
+  min-width: 1rem;
+  min-height: 1rem;
+  fill: currentColor;
+  object-fit: contain;
+}
+
+/* Specific Button Colors */
+.btn-primary {
+  background-color: #2563eb;
   color: white;
+  border: 1px solid transparent;
 }
 
-.tab-btn.active {
-  color: #60a5fa;
-  border-bottom-color: #60a5fa;
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-excel {
+  background-color: #10b981;
+  color: white;
+  border: 1px solid transparent;
+}
+
+.btn-excel:hover {
+  background-color: #059669;
+}
+
+.btn-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 /* Modal */
@@ -260,25 +296,66 @@ button svg {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .modal-content {
-  background-color: #ffffff;
+  background-color: #1f2937;
   padding: 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   max-width: 400px;
   width: 100%;
-  color: #000000;
+  color: #f3f4f6;
+  border: 1px solid #374151;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.confirmation-actions {
+.modal-content h3 {
+  margin-top: 0;
+  color: #fca5a5;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-content p {
+  color: #d1d5db;
+  line-height: 1.5;
+}
+
+.modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-top: 1.5rem;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #4b5563;
+  color: #d1d5db;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.btn-outline:hover {
+  border-color: #9ca3af;
+  color: white;
+}
+
+/* Empty State */
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+  background-color: rgba(31, 41, 55, 0.5);
+  border-radius: 0.5rem;
+  border: 2px dashed #374151;
+  flex: 1;
 }

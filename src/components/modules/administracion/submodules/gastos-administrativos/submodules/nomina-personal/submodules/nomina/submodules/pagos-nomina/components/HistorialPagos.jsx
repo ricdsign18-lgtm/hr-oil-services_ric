@@ -11,12 +11,12 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
   const [filterMonth, setFilterMonth] = useState(
     new Date().toISOString().slice(0, 7)
   );
-  
+
   const [paymentToDelete, setPaymentToDelete] = useState(null);
 
   // --- Helper Functions ---
   const calcularPeriodoPago = (empleado, fechaPago) => {
-    const fecha = new Date(fechaPago.replace(/-/g, '\/')); 
+    const fecha = new Date(fechaPago.replace(/-/g, '\/'));
 
     if (empleado.frecuenciaPago === "Semanal") {
       const lunes = new Date(fecha);
@@ -68,7 +68,7 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
   };
 
   // --- Refactored Export Logic ---
-  
+
   const addEmployeeSheets = (wb, pago) => {
     const pagosSemanal = pago.pagos.filter(p => p.empleado.frecuenciaPago === "Semanal");
     const pagosQuincenal = pago.pagos.filter(p => p.empleado.frecuenciaPago === "Quincenal");
@@ -152,19 +152,19 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
   };
 
   const exportUnifiedToExcel = (group) => {
-      const wb = XLSX.utils.book_new();
-      
-      if (group.employeeData) {
-          addEmployeeSheets(wb, group.employeeData);
-      }
-      
-      if (group.contractorData) {
-          addContractorSheet(wb, group.contractorData);
-      }
+    const wb = XLSX.utils.book_new();
 
-      // Fallback filename date
-      const dateStr = group.date || new Date().toISOString().slice(0, 10);
-      XLSX.writeFile(wb, `Nomina_Unificada_${dateStr}.xlsx`);
+    if (group.employeeData) {
+      addEmployeeSheets(wb, group.employeeData);
+    }
+
+    if (group.contractorData) {
+      addContractorSheet(wb, group.contractorData);
+    }
+
+    // Fallback filename date
+    const dateStr = group.date || new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `Nomina_Unificada_${dateStr}.xlsx`);
   };
 
   // Kept for backward compatibility if needed, currently unused in card view
@@ -187,15 +187,56 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
 
   const confirmDelete = async () => {
     if (paymentToDelete) {
-      if (paymentToDelete.type === "personal") {
-        onDeletePago(paymentToDelete.id);
+      if (paymentToDelete.type === "group") {
+        // GROUP DELETION
+        const { employeeData, contractorData } = paymentToDelete;
+        let contractorDeleted = false;
+
+        try {
+          // 1. Delete Contractors (Local Logic)
+          if (contractorData) {
+            const { error } = await supabase.from('pagos_contratistas').delete().eq('id', contractorData.id);
+            if (error) {
+              console.error("Error deleting contractors:", error);
+              showToast("Error eliminando contratistas", "error");
+            } else {
+              contractorDeleted = true;
+            }
+          } else {
+            contractorDeleted = true; // Nothing to delete
+          }
+
+          // 2. Delete Employees (Use Parent Prop)
+          if (employeeData) {
+            // We await this to ensure it finishes before we consider the group deletion done.
+            // Note: handleDeletePago in parent shows its own success/error toast.
+            await onDeletePago(employeeData.id);
+          }
+
+          // 3. Handle Refresh and Success Message
+          // If we deleted contractors successfully, and there were NO employees, we must manually refresh.
+          if (contractorData && !employeeData && contractorDeleted) {
+            if (onRefresh) await onRefresh();
+            showToast("Registro de contratistas eliminado exitosamente", "success");
+          }
+
+          // If we had both, and assuming onDeletePago succeeded (it would catch its own error otherwise),
+          // we are effectively done. Parent likely refreshed data.
+
+        } catch (err) {
+          console.error("Error in group deletion:", err);
+          showToast("Ocurrió un error al eliminar los registros", "error");
+        }
+
+      } else if (paymentToDelete.type === "personal") {
+        await onDeletePago(paymentToDelete.id);
       } else {
         // Delete Contractor Payment
         try {
           const { error } = await supabase.from('pagos_contratistas').delete().eq('id', paymentToDelete.id);
           if (error) throw error;
           showToast("Pago de contratistas eliminado", "success");
-          if (onRefresh) onRefresh();
+          if (onRefresh) await onRefresh();
         } catch (err) {
           console.error(err);
           showToast("Error eliminando pago", "error");
@@ -223,13 +264,13 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
 
     // Group Contractors
     (pagosContratistas || []).forEach(pago => {
-        if (filterMonth && !pago.fecha_pago.startsWith(filterMonth)) return;
-        
-        // Ensure we handle date string format carefully
-        const date = pago.fecha_pago; 
-        
-        if (!grouped[date]) grouped[date] = { date, employeeData: null, contractorData: null, id: date };
-        grouped[date].contractorData = pago;
+      if (filterMonth && !pago.fecha_pago.startsWith(filterMonth)) return;
+
+      // Ensure we handle date string format carefully
+      const date = pago.fecha_pago;
+
+      if (!grouped[date]) grouped[date] = { date, employeeData: null, contractorData: null, id: date };
+      grouped[date].contractorData = pago;
     });
 
     return Object.values(grouped).sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -252,67 +293,85 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
       </div>
 
       <div className="pagos-list">
-          {groupedPayments.length === 0 ? (
-            <div className="no-results"><p>No hay pagos para el mes seleccionado</p></div>
-          ) : (
-            groupedPayments.map((group) => {
-              const { date, employeeData, contractorData } = group;
+        {groupedPayments.length === 0 ? (
+          <div className="no-results"><p>No hay pagos para el mes seleccionado</p></div>
+        ) : (
+          groupedPayments.map((group) => {
+            const { date, employeeData, contractorData } = group;
 
-              // Calculate overall totals for preview card
-              const empTotals = employeeData ? calcularTotalesPago(employeeData) : { totalUSD: 0, totalPagar: 0 };
-              const contTotals = contractorData ? calculateContractorTotals(contractorData) : { totalUSD: 0, totalBs: 0 };
-              
-              const grandTotalUSD = empTotals.totalUSD + contTotals.totalUSD;
-              
-              const tasaDisplay = employeeData?.tasaCambio || contractorData?.tasa_cambio || 0;
+            // Calculate overall totals for preview card
+            const empTotals = employeeData ? calcularTotalesPago(employeeData) : { totalUSD: 0, totalPagar: 0 };
+            const contTotals = contractorData ? calculateContractorTotals(contractorData) : { totalUSD: 0, totalBs: 0 };
 
-              return (
-                <div key={group.id} className="pago-item">
-                  {/* UNIFIED HEADER */}
-                  <div className="pago-header">
-                    <div className="pago-info">
-                      <h4>{new Date(date.replace(/-/g, '\/')).toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h4>
-                      <div className="pago-details">
-                        <span><strong>Tasa:</strong> Bs {parseFloat(tasaDisplay).toFixed(4)}/$</span>
-                        {employeeData && <span><strong>Personal:</strong> {employeeData.pagos.length}</span>}
-                        {contractorData && <span><strong>Contratistas:</strong> {(contractorData.pagos || []).length}</span>}
-                      </div>
-                    </div>
-                    <div className="pago-totales">
-                      <div className="pago-total highlight"><span className="label">Total Global USD</span><span className="value">$ {grandTotalUSD.toFixed(2)}</span></div>
+            const grandTotalUSD = empTotals.totalUSD + contTotals.totalUSD;
+
+            const tasaDisplay = employeeData?.tasaCambio || contractorData?.tasa_cambio || 0;
+
+            return (
+              <div key={group.id} className="pago-item">
+                {/* UNIFIED HEADER */}
+                <div className="pago-header">
+                  <div className="pago-info">
+                    <h4>{new Date(date.replace(/-/g, '\/')).toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h4>
+                    <div className="pago-details-grid">
+                      {employeeData && (
+                        <div className="detail-row">
+                          <span className="detail-label">Personal:</span>
+                          <span className="detail-value">{employeeData.pagos.length} trab.</span>
+                          <span className="detail-amount">$ {empTotals.totalUSD.toFixed(2)}</span>
+                          <span className="detail-rate">(Tasa: {parseFloat(employeeData.tasaCambio).toFixed(2)})</span>
+                        </div>
+                      )}
+                      {contractorData && (
+                        <div className="detail-row">
+                          <span className="detail-label">Contratistas:</span>
+                          <span className="detail-value">{(contractorData.pagos || []).length} cont.</span>
+                          <span className="detail-amount">$ {contTotals.totalUSD.toFixed(2)}</span>
+                          <span className="detail-rate">(Tasa: {parseFloat(contractorData.tasa_cambio).toFixed(2)})</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {/* UNIFIED EXPANSION AREA REPLACED BY ACTION BUTTON */}
-                  <div className="pago-employees-list" style={{ display: 'flex', justifyContent: 'center', padding: '1rem', borderTop: '1px solid #374151', gap: '1rem' }}>
-                     <button 
-                        className="btn-primary" 
-                        onClick={() => onVerFactura(group)}
-                        style={{ flex: 1, maxWidth: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
-                     >
-                        <EyesIcon /> 
-                        Ver Pagos
-                     </button>
-                     <button 
-                        className="btn-historial-pagos" 
-                        onClick={() => exportUnifiedToExcel(group)}
-                        style={{ flex: 1, maxWidth: '200px', backgroundColor: '#10b981', borderColor: '#10b981', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
-                     >
-                        <ExportIcon /> 
-                        Ver Excel
-                     </button>
+                  <div className="pago-totales">
+                    <div className="pago-total highlight"><span className="label">Total Global USD</span><span className="value">$ {grandTotalUSD.toFixed(2)}</span></div>
                   </div>
                 </div>
-              );
-            })
-          )}
+
+                {/* UNIFIED EXPANSION AREA REPLACED BY ACTION BUTTON */}
+                <div className="pago-employees-list">
+                  <button
+                    className="btn-primary"
+                    onClick={() => onVerFactura(group)}
+                  >
+                    <EyesIcon />
+                    Ver
+                  </button>
+                  <button
+                    className="btn-excel"
+                    onClick={() => exportUnifiedToExcel(group)}
+                  >
+                    <ExportIcon />
+                    Excel
+                  </button>
+                  <button
+                    className="btn-danger"
+                    onClick={(e) => { e.stopPropagation(); handleDeleteClick(group, "group"); }}
+                  >
+                    <DelateIcon />
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {paymentToDelete && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>Confirmar Eliminación</h3>
-            <p>¿Estás seguro de que deseas eliminar este registro de {paymentToDelete.type === 'personal' ? 'nómina personal' : 'pagos a contratistas'}?</p>
+            <p>¿Estás seguro de que deseas eliminar este registro de pago? Esta acción eliminará tanto la nómina de personal como los pagos a contratistas de esta fecha si existen.</p>
             <div className="modal-actions">
               <button className="btn-outline" onClick={cancelDelete}>Cancelar</button>
               <button className="btn-danger" onClick={confirmDelete}>Eliminar</button>
