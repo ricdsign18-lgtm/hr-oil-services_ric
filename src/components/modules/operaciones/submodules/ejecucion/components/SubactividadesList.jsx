@@ -2,10 +2,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useExecution } from '../../../../../../contexts/ExecutionContext';
 
-export const SubactividadesList = ({ actividadId }) => {
+export const SubactividadesList = ({ actividadId, readOnly = false }) => {
   const { getSubactividades, toggleSubactividad, loading } = useExecution();
   const [subactividades, setSubactividades] = useState([]);
   const [localLoading, setLocalLoading] = useState(false);
+
+
 
   const fetchSubactividades = useCallback(async () => {
     setLocalLoading(true);
@@ -51,9 +53,9 @@ export const SubactividadesList = ({ actividadId }) => {
                 <input
                   type="checkbox"
                   checked={sub.completada}
-                  onChange={() => handleToggle(sub)}
-                  disabled={loading}
-                  style={{ width: '18px', height: '18px', accentColor: '#22c55e' }}
+                  onChange={() => !readOnly && handleToggle(sub)}
+                  disabled={loading || readOnly}
+                  style={{ width: '18px', height: '18px', accentColor: '#22c55e', cursor: readOnly ? 'not-allowed' : 'pointer' }}
                 />
                 <span style={{ textDecoration: sub.completada ? 'line-through' : 'none', color: sub.completada ? '#888' : '#333' }}>
                   {sub.descripcion}

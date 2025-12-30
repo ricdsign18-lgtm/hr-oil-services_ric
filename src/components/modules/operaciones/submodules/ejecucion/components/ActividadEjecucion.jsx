@@ -21,7 +21,11 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
 
   const subTotal = actividadPlanificada.subactividades?.length || 0;
   const subCompleted = actividadPlanificada.subactividades?.filter(s => s.completada).length || 0;
-  const avanceFisico = subTotal > 0 ? Math.round((subCompleted / subTotal) * 100) : (estadoActual === 'completada' ? 100 : (estadoActual === 'en_progreso' ? 10 : 0));
+
+  // Prefer stored 'avance' if available (from DB update), otherwise fallback to live calculation
+  const avanceFisico = actividadPlanificada.avance !== undefined
+    ? actividadPlanificada.avance
+    : (subTotal > 0 ? Math.round((subCompleted / subTotal) * 100) : (estadoActual === 'completada' ? 100 : (estadoActual === 'en_progreso' ? 10 : 0)));
 
   const handleToggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -177,7 +181,8 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
               <h5 style={{ marginBottom: '10px' }}>Checklist de Subactividades</h5>
               <SubactividadesList
                 actividadId={actividadPlanificada.id}
-                initialData={actividadPlanificada.subactividades} // Pass initial or let hook fetch? Hook is safer for consistency.
+                initialData={actividadPlanificada.subactividades}
+                readOnly={estadoActual === 'completada'}
               />
             </div>
           )}

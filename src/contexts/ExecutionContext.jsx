@@ -48,6 +48,21 @@ export const ExecutionProvider = ({ children }) => {
       console.error('Error actualizando subactividad:', error);
       throw error;
     }
+
+    // Calcular nuevo avance
+    // 1. Obtener actividad_id
+    const { data: sub } = await supabase.from('plan_subactividades').select('actividad_id').eq('id', subId).single();
+    if (sub) {
+      const { data: subs } = await supabase.from('plan_subactividades').select('completada').eq('actividad_id', sub.actividad_id);
+      if (subs && subs.length > 0) {
+        const completedCount = subs.filter(s => s.completada).length;
+        const newAvance = Math.round((completedCount / subs.length) * 100);
+
+        // Update Activity Avance
+        await supabase.from('plan_actividades').update({ avance: newAvance }).eq('id', sub.actividad_id);
+      }
+    }
+
     setLoading(false);
   }, []);
 
@@ -130,7 +145,8 @@ export const ExecutionProvider = ({ children }) => {
         .from('plan_actividades')
         .update({
           estado: 'completada',
-          fecha_fin_real: fechaFin
+          fecha_fin_real: fechaFin,
+          avance: 100
         })
         .eq('id', actividadId);
 

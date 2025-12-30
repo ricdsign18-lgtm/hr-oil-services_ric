@@ -41,6 +41,32 @@ export const PlanningProvider = ({ children }) => {
       setSemanas(data || []);
     }
     setLoading(false);
+    setLoading(false);
+  }, [selectedProject]);
+
+  // Cargar TODAS las actividades del proyecto (para métricas globales)
+  const getAllActividades = useCallback(async () => {
+    if (!selectedProject) return;
+    // Don't set global loading true here to avoid flickering entire UI if running in background usually
+    // But for initial load it might be needed. Let's keep it subtle or reuse main loading.
+
+    const { data, error } = await supabase
+      .from('plan_actividades')
+      .select(`
+        *,
+        plan_dias!inner(
+            semana_id,
+            fecha,
+            plan_semanas!inner(project_id)
+        )
+      `)
+      .eq('plan_dias.plan_semanas.project_id', selectedProject.id);
+
+    if (error) {
+      console.error('Error fetching all actividades:', error);
+    } else {
+      setActividades(data || []);
+    }
   }, [selectedProject]);
 
   const getSemanaById = useCallback(async (semanaId) => {
@@ -487,6 +513,7 @@ export const PlanningProvider = ({ children }) => {
     if (selectedProject) {
       getSemanasPlanificacion();
       getEquipos();
+      getAllActividades();
     } else {
       setSemanas([]);
       setDias([]);
@@ -579,6 +606,7 @@ export const PlanningProvider = ({ children }) => {
     getSemanasPlanificacion,
     getSemanaById,
     getEquipos,
+    getAllActividades,
     crearEquipo,
     crearActividadPlanificada,
     updateActividad,
@@ -596,7 +624,7 @@ export const PlanningProvider = ({ children }) => {
     getDisponibilidadPartida
   }), [
     semanas, dias, actividades, equipos, loading,
-    getSemanasPlanificacion, getSemanaById, getEquipos, crearEquipo,
+    getSemanasPlanificacion, getSemanaById, getEquipos, getAllActividades, crearEquipo,
     crearActividadPlanificada, updateActividad, deleteActividad,
     crearRequerimiento, recalcularMontosSemana, recalcularMontoRequerimientosSemana,
     guardarSemanasGeneradas, eliminarPlanificacion, syncProjectTotals,

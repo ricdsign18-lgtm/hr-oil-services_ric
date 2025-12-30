@@ -11,15 +11,15 @@ export const EjecucionDashboard = ({ semanas, actividades }) => {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Ejecución del Proyecto</h1>
-      
+
       {/* KPIs Principales */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg border p-4">
           <div className="text-sm text-gray-500">Avance Físico</div>
           <div className="text-2xl font-bold text-blue-600">{kpis.avanceFisico}%</div>
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full" 
+            <div
+              className="bg-blue-600 h-2 rounded-full"
               style={{ width: `${kpis.avanceFisico}%` }}
             ></div>
           </div>
@@ -56,9 +56,10 @@ export const EjecucionDashboard = ({ semanas, actividades }) => {
 
 // Componente interno para alertas
 const AlertasPanel = ({ actividades }) => {
-  const alertas = actividades.filter(act => 
-    act.estado === 'en_proceso' && 
-    new Date(act.fecha_planificada) < new Date()
+  const alertas = actividades.filter(act =>
+    act.estado === 'en_proceso' &&
+    (act.fecha_planificada || act.plan_dias?.fecha) &&
+    new Date(act.fecha_planificada || act.plan_dias?.fecha) < new Date()
   ).slice(0, 5);
 
   if (alertas.length === 0) return null;
