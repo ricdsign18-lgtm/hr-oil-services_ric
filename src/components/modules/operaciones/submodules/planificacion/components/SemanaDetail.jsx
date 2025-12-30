@@ -4,7 +4,7 @@ import supabase from '../../../../../../api/supaBase';
 import { usePlanning } from '../../../../../../contexts/PlanningContext';
 import { DiasList } from './DiasList';
 import { RequerimientosForm } from '../../requerimientos/RequerimientosForm'; // Use the shared component
-import { RequerimientosList } from './RequerimientosList';
+import RequerimientosGroupList from '../../requerimientos/RequerimientosGroupList';
 import Modal from '../../../../../common/Modal/Modal';
 
 export const SemanaDetail = ({ semana, onBack }) => {
@@ -48,6 +48,12 @@ export const SemanaDetail = ({ semana, onBack }) => {
     }
   };
 
+  const handleDataChange = async () => {
+    await getRequerimientosPorSemana();
+    await recalcularMontoRequerimientosSemana(semana.id);
+    await getSemanaById(semana.id);
+  };
+
   return (
     <div className="planning-detail-container">
       {/* Header */}
@@ -88,7 +94,11 @@ export const SemanaDetail = ({ semana, onBack }) => {
       {/* Contenido */}
       <div className="planning-detail-content">
         {showRequerimientos ? (
-          <RequerimientosList requerimientos={requerimientos} loading={loadingReq} />
+          <RequerimientosGroupList
+            requerimientos={requerimientos}
+            loading={loadingReq}
+            onDataChange={handleDataChange}
+          />
         ) : (
           <DiasList semanaId={semana.id} />
         )}
