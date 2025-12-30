@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import supabase from "../../../../../../../../../../../../api/supaBase";
@@ -7,39 +5,18 @@ import { useNotification } from "../../../../../../../../../../../../contexts/No
 import "./HistorialPagos.css";
 import { DelateIcon, EditIcon, EyesIcon, ExportIcon } from "../../../../../../../../../../../../assets/icons/Icons";
 import Modal from "../../../../../../../../../../../../components/common/Modal/Modal";
-const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDetalles, onDeletePago, onEditarPago, selectedProject, onRefresh }) => {
+
+const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDetalles, onDeletePago, onEditarPago, selectedProject, onRefresh, onVerFactura }) => {
   const { showToast } = useNotification();
-  const [activeTab, setActiveTab] = useState("personal"); // 'personal' or 'contratistas'
   const [filterMonth, setFilterMonth] = useState(
     new Date().toISOString().slice(0, 7)
   );
-  /* Ref removed */
-  const [selectedPaymentDetail, setSelectedPaymentDetail] = useState(null);
-  const [paymentToDelete, setPaymentToDelete] = useState(null);
-  const [expandedPaymentId, setExpandedPaymentId] = useState(null);
-
-  const toggleExpand = (id) => {
-    setExpandedPaymentId(expandedPaymentId === id ? null : id);
-  };
-
-  // Filter Logic
-  const filteredPersonal = (pagosGuardados || [])
-    .filter((pago) => !filterMonth || pago.fechaPago.startsWith(filterMonth))
-    .sort((a, b) => new Date(b.fechaPago) - new Date(a.fechaPago));
-
-  const filteredContratistas = (pagosContratistas || [])
-    .filter((pago) => {
-      const matchDate = !filterMonth || pago.fecha_pago.startsWith(filterMonth);
-      // const isPayroll = parseFloat(pago.tasa_cambio) > 0; // REMOVED: potentially hiding valid payments with rate 0
-      return matchDate;
-    })
-    .sort((a, b) => new Date(b.fecha_pago) - new Date(a.fecha_pago));
-
-  /* REMOVED SMART FILTER LOGIC AS PER USER REQUEST */
   
+  const [paymentToDelete, setPaymentToDelete] = useState(null);
+
   // --- Helper Functions ---
   const calcularPeriodoPago = (empleado, fechaPago) => {
-    const fecha = new Date(fechaPago.replace(/-/g, '\/'));
+    const fecha = new Date(fechaPago.replace(/-/g, '\/')); 
 
     if (empleado.frecuenciaPago === "Semanal") {
       const lunes = new Date(fecha);
@@ -69,6 +46,7 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
   };
 
   const calcularTotalesPago = (pago) => {
+    if (!pago || !pago.pagos) return { totalUSD: 0, totalBs: 0, totalPagar: 0 };
     return pago.pagos.reduce(
       (totales, pagoEmp) => ({
         totalUSD: totales.totalUSD + (pagoEmp.montoTotalUSD || 0),
@@ -80,6 +58,7 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
   };
 
   const calculateContractorTotals = (pago) => {
+    if (!pago || !pago.pagos) return { totalUSD: 0, totalBs: 0, count: 0 };
     const totalUSD = (pago.pagos || []).reduce((acc, p) => acc + (p.monto_total_usd || 0), 0);
     return {
       totalUSD: totalUSD,
@@ -88,7 +67,9 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
     };
   };
 
-  const exportPagoToExcel = (pago) => {
+  // --- Refactored Export Logic ---
+  
+  const addEmployeeSheets = (wb, pago) => {
     const pagosSemanal = pago.pagos.filter(p => p.empleado.frecuenciaPago === "Semanal");
     const pagosQuincenal = pago.pagos.filter(p => p.empleado.frecuenciaPago === "Quincenal");
 
@@ -127,33 +108,32 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
       return datos;
     };
 
-    const wb = XLSX.utils.book_new();
     const hasAdmin = (lista) => lista.some(p => ["Administrativa", "Ejecucion"].includes(p.empleado.tipoNomina));
 
+    // Sheet 1: General Summary
     const generalHasAdmin = hasAdmin(pago.pagos);
     const generalData = pago.pagos.map(p => formatPagoData(p, generalHasAdmin));
     const wsGeneral = XLSX.utils.json_to_sheet(generalData);
-    XLSX.utils.book_append_sheet(wb, wsGeneral, "Resumen General");
+    XLSX.utils.book_append_sheet(wb, wsGeneral, "Personal - General");
 
+    // Sheet 2: Semanal (if any)
     if (pagosSemanal.length > 0) {
       const semanalHasAdmin = hasAdmin(pagosSemanal);
       const semanalData = pagosSemanal.map(p => formatPagoData(p, semanalHasAdmin));
       const wsSemanal = XLSX.utils.json_to_sheet(semanalData);
-      XLSX.utils.book_append_sheet(wb, wsSemanal, "Nómina Semanal");
+      XLSX.utils.book_append_sheet(wb, wsSemanal, "Personal - Semanal");
     }
 
+    // Sheet 3: Quincenal (if any)
     if (pagosQuincenal.length > 0) {
       const quincenalHasAdmin = hasAdmin(pagosQuincenal);
       const quincenalData = pagosQuincenal.map(p => formatPagoData(p, quincenalHasAdmin));
       const wsQuincenal = XLSX.utils.json_to_sheet(quincenalData);
-      XLSX.utils.book_append_sheet(wb, wsQuincenal, "Nómina Quincenal");
+      XLSX.utils.book_append_sheet(wb, wsQuincenal, "Personal - Quincenal");
     }
-
-    const fileName = `pagos_nomina_${pago.fechaPago}.xlsx`;
-    XLSX.writeFile(wb, fileName);
   };
 
-  const exportContractorToExcel = (pago) => {
+  const addContractorSheet = (wb, pago) => {
     const formatContractorData = (c) => ({
       "Contratista": c.nombre_contratista,
       "Descripción": c.descripcion_trabajo || "",
@@ -167,14 +147,38 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
     });
 
     const data = (pago.pagos || []).map(formatContractorData);
-    const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, "Pagos Contratistas");
-    
-    const fileName = `pagos_contratistas_${pago.fecha_pago}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    XLSX.utils.book_append_sheet(wb, ws, "Contratistas");
   };
 
+  const exportUnifiedToExcel = (group) => {
+      const wb = XLSX.utils.book_new();
+      
+      if (group.employeeData) {
+          addEmployeeSheets(wb, group.employeeData);
+      }
+      
+      if (group.contractorData) {
+          addContractorSheet(wb, group.contractorData);
+      }
+
+      // Fallback filename date
+      const dateStr = group.date || new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `Nomina_Unificada_${dateStr}.xlsx`);
+  };
+
+  // Kept for backward compatibility if needed, currently unused in card view
+  const exportPagoToExcel = (pago) => {
+    const wb = XLSX.utils.book_new();
+    addEmployeeSheets(wb, pago);
+    XLSX.writeFile(wb, `pagos_nomina_${pago.fechaPago}.xlsx`);
+  };
+
+  const exportContractorToExcel = (pago) => {
+    const wb = XLSX.utils.book_new();
+    addContractorSheet(wb, pago);
+    XLSX.writeFile(wb, `pagos_contratistas_${pago.fecha_pago}.xlsx`);
+  };
 
 
   const handleDeleteClick = (pago, type = "personal") => {
@@ -205,6 +209,34 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
     setPaymentToDelete(null);
   };
 
+  // --- Grouping Logic ---
+  const groupPaymentsByDate = () => {
+    const grouped = {};
+
+    // Group Employees
+    (pagosGuardados || []).forEach(pago => {
+      if (filterMonth && !pago.fechaPago.startsWith(filterMonth)) return;
+      const date = pago.fechaPago;
+      if (!grouped[date]) grouped[date] = { date, employeeData: null, contractorData: null, id: date };
+      grouped[date].employeeData = pago;
+    });
+
+    // Group Contractors
+    (pagosContratistas || []).forEach(pago => {
+        if (filterMonth && !pago.fecha_pago.startsWith(filterMonth)) return;
+        
+        // Ensure we handle date string format carefully
+        const date = pago.fecha_pago; 
+        
+        if (!grouped[date]) grouped[date] = { date, employeeData: null, contractorData: null, id: date };
+        grouped[date].contractorData = pago;
+    });
+
+    return Object.values(grouped).sort((a, b) => new Date(b.date) - new Date(a.date));
+  };
+
+  const groupedPayments = groupPaymentsByDate();
+
   return (
     <div className="historial-pagos">
       <div className="historial-header">
@@ -219,135 +251,68 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
         </div>
       </div>
 
-      {/* TABS */}
-      <div className="historial-tabs">
-        <button
-          className={`tab-btn ${activeTab === 'personal' ? 'active' : ''}`}
-          onClick={() => setActiveTab('personal')}
-        >
-          Nómina Personal
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'contratistas' ? 'active' : ''}`}
-          onClick={() => setActiveTab('contratistas')}
-        >
-          Contratistas
-        </button>
-      </div>
-
       <div className="pagos-list">
-        {activeTab === 'personal' ? (
-          filteredPersonal.length === 0 ? (
-            <div className="no-results"><p>No hay pagos de personal para el mes seleccionado</p></div>
+          {groupedPayments.length === 0 ? (
+            <div className="no-results"><p>No hay pagos para el mes seleccionado</p></div>
           ) : (
-            filteredPersonal.map((pago) => {
-              const totales = calcularTotalesPago(pago);
-              const isExpanded = expandedPaymentId === pago.id;
+            groupedPayments.map((group) => {
+              const { date, employeeData, contractorData } = group;
+
+              // Calculate overall totals for preview card
+              const empTotals = employeeData ? calcularTotalesPago(employeeData) : { totalUSD: 0, totalPagar: 0 };
+              const contTotals = contractorData ? calculateContractorTotals(contractorData) : { totalUSD: 0, totalBs: 0 };
+              
+              const grandTotalUSD = empTotals.totalUSD + contTotals.totalUSD;
+              
+              const tasaDisplay = employeeData?.tasaCambio || contractorData?.tasa_cambio || 0;
+
               return (
-                <div key={pago.id} className="pago-item">
+                <div key={group.id} className="pago-item">
+                  {/* UNIFIED HEADER */}
                   <div className="pago-header">
                     <div className="pago-info">
-                      <h4>Pago Personal: {new Date(pago.fechaPago.replace(/-/g, '\/')).toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h4>
+                      <h4>{new Date(date.replace(/-/g, '\/')).toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h4>
                       <div className="pago-details">
-                        <span><strong>Tasa:</strong> Bs {pago.tasaCambio.toFixed(4)}/$</span>
-                        <span><strong>Empleados:</strong> {pago.pagos.length}</span>
+                        <span><strong>Tasa:</strong> Bs {parseFloat(tasaDisplay).toFixed(4)}/$</span>
+                        {employeeData && <span><strong>Personal:</strong> {employeeData.pagos.length}</span>}
+                        {contractorData && <span><strong>Contratistas:</strong> {(contractorData.pagos || []).length}</span>}
                       </div>
                     </div>
                     <div className="pago-totales">
-                      <div className="pago-total"><span className="label">Total USD</span><span className="value">$ {totales.totalUSD.toFixed(2)}</span></div>
-                      <div className="pago-total highlight"><span className="label">A Pagar</span><span className="value">Bs {totales.totalPagar.toFixed(2)}</span></div>
+                      <div className="pago-total highlight"><span className="label">Total Global USD</span><span className="value">$ {grandTotalUSD.toFixed(2)}</span></div>
                     </div>
-                  </div>
-                  <div className="pago-actions">
-                    {/* <button className="btn-outline" onClick={() => onVerDetalles(pago)}>👁️ Ver Detalles</button> */}
-                    <button className="btn-historial-pagos" onClick={() => onEditarPago(pago)} style={{ backgroundColor: '#f59e0b', borderColor: '#f59e0b', color: 'white' }} title="Editar pago"><EditIcon /></button>
-                    <button className="btn-historial-pagos" onClick={() => exportPagoToExcel(pago)} title="Exportar a Excel">📊 Excel</button>
-                    <button className="btn-historial-pagos" onClick={() => handleDeleteClick(pago, "personal")} title="Eliminar pago"><DelateIcon /></button>
                   </div>
 
-                  {/* Personal Details Expansion */}
-                  <div className="pago-employees-list">
-                    <div className="employees-toggle-header" onClick={() => toggleExpand(pago.id)}>
-                      <span className={`toggle-icon ${isExpanded ? 'expanded' : ''}`}>▼</span>
-                      <span>Empleados incluidos ({pago.pagos.length})</span>
-                    </div>
-                    {isExpanded && (
-                      <div className="employees-grid">
-                        {pago.pagos.map((pagoEmp) => (
-                          <div key={pagoEmp.empleado.id} className="employee-preview">
-                            <span className="name">{pagoEmp.empleado.nombre} {pagoEmp.empleado.apellido}</span>
-                            <div className="amounts">
-                              <span className="amount-usd" style={{ fontWeight: 'bold' }}>Total: $ {(pagoEmp.montoTotalUSD || 0).toFixed(2)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  {/* UNIFIED EXPANSION AREA REPLACED BY ACTION BUTTON */}
+                  <div className="pago-employees-list" style={{ display: 'flex', justifyContent: 'center', padding: '1rem', borderTop: '1px solid #374151', gap: '1rem' }}>
+                     <button 
+                        className="btn-primary" 
+                        onClick={() => onVerFactura(group)}
+                        style={{ flex: 1, maxWidth: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                     >
+                        <EyesIcon /> 
+                        Ver Pagos
+                     </button>
+                     <button 
+                        className="btn-historial-pagos" 
+                        onClick={() => exportUnifiedToExcel(group)}
+                        style={{ flex: 1, maxWidth: '200px', backgroundColor: '#10b981', borderColor: '#10b981', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                     >
+                        <ExportIcon /> 
+                        Ver Excel
+                     </button>
                   </div>
                 </div>
               );
             })
-          )
-        ) : (
-          // CONTRACTOR LIST RENDERING
-          filteredContratistas.length === 0 ? (
-            <div className="no-results"><p>No hay pagos de contratistas para el mes seleccionado</p></div>
-          ) : (
-            filteredContratistas.map((pago) => {
-              const totals = calculateContractorTotals(pago);
-              const isExpanded = expandedPaymentId === pago.id;
-              return (
-                <div key={pago.id} className="pago-item">
-                  <div className="pago-header">
-                    <div className="pago-info">
-                      <h4>Pago Contratistas: {new Date(pago.fecha_pago.replace(/-/g, '\/')).toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h4>
-                      <div className="pago-details">
-                        <span><strong>Tasa:</strong> Bs {pago.tasa_cambio.toFixed(4)}/$</span>
-                        <span><strong>Contratistas:</strong> {totals.count}</span>
-                      </div>
-                    </div>
-                    <div className="pago-totales">
-                      <div className="pago-total"><span className="label">Total USD</span><span className="value">$ {totals.totalUSD.toFixed(2)}</span></div>
-                      <div className="pago-total highlight"><span className="label">Total Bs</span><span className="value">Bs {totals.totalBs.toFixed(2)}</span></div>
-                    </div>
-                  </div>
-                  <div className="pago-actions">
-                    <button className="btn-secondary" onClick={() => onEditarPago(pago, "contratista")} style={{ backgroundColor: '#f59e0b', borderColor: '#f59e0b', color: 'white' }} title="Editar pago"><EditIcon /></button>
-                    <button className="btn-secondary" onClick={() => exportContractorToExcel(pago)} title="Exportar a Excel">📊 Excel</button>
-                    <button className="btn-danger" onClick={() => handleDeleteClick(pago, "contratista")} title="Eliminar pago"><DelateIcon /></button>
-                  </div>
-
-                  {/* Contractor Details Expansion */}
-                  <div className="pago-employees-list">
-                    <div className="employees-toggle-header" onClick={() => toggleExpand(pago.id)}>
-                      <span className={`toggle-icon ${isExpanded ? 'expanded' : ''}`}>▼</span>
-                      <span>Contratistas incluidos ({totals.count})</span>
-                    </div>
-                    {isExpanded && (
-                      <div className="employees-grid">
-                        {(pago.pagos || []).map((c, idx) => (
-                          <div key={idx} className="employee-preview">
-                            <span className="name">{c.nombre_contratista}</span>
-                            <div className="amounts">
-                              <span className="amount-usd">Total: $ {parseFloat(c.monto_total_usd).toFixed(2)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )
-        )}
+          )}
       </div>
 
       {paymentToDelete && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>Confirmar Eliminación</h3>
-            <p>¿Estás seguro de que deseas eliminar este registro?</p>
+            <p>¿Estás seguro de que deseas eliminar este registro de {paymentToDelete.type === 'personal' ? 'nómina personal' : 'pagos a contratistas'}?</p>
             <div className="modal-actions">
               <button className="btn-outline" onClick={cancelDelete}>Cancelar</button>
               <button className="btn-danger" onClick={confirmDelete}>Eliminar</button>

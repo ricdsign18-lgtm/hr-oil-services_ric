@@ -291,15 +291,16 @@
 }
 
 .modal-content {
-    background: #1f2937;
+    background: #ffffff;
     padding: 2rem;
     border-radius: 0.5rem;
     min-width: 300px;
+    color: #000000;
 }
 
 .modal-content h4 {
     margin-top: 0;
-    color: white;
+    color: #111827;
 }
 
 .modal-content input {
@@ -307,7 +308,9 @@
     padding: 0.5rem;
     margin: 1rem 0;
    
-    border: 1px solid #4b5563;
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    color: #000000;
 
     border-radius: 0.25rem;
 }

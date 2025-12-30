@@ -268,12 +268,12 @@ button svg {
 }
 
 .modal-content {
-  background-color: #1f2937;
+  background-color: #ffffff;
   padding: 1.5rem;
   border-radius: 0.5rem;
   max-width: 400px;
   width: 100%;
-  color: white;
+  color: #000000;
 }
 
 .confirmation-actions {

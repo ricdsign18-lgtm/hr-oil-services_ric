@@ -809,6 +809,7 @@ input:checked + .slider:before {
   position: relative;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   animation: modalFadeIn 0.2s ease-out;
+  color: #000000;
 }
 
 .modal-close-btn {

@@ -957,24 +957,25 @@
 }
 
 .modal-content {
-  background: var(--gray-800);
+  background: #ffffff;
   padding: 32px;
   border-radius: var(--border-radius);
   max-width: 500px;
   width: 100%;
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--gray-700);
+  border: 1px solid #e5e7eb;
+  color: #000000;
 }
 
 .modal-content h3 {
   margin: 0 0 12px 0;
-  color: var(--gray-100);
+  color: #111827;
   font-size: 1.25rem;
 }
 
 .modal-content p {
   margin: 0 0 24px 0;
-  color: var(--gray-400);
+  color: #374151;
 }
 
 .csf-form-card {

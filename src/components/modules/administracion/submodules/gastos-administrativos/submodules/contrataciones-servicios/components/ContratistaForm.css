@@ -17,6 +17,7 @@
         width: 90%;
         max-width: 600px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        color: #000000;
 
         h2 {
             font-size: 1.5rem;
