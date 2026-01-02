@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
 import Modal from "../../common/Modal/Modal";
 import supabase from "../../../api/supaBase";
+import { ROLES } from "../../../config/permissions";
 import "./UserPermissionsModal.css";
 
 const UserPermissionsModal = ({ isOpen, onClose }) => {
+  const { userData: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,10 +21,31 @@ const UserPermissionsModal = ({ isOpen, onClose }) => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .order("username");
+      // Verificar rol para definir el filtrado
+      const isDirectorOrAdmin = currentUser?.role === 'DIRECTOR_GENERAL' || currentUser?.role === 'admin';
+      
+      let query = supabase.from("users").select("*");
+
+      if (!isDirectorOrAdmin && currentUser?.id) {
+        // Si es un Jefe de Módulo, solo ve a sus asignados
+        const { data: assignments, error: assignmentError } = await supabase
+           .from("user_assignments")
+           .select("employee_id")
+           .eq("supervisor_id", currentUser.id);
+
+        if (assignmentError) throw assignmentError;
+
+        const employeeIds = assignments.map(a => a.employee_id);
+        
+        if (employeeIds.length === 0) {
+            setUsers([]);
+            return;
+        }
+
+        query = query.in('id', employeeIds);
+      }
+
+      const { data, error } = await query.order("username");
 
       if (error) throw error;
       setUsers(data);
@@ -75,14 +99,8 @@ const UserPermissionsModal = ({ isOpen, onClose }) => {
       <div className="permissions-container">
         <div className="permissions-header">
           <div className="col-user">USUARIO</div>
-          <div className="col-role-header admin">
-            <span className="role-icon">🛡️</span> ADMIN
-          </div>
-          <div className="col-role-header editor">
-            <span className="role-icon">✏️</span> EDITOR
-          </div>
-          <div className="col-role-header viewer">
-            <span className="role-icon">👁️</span> VIEWER
+          <div className="col-role-header">
+            <span className="role-icon">📋</span> CARGO / ROL
           </div>
         </div>
 
@@ -102,37 +120,19 @@ const UserPermissionsModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                <div className="col-role-toggle">
-                  <label className="toggle-switch">
-                    <input 
-                      type="checkbox" 
-                      checked={user.role === 'admin'} 
-                      onChange={() => handleRoleChange(user.id, 'admin')}
-                    />
-                    <span className="slider round admin-slider"></span>
-                  </label>
-                </div>
-
-                <div className="col-role-toggle">
-                  <label className="toggle-switch">
-                    <input 
-                      type="checkbox" 
-                      checked={user.role === 'editor'} 
-                      onChange={() => handleRoleChange(user.id, 'editor')}
-                    />
-                    <span className="slider round editor-slider"></span>
-                  </label>
-                </div>
-
-                <div className="col-role-toggle">
-                  <label className="toggle-switch">
-                    <input 
-                      type="checkbox" 
-                      checked={user.role === 'viewer'} 
-                      onChange={() => handleRoleChange(user.id, 'viewer')}
-                    />
-                    <span className="slider round viewer-slider"></span>
-                  </label>
+                <div className="col-role-select">
+                  <select 
+                    className="role-select"
+                    value={user.role || ""} 
+                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                  >
+                    <option value="" disabled>Sin Rol Asignado</option>
+                    {Object.entries(ROLES).map(([key, config]) => (
+                      <option key={key} value={key}>
+                        {config.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             ))}

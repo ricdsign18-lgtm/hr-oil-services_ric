@@ -3,13 +3,25 @@ import supabase from '../api/supaBase';
 import { useProjects } from './ProjectContext';
 import { useNotification } from './NotificationContext';
 
+import { useAuth } from './AuthContext';
+import { ROLES } from '../config/permissions';
+
 const OperacionesContext = createContext();
 
-export const useOperaciones = () => useContext(OperacionesContext);
+export const useOperaciones = () => {
+  const context = useContext(OperacionesContext);
+  if (!context) {
+    console.error("useOperaciones must be used within an OperacionesProvider");
+    // Retornamos un objeto vacío temporalmente para evitar crash inmediato, pero loggedamos el error
+    return {};
+  }
+  return context;
+};
 
 export const OperacionesProvider = ({ children }) => {
+  const { userData: user } = useAuth(); // Corregido: useAuth devuelve { userData, ... }
   const { selectedProject } = useProjects();
-  const { showToast } = useNotification();
+  const { showToast, sendNotification } = useNotification();
   const [inventory, setInventory] = useState([]);
   const [compras, setCompras] = useState([]);
   const [retiros, setRetiros] = useState([]);
@@ -148,21 +160,47 @@ export const OperacionesProvider = ({ children }) => {
 
   const addRequerimientoItem = useCallback(async (itemData) => {
     setLoading(true);
+
+    // Determinar estado inicial basado en rol
+    const userRoleLevel = ROLES[user?.role]?.level || 0;
+    const initialStatus = userRoleLevel >= 50 ? 'pendiente' : 'por_aprobar';
+
+    console.log("DEBUG ADD ITEM:", { 
+      role: user?.role, 
+      level: userRoleLevel, 
+      finalStatus: initialStatus 
+    });
+
     const { error } = await supabase
       .from('requerimiento_items')
       .insert([{
         ...itemData,
-        status: 'pendiente',
+        status: initialStatus,
         cantidad_comprada: 0
       }]);
 
     if (error) {
       console.error('Error inserting requerimiento item:', error);
+      showToast("Error al guardar item", "error");
     } else {
       await getRequerimientos();
+      showToast(
+        initialStatus === 'por_aprobar' 
+          ? "Item enviado para aprobación" 
+          : "Item agregado exitosamente", 
+        "success"
+      );
+
+      if (initialStatus === 'por_aprobar') {
+        sendNotification({
+          message: `Nuevo requerimiento: ${itemData.nombre_producto?.substring(0,20)}... pendiente de aprobación.`,
+          type: 'warning',
+          role_target: 'JEFE_OPERACIONES'
+        });
+      }
     }
     setLoading(false);
-  }, [getRequerimientos]);
+  }, [getRequerimientos, user?.role, showToast, sendNotification]);
 
   const addRequerimiento = useCallback(async (requerimientoData) => {
     if (!selectedProject) return;
@@ -170,13 +208,17 @@ export const OperacionesProvider = ({ children }) => {
 
     const { items, ...reqHeader } = requerimientoData;
 
+    // Determinar estado inicial basado en rol
+    const userRoleLevel = ROLES[user?.role]?.level || 0;
+    const initialStatus = userRoleLevel >= 50 ? 'pendiente' : 'por_aprobar';
+
     // Insertar el requerimiento principal
     const { data: newRequerimiento, error: reqError } = await supabase
       .from('requerimientos')
       .insert([{
         ...reqHeader,
         project_id: selectedProject.id,
-        status: 'pendiente'
+        status: initialStatus
       }])
       .select()
       .single();
@@ -191,7 +233,7 @@ export const OperacionesProvider = ({ children }) => {
     const itemsToInsert = items.map(item => ({
       ...item,
       requerimiento_id: newRequerimiento.id,
-      status: 'pendiente',
+      status: initialStatus,
       cantidad_comprada: 0
     }));
 
@@ -204,23 +246,106 @@ export const OperacionesProvider = ({ children }) => {
     }
 
     await getRequerimientos();
+    
+    if (initialStatus === 'por_aprobar') {
+      sendNotification({
+        message: `Nuevo requerimiento general creado por coordinar aprobaciones.`,
+        type: 'warning',
+        role_target: 'JEFE_OPERACIONES'
+      });
+    }
+
     setLoading(false);
-  }, [selectedProject, getRequerimientos]);
+  }, [selectedProject, getRequerimientos, sendNotification]);
 
   const updateRequerimientoItem = useCallback(async (itemId, updatedData) => {
     setLoading(true);
-    const { error } = await supabase
+    console.log("DEBUG UPDATE ITEM:", itemId, updatedData);
+
+    const { data, error } = await supabase
       .from('requerimiento_items')
       .update(updatedData)
-      .eq('id', itemId);
+      .eq('id', itemId)
+      .select();
 
     if (error) {
       console.error('Error updating requerimiento item:', error);
+      showToast("Error al actualizar: " + error.message, "error");
+    } else if (!data || data.length === 0) {
+      console.error('Error updating item: No se actualizó ninguna fila. RLS Bloqueando.');
+      showToast("Error update: No tienes permiso para editar este item.", "error");
     } else {
+      console.log("Item actualizado con éxito:", data);
       await getRequerimientos();
+      showToast("Item actualizado", "success");
     }
     setLoading(false);
-  }, [getRequerimientos]);
+  }, [getRequerimientos, showToast]);
+
+  const approveRequerimientoItem = useCallback(async (itemId) => {
+    setLoading(true);
+    
+    // 1. Aprobar el item
+    const { data, error } = await supabase
+      .from('requerimiento_items')
+      .update({ status: 'pendiente' }) // Pendiente significa "Aprobado para compra"
+      .eq('id', itemId)
+      .select();
+
+    if (error) {
+      console.error('Error approving item (Supabase Error):', error);
+      showToast("Error al aprobar item: " + error.message, "error");
+    } else if (!data || data.length === 0) {
+      console.error('Error approving item: No se actualizó ninguna fila. Posible bloqueo RLS.');
+      showToast("Error update: No tienes permiso para aprobar este item.", "error");
+    } else {
+      // 2. Verificar si quedan items por aprobar en este requerimiento
+      const updatedItem = data[0];
+      const parentId = updatedItem.requerimiento_id;
+      
+      if (parentId) {
+        // Contamos cuantos items quedan con status 'por_aprobar'
+        const { count, error: countError } = await supabase
+            .from('requerimiento_items')
+            .select('*', { count: 'exact', head: true })
+            .eq('requerimiento_id', parentId)
+            .eq('status', 'por_aprobar');
+            
+        // Si ya no queda ninguno pendiente de aprobación (count === 0),
+        // actualizamos el requerimiento padre a 'pendiente' para que salga en compras
+        if (!countError && count === 0) {
+            console.log("Todos los items aprobados. Actualizando requerimiento padre a pendiente.");
+            const { error: parentError } = await supabase
+               .from('requerimientos')
+               .update({ status: 'pendiente' })
+               .eq('id', parentId);
+               
+             if (parentError) console.error("Error syncing parent status:", parentError);
+        }
+      }
+
+      await getRequerimientos();
+      showToast("Item aprobado correctamente", "success");
+    }
+    setLoading(false);
+  }, [getRequerimientos, showToast]);
+
+  const rejectRequerimientoItem = useCallback(async (itemId) => {
+    setLoading(true);
+    const { error } = await supabase
+      .from('requerimiento_items')
+      .update({ status: 'rechazado' }) 
+      .eq('id', itemId);
+
+    if (error) {
+      console.error('Error rejecting item:', error);
+      showToast("Error al rechazar item", "error");
+    } else {
+      await getRequerimientos();
+      showToast("Item rechazado", "info");
+    }
+    setLoading(false);
+  }, [getRequerimientos, showToast]);
 
   const cancelRequerimientoItem = useCallback(async (itemId) => {
     setLoading(true);
@@ -561,6 +686,8 @@ export const OperacionesProvider = ({ children }) => {
     comprasSinFactura,
     getFacturas,
     getComprasSinFactura,
+    approveRequerimientoItem,
+    rejectRequerimientoItem,
   }), [
     inventory,
     compras,
@@ -580,6 +707,8 @@ export const OperacionesProvider = ({ children }) => {
     getInventorySummary,
     getLowStockItems,
     updateInventoryItem,
+    approveRequerimientoItem,
+    rejectRequerimientoItem,
     facturas,
     comprasSinFactura,
     getFacturas,

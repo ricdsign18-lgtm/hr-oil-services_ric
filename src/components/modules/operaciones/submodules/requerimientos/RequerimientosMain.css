@@ -11,68 +11,7 @@
   margin: 20px 0;
 }
 
-.stat-card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border-left: 4px solid #007bff;
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card.pending {
-  border-left-color: #ffc107;
-}
-
-.stat-card.progress {
-  border-left-color: #17a2b8;
-}
-
-.stat-card.completed {
-  border-left-color: #28a745;
-}
-
-.stat-card.canceled {
-  border-left-color: #dc3545;
-}
-
-.stat-icon {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.stat-card h4 {
-  margin: 0 0 10px 0;
-  font-size: 14px;
-  color: #6c757d;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.stat-number {
-  font-size: 24px;
-  font-weight: bold;
-  display: block;
-  color: #007bff;
-}
-
-.stat-card.pending .stat-number {
-  color: #ffc107;
-}
-
-.stat-card.progress .stat-number {
-  color: #17a2b8;
-}
-
-.stat-card.completed .stat-number {
-  color: #28a745;
-}
-
-.stat-card.canceled .stat-number {
-  color: #dc3545;
-}
+/* .stat-card styles removed - using shared StatsCard component */
 
 .requerimientos-form {
   background: #f8f9fa;

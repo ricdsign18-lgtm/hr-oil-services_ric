@@ -1,12 +1,13 @@
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { ROLES } from "../../../config/permissions";
 import { ArrowIcon, ConfigIcon } from "../../../assets/icons/Icons.jsx";
 import { OutIcon } from "../../../assets/icons/Icons.jsx";
 import SidebarItem from "./SidebarItem";
 import "./Sidebar.css";
 
 const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
-  const { hasPermissionSync, logout, userData: currentUser } = useAuth();
+  const { hasPermission, logout, userData: currentUser } = useAuth();
   const { projectId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,7 +20,7 @@ const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
     // Filtramos los módulos del proyecto según los permisos de lectura del usuario.
     return items
       ? items
-          .filter((item) => hasPermissionSync(item.id, "read"))
+          .filter((item) => hasPermission(item.id))
           .map((item) => ({
             ...item,
             path: `/project/${projectId}${item.path}`,
@@ -114,16 +115,16 @@ const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
                 );
               })}
 
-              {/* Admin Section */}
-              {currentUser?.role === "editor" && (
+              {/* Admin Section - Habilitado para Jefes y Directores */}
+              {ROLES[currentUser?.role]?.level >= 50 && (
                 <SidebarItem
                   item={{
                     id: "permissions",
-                    label: "Gestionar Permisos",
-                    path: "/admin/permissions",
+                    label: "Gestión de Usuarios",
+                    path: `/project/${projectId}/permissions`,
                     icon: <ConfigIcon />,
                   }}
-                  isActive={location.pathname.startsWith("/admin/permissions")}
+                  isActive={location.pathname.includes("/permissions")}
                   onItemClick={handleItemClick}
                 />
               )}

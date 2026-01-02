@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
 import Modal from "../../common/Modal/Modal";
 import supabase from "../../../api/supaBase";
 import { DelateIcon, MoreVerticalIcon } from "../../../assets/icons/Icons";
 import "./UserManagementModal.css";
 
 const UserManagementModal = ({ isOpen, onClose }) => {
+  const { userData: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,9 +37,29 @@ const UserManagementModal = ({ isOpen, onClose }) => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*");
+      const isDirectorOrAdmin = currentUser?.role === 'DIRECTOR_GENERAL' || currentUser?.role === 'admin';
+      let query = supabase.from("users").select("*");
+
+      if (!isDirectorOrAdmin && currentUser?.id) {
+        // Filtrar solo asignados
+        const { data: assignments, error: assignmentError } = await supabase
+           .from("user_assignments")
+           .select("employee_id")
+           .eq("supervisor_id", currentUser.id);
+
+        if (assignmentError) throw assignmentError;
+
+        const employeeIds = assignments.map(a => a.employee_id);
+        
+        if (employeeIds.length === 0) {
+            setUsers([]);
+            return;
+        }
+
+        query = query.in('id', employeeIds);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setUsers(data);

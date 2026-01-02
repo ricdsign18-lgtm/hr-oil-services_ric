@@ -31,6 +31,9 @@ const SidebarItem = ({ item, onItemClick, isActive: propIsActive }) => {
           </span>
         )}
         <span className="sidebar-label">{item.label}</span>
+        {item.badge > 0 && (
+          <span className="sidebar-badge">{item.badge}</span>
+        )}
       </button>
     </li>
   );

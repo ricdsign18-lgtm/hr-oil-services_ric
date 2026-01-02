@@ -23,8 +23,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <AuthProvider>
         <UiProvider>
-          <NotificationProvider>
-            <ProjectProvider>
+          <ProjectProvider>
+            <NotificationProvider>
               <CurrencyProvider>
                 <BudgetProvider>
                   <IncomeProvider>
@@ -42,8 +42,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                   </IncomeProvider>
                 </BudgetProvider>
               </CurrencyProvider>
-            </ProjectProvider>
-          </NotificationProvider>
+            </NotificationProvider>
+          </ProjectProvider>
         </UiProvider>
       </AuthProvider>
     </BrowserRouter>

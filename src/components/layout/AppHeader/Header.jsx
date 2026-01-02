@@ -1,5 +1,5 @@
 import { useProjects } from "../../../contexts/ProjectContext";
-import { Notification } from "./Notification";
+import NotificationCenter from "../MainLayout/NotificationCenter"; // Importamos el nuevo centro de notificaciones
 import { UserRegister } from "./UserRegister";
 import { useAuth } from "../../../contexts/AuthContext";
 
@@ -32,7 +32,7 @@ export const Header = ({ isSidebarOpen, onToggleSidebar, isMobile }) => {
         </h2>
       </article>
       <div className="header-actions">
-        <Notification />
+        <NotificationCenter />
         <UserRegister />
       </div>
     </header>

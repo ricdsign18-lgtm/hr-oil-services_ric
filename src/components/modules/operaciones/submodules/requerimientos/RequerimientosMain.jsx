@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOperaciones } from '../../../../../contexts/OperacionesContext';
 import { useNotification } from '../../../../../contexts/NotificationContext';
+import { useAuth } from '../../../../../contexts/AuthContext'; // Importar Auth
+import { ROLES } from '../../../../../config/permissions'; // Importar ROLES
 import ModuleDescription from '../../../_core/ModuleDescription/ModuleDescription';
-import { InfoIcon, EditIcon, SaveIcon, CancelIcon, PlusIcon } from '../../../../../assets/icons/Icons'; // Assuming these icons exist or will be replaced by text/generic
 import Modal from '../../../../common/Modal/Modal';
+import { InfoIcon, EditIcon, SaveIcon, CancelIcon, PlusIcon, BoxIcon, WarningIcon, BudgetIcon, CheckCircleIcon, XIcon } from '../../../../../assets/icons/Icons'; 
+import StatsCard from '../../../../common/StatsCard/StatsCard';
+
+// ... (in component render)
+
+
 import './RequerimientosMain.css';
 import { RequerimientosForm } from './RequerimientosForm';
 
@@ -14,10 +21,14 @@ const RequerimientosMain = () => {
     productos,
     requerimientos,
     cancelRequerimientoItem,
+    approveRequerimientoItem, // Nueva función
+    rejectRequerimientoItem,  // Nueva función
     getLowStockItems,
     addRequerimientoItem,
     updateRequerimientoItem
   } = useOperaciones();
+
+  const { userData: user } = useAuth(); // Obtener usuario para permisos
 
   const { showToast } = useNotification();
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -50,7 +61,8 @@ const RequerimientosMain = () => {
       pendientes: 0,
       completados: 0,
       en_progreso: 0,
-      cancelados: 0
+      cancelados: 0,
+      por_aprobar: 0 // Nuevo contador
     };
 
     requerimientos.forEach(req => {
@@ -61,6 +73,7 @@ const RequerimientosMain = () => {
           if (item.status === 'completado') stats.completados++;
           if (item.status === 'en_progreso') stats.en_progreso++;
           if (item.status === 'cancelado') stats.cancelados++;
+          if (item.status === 'por_aprobar') stats.por_aprobar++;
         });
       }
     });
@@ -214,26 +227,31 @@ const RequerimientosMain = () => {
       />
 
       <div className="requerimientos-stats">
-        <div className="stat-card">
-          <h4>Total Items</h4>
-          <span className="stat-number">{stats.total}</span>
-        </div>
-        <div className="stat-card pending">
-          <h4>Pendientes</h4>
-          <span className="stat-number">{stats.pendientes}</span>
-        </div>
-        <div className="stat-card progress">
-          <h4>En Progreso</h4>
-          <span className="stat-number">{stats.en_progreso}</span>
-        </div>
-        <div className="stat-card completed">
-          <h4>Completados</h4>
-          <span className="stat-number">{stats.completados}</span>
-        </div>
-        <div className="stat-card canceled">
-          <h4>Cancelados</h4>
-          <span className="stat-number">{stats.cancelados}</span>
-        </div>
+        <StatsCard 
+            title="Total Items" 
+            value={stats.total} 
+            variant="primary" 
+        />
+        <StatsCard 
+            title="Por Aprobar" 
+            value={stats.por_aprobar} 
+            variant="warning" 
+        />
+        <StatsCard 
+            title="Pendientes" 
+            value={stats.pendientes} 
+            variant="pending" 
+        />
+        <StatsCard 
+            title="En Progreso" 
+            value={stats.en_progreso} 
+            variant="info" 
+        />
+        <StatsCard 
+            title="Completados" 
+            value={stats.completados} 
+            variant="success" 
+        />
       </div>
 
       {lowStockItems && lowStockItems.length > 0 && (
@@ -269,6 +287,7 @@ const RequerimientosMain = () => {
           onChange={(e) => setFilterStatus(e.target.value)}
         >
           <option value="all">Todos los estados</option>
+          <option value="por_aprobar">Por Aprobar</option>
           <option value="pendiente">Pendientes</option>
           <option value="en_progreso">En Progreso</option>
           <option value="completado">Completados</option>
@@ -278,7 +297,7 @@ const RequerimientosMain = () => {
 
       <div className="requerimientos-list">
         <h3>Requerimientos Registrados</h3>
-        <div className="total-amount-all">
+        <div className="total-amount-all" style = {{color: '#fff'}}>
           Monto Total de Todos los Requerimientos: ${
             filteredRequerimientos.reduce((acc, req) =>
               acc + req.requerimiento_items.reduce((acc, item) =>
@@ -296,8 +315,13 @@ const RequerimientosMain = () => {
 
         {!loading && filteredRequerimientos && filteredRequerimientos.length > 0 && (
           <div className="requerimientos-table-container">
-            {filteredRequerimientos.map(req => (
-              <div key={req.id} className="requerimiento-group">
+            {filteredRequerimientos.map(req => {
+                  // Determinar si mostramos la columna de acciones para este grupo
+                  const isJefe = ROLES[user?.role]?.level >= 50;
+                  const showActionsColumn = isJefe || addingItemToReqId === req.id;
+
+                  return (
+                  <div key={req.id} className="requerimiento-group">
                 <div className="requerimiento-header">
                   <h4>Requerimiento del {new Date(req.fecha_requerimiento.replace(/-/g, '/')).toLocaleDateString()}</h4>
 
@@ -317,7 +341,7 @@ const RequerimientosMain = () => {
                       <th>Pendiente</th>
                       <th>Monto Aprox. (USD)</th>
                       <th>Estado</th>
-                      <th>Acciones</th>
+                      {showActionsColumn && <th>Acciones</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -381,10 +405,12 @@ const RequerimientosMain = () => {
                               />
                             </td>
                             <td>{item.status}</td>
-                            <td>
-                              <button onClick={handleSaveEdit} className="btn-action-icon save" title="Guardar">💾</button>
-                              <button onClick={handleCancelEdit} className="btn-action-icon cancel" title="Cancelar">❌</button>
-                            </td>
+                            {showActionsColumn && (
+                              <td>
+                                <button onClick={handleSaveEdit} className="btn-action-icon save" title="Guardar">💾</button>
+                                <button onClick={handleCancelEdit} className="btn-action-icon cancel" title="Cancelar">❌</button>
+                              </td>
+                            )}
                           </>
                         ) : (
                           // VIEW MODE ROW
@@ -398,27 +424,54 @@ const RequerimientosMain = () => {
                             <td>{`$${(item.cantidad_requerida * item.precio_unitario_usd_aprox).toFixed(2)}`}</td>
                             <td>
                               <span className={`status-badge ${item.status}`}>
-                                {item.status}
+                                {item.status === 'por_aprobar' ? 'Por Aprobar' : item.status}
                               </span>
                             </td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '5px' }}>
-                                {(item.status === 'pendiente' || item.status === 'en_progreso') && (
-                                  <>
-                                    <button onClick={() => handleEditClick(item)} className="btn-action-icon edit" title="Editar">✏️</button>
-                                    <button
-                                      onClick={() => handleCancelItem(item.id)}
-                                      className="btn-action-icon delete"
-                                      title="Cancelar este item"
-                                    >
-                                      🚫
-                                    </button>
-                                  </>
-                                )}
-                                {item.status === 'cancelado' && <span className="canceled-text">Cancelado</span>}
-                                {item.status === 'completado' && <span className="completed-text">Completado</span>}
-                              </div>
-                            </td>
+                            {showActionsColumn && (
+                              <td>
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                  {/* Acciones de Aprobación (Solo Jefes) */}
+                                  {item.status === 'por_aprobar' && isJefe && (
+                                    <>
+                                      <button 
+                                        onClick={() => approveRequerimientoItem(item.id)} 
+                                        className="btn-action-icon approve" 
+                                        title="Aprobar"
+                                        style={{ backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer' }}
+                                      >
+                                        ✓
+                                      </button>
+                                      <button 
+                                        onClick={() => rejectRequerimientoItem(item.id)} 
+                                        className="btn-action-icon reject" 
+                                        title="Rechazar"
+                                        style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer' }}
+                                      >
+                                        ✕
+                                      </button>
+                                      <button onClick={() => handleEditClick(item)} className="btn-action-icon edit" title="Editar antes de aprobar">✏️</button>
+                                    </>
+                                  )}
+
+                                  {/* Acciones Estándar - SOLO JEFES (Nivel >= 50) pueden editar/eliminar items ya creados */}
+                                  {isJefe && (item.status === 'pendiente' || item.status === 'en_progreso' || item.status === 'por_aprobar') && (
+                                    <>
+                                      <button onClick={() => handleEditClick(item)} className="btn-action-icon edit" title="Editar">✏️</button>
+                                      <button
+                                        onClick={() => handleCancelItem(item.id)}
+                                        className="btn-action-icon delete"
+                                        title="Cancelar este item"
+                                      >
+                                        🚫
+                                      </button>
+                                    </>
+                                  )}
+                                  {item.status === 'cancelado' && <span className="canceled-text">Cancelado</span>}
+                                  {item.status === 'completado' && <span className="completed-text">Completado</span>}
+                                  {item.status === 'rechazado' && <span className="canceled-text">Rechazado</span>}
+                                </div>
+                              </td>
+                            )}
                           </>
                         )}
                       </tr>
@@ -468,15 +521,16 @@ const RequerimientosMain = () => {
                           />
                         </td>
                         <td>Pendiente</td>
-                        <td>
-                          <button onClick={() => handleSaveNewItem(req.id)} className="btn-action-icon save" title="Agregar">✅</button>
-                          <button onClick={handleCancelAdd} className="btn-action-icon cancel" title="Cancelar">❌</button>
-                        </td>
+                        {showActionsColumn && (
+                          <td>
+                            <button onClick={() => handleSaveNewItem(req.id)} className="btn-action-icon save" title="Agregar">✅</button>
+                            <button onClick={handleCancelAdd} className="btn-action-icon cancel" title="Cancelar">❌</button>
+                          </td>
+                        )}
                       </tr>
                     )}
                   </tbody>
                 </table>
-
                 <div className="req-group-actions" style={{ marginTop: '10px', textAlign: 'left' }}>
                   {!addingItemToReqId && (
                     <button
@@ -498,7 +552,8 @@ const RequerimientosMain = () => {
                   )}
                 </div>
               </div>
-            ))}
+                  );
+            })}
           </div>
         )}
       </div>

@@ -111,7 +111,10 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
             <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid #eee' }} />
 
             {/* Item Entry Section */}
-            <h4>Agregar Nuevo Item</h4>
+            <h4 style={{ 
+                color: '#ffffffff',
+            
+            }}>Agregar Nuevo Item</h4>
             <div className="requerimiento-item-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',

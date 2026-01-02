@@ -7,6 +7,7 @@ import OperacionesPage from "./OperacionesPage";
 import ContratoPage from "./ContratoPage";
 import CoordinacionesPage from "./CoordinacionesPage";
 import GestionRutasPermisos from "../components/modules/administracion/submodules/gestion-de-usuarios/GestionRutasPermisos";
+import SolicitudesMain from "../components/modules/operaciones/submodules/solicitudes/SolicitudesMain"; // Importar
 // import ProjectDashboard from '../components/projects/ProjectDashboard/ProjectDashboard'
 import "./ProjectLobby.css";
 
@@ -38,6 +39,7 @@ const ProjectLobby = () => {
         <Route path="/operaciones/*" element={<OperacionesPage />} />
         <Route path="/contrato/*" element={<ContratoPage />} />
         <Route path="/coordinaciones/*" element={<CoordinacionesPage />} />
+        <Route path="/solicitudes" element={<SolicitudesMain />} />
         <Route path="/permissions" element={<GestionRutasPermisos />} />
         <Route path="*" element={<Navigate to="resumen" replace />} />
       </Routes>

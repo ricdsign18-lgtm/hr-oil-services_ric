@@ -1,0 +1,77 @@
+.common-stat-card {
+  background: #1f2937;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 120px;
+}
+
+.common-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.common-stat-card h4 {
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  color: #9ca3af; /* Gray text like inventory */
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px; /* Gap between icon and number */
+  width: 100%;
+}
+
+.common-stat-card .stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.common-stat-card .stat-icon svg {
+  fill: #fff; /* White icons */
+  width: 32px;
+  height: 32px;
+}
+
+.common-stat-card .stat-number {
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+  color: #3b82f6; /* Default Blue */
+}
+
+/* Variants - Matching Inventory Border Colors but applying to Text/Border? 
+   Inventory CSS uses border-left-color for some specific classes, 
+   but basic cards are clean. 
+   Let's use the variant to color the number.
+*/
+
+.common-stat-card.primary .stat-number { color: #3b82f6; }
+.common-stat-card.warning .stat-number { color: #f59e0b; }
+.common-stat-card.pending .stat-number { color: #f59e0b; }
+.common-stat-card.success .stat-number { color: #10b981; }
+.common-stat-card.info .stat-number { color: #0ea5e9; }
+.common-stat-card.danger .stat-number { color: #ef4444; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .common-stat-card {
+    padding: 15px;
+  }
+  .common-stat-card .stat-number {
+    font-size: 24px;
+  }
+}
