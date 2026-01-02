@@ -81,22 +81,14 @@ const RequerimientosMain = () => {
   const stats = getRequerimientoStats();
 
   return (
-    <div className="requerimientos-main">
+    <main className="requerimientos-main">
       <ModuleDescription
         title="Gestión de Requerimientos"
         description="Registre y gestione los requerimientos de materiales para el proyecto."
-        action={
-          <button
-            className="btn-info-circle"
-            onClick={() => setShowInfoModal(true)}
-            title="Ver información del módulo"
-          >
-          
-          </button>
-        }
+        
       />
 
-      <div className="requerimientos-stats">
+      <section className="requerimientos-stats">
         <StatsCard 
             title="Total Items" 
             value={stats.total} 
@@ -122,10 +114,10 @@ const RequerimientosMain = () => {
             value={stats.completados} 
             variant="success" 
         />
-      </div>
+      </section>
 
       {lowStockItems && lowStockItems.length > 0 && (
-        <div className="suggestions-section">
+        <section className="suggestions-section">
           <h4>💡 Sugerencias de Requerimiento (por Bajo Stock)</h4>
           <div className="suggestions-list">
             {lowStockItems.map((suggestion) => (
@@ -145,7 +137,7 @@ const RequerimientosMain = () => {
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       <RequerimientosForm />
@@ -187,6 +179,7 @@ const RequerimientosMain = () => {
           <RequerimientosGroupList
             requerimientos={filteredRequerimientos}
             onDataChange={handleDataChange}
+            user={user}
           />
         )}
       </div>
@@ -208,7 +201,7 @@ const RequerimientosMain = () => {
           </ul>
         </div>
       </Modal>
-    </div>
+    </main>
   );
 };
 

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useOperaciones } from '../../../../../contexts/OperacionesContext';
 import { useNotification } from '../../../../../contexts/NotificationContext';
+import './RequerimientosForm.css'
 
 export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => {
     const { addRequerimiento, loading, productos } = useOperaciones();
@@ -95,10 +96,9 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
     };
 
     return (
-        <div className="requerimientos-form-container">
-            {/* Header Section */}
-            <div className="form-group" style={{ marginBottom: '20px' }}>
-                <label>Fecha del Requerimiento *</label>
+        <main className="requerimientos-form-container">
+            <header>
+                <label>Fecha del Requerimiento</label>
                 <input
                     type="date"
                     value={fechaRequerimiento}
@@ -106,26 +106,14 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
                     required
                     className="form-control"
                 />
-            </div>
+            </header>
 
-            <hr style={{ margin: '20px 0', border: '0', borderTop: '1px solid #eee' }} />
+            <h4>Agregar Nuevo Item</h4>
 
-            {/* Item Entry Section */}
-            <h4 style={{ 
-                color: '#ffffffff',
-            
-            }}>Agregar Nuevo Item</h4>
-            <div className="requerimiento-item-grid" style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '15px',
-                backgroundColor: '#f9fafb',
-                padding: '15px',
-                borderRadius: '8px',
-                border: '1px solid #e0e0e0'
-            }}>
+            <section className="requerimiento-item-grid">
                 <div className="form-group">
-                    <label>Producto *</label>
+                    <label>Producto
+
                     <input
                         list="productos-datalist"
                         type="text"
@@ -134,7 +122,9 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
                         onChange={handleInputChange}
                         className="form-control"
                         placeholder="Buscar producto..."
-                    />
+                        />
+
+                    </label>
                     <datalist id="productos-datalist">
                         {productos && productos.map(p => (
                             <option key={p.id} value={p.nombre_producto} />
@@ -143,7 +133,8 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
                 </div>
 
                 <div className="form-group">
-                    <label>Categoría</label>
+                    <label>Categoría
+
                     <input
                         type="text"
                         name="categoria_producto"
@@ -151,11 +142,13 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
                         onChange={handleInputChange}
                         className="form-control"
                         placeholder="Categoría"
-                    />
+                        />
+                    </label>
                 </div>
 
                 <div className="form-group">
-                    <label>Unidad</label>
+                    <label>Unidad
+
                     <input
                         type="text"
                         name="unidad"
@@ -163,11 +156,13 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
                         onChange={handleInputChange}
                         className="form-control"
                         placeholder="Unidad"
-                    />
+                        />
+                        </label>
                 </div>
 
                 <div className="form-group">
-                    <label>Cantidad *</label>
+                    <label>Cantidad 
+
                     <input
                         type="number"
                         name="cantidad_requerida"
@@ -177,11 +172,13 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
                         step="0.01"
                         className="form-control"
                         placeholder="0"
-                    />
+                        />
+                        </label>
                 </div>
 
                 <div className="form-group">
-                    <label>Precio Unit. (Ref)</label>
+                    <label>Precio Unit. (Ref)
+
                     <input
                         type="number"
                         name="precio_unitario_usd_aprox"
@@ -190,58 +187,51 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
                         placeholder="0.00"
                         step="0.01"
                         className="form-control"
-                    />
+                        />
+                        </label>
                 </div>
 
                 <div className="form-group">
-                    <label>Total Aprox.</label>
+                    <label>Total Aprox.
+
                     <input
                         type="text"
                         value={`$${currentItem.monto_dolares_aprox || '0.00'}`}
                         readOnly
-                        className="form-control"
-                        style={{ backgroundColor: '#f0f0f0' }}
-                    />
+                        className="form-control input-readonly"
+                        />
+                        </label>
                 </div>
 
-                <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <button
-                        type="button"
-                        onClick={handleAddItemToList}
-                        className="btn-primary"
-                        style={{ width: '100%' }}
-                    >
-                        + Agregar a Lista
-                    </button>
-                </div>
-            </div>
+               
+            </section>
 
             {/* Temporary List Table */}
             {itemsList.length > 0 && (
-                <div className="items-list-preview" style={{ marginTop: '20px' }}>
+                <div className="items-list-preview">
                     <h4>Items por Registrar ({itemsList.length})</h4>
-                    <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                        <thead style={{ backgroundColor: '#f5f5f5', textAlign: 'left' }}>
+                    <table className="items-table">
+                        <thead>
                             <tr>
-                                <th style={{ padding: '8px' }}>Producto</th>
-                                <th style={{ padding: '8px' }}>Cant.</th>
-                                <th style={{ padding: '8px' }}>Total Ref.</th>
-                                <th style={{ padding: '8px' }}>Acción</th>
+                                <th>Producto</th>
+                                <th>Cant.</th>
+                                <th>Total Ref.</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
                             {itemsList.map((item, idx) => (
-                                <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '8px' }}>
-                                        <div style={{ fontWeight: 'bold' }}>{item.nombre_producto}</div>
-                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>{item.categoria_producto} - {item.unidad}</div>
+                                <tr key={idx}>
+                                    <td>
+                                        <div className="product-name">{item.nombre_producto}</div>
+                                        <div className="product-details">{item.categoria_producto} - {item.unidad}</div>
                                     </td>
-                                    <td style={{ padding: '8px' }}>{item.cantidad_requerida}</td>
-                                    <td style={{ padding: '8px' }}>${item.monto_dolares_aprox}</td>
-                                    <td style={{ padding: '8px' }}>
+                                    <td>{item.cantidad_requerida}</td>
+                                    <td>${item.monto_dolares_aprox}</td>
+                                    <td>
                                         <button
                                             onClick={() => handleRemoveItemFromList(idx)}
-                                            style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}
+                                            className="btn-remove"
                                         >
                                             ✕
                                         </button>
@@ -253,29 +243,33 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null }) => 
                 </div>
             )}
 
-            {/* Final Actions */}
-            <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '30px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+
+            <div className="form-actions">
+
                 {onCancel && (
                     <button type="button" className="btn-secondary" onClick={onCancel}>
                         Cancelar
                     </button>
                 )}
+
                 <button
                     onClick={handleSubmit}
-                    className="btn-success"
+                    className="btn-submit-requerimiento"
                     disabled={loading || itemsList.length === 0}
-                    style={{
-                        backgroundColor: itemsList.length === 0 ? '#a5d6a7' : '#2e7d32',
-                        color: 'white',
-                        padding: '10px 20px',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: itemsList.length === 0 ? 'not-allowed' : 'pointer'
-                    }}
                 >
                     {loading ? 'Guardando...' : `Registrar Requerimiento (${itemsList.length})`}
                 </button>
+
+                <button
+                    type="button"
+                    onClick={handleAddItemToList}
+                    className="btn-add-item-requerimiento"
+                >
+                    + Agregar a Lista
+                </button>
+              
+                
             </div>
-        </div>
+        </main>
     );
 };

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useOperaciones } from '../../../../../contexts/OperacionesContext';
 import { useNotification } from '../../../../../contexts/NotificationContext';
-import { EditIcon, SaveIcon, CancelIcon, PlusIcon, DelateIcon } from '../../../../../assets/icons/Icons'; // Ensure these are imported
+import { EditIcon, SaveIcon, CancelIcon, PlusIcon, DelateIcon } from '../../../../../assets/icons/Icons';
+import { ROLES } from '../../../../../config/permissions';
 
-const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
+const RequerimientosGroupList = ({ requerimientos, onDataChange, user }) => {
     const {
         productos,
         addRequerimientoItem,
@@ -160,7 +161,11 @@ const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
 
     return (
         <div className="requerimientos-table-container">
-            {requerimientos.map(req => (
+            {requerimientos.map(req => {
+                const isJefe = ROLES[user?.role]?.level >= 50;
+                const showActionsColumn = isJefe || addingItemToReqId === req.id;
+
+                return (
                 <div key={req.id} className="requerimiento-group">
                     <div className="requerimiento-header">
                         <h4>Solicitud del {new Date(req.fecha_requerimiento.replace(/-/g, '/')).toLocaleDateString()}</h4>
@@ -181,7 +186,7 @@ const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
                                 <th>Pendiente</th>
                                 <th>Monto Aprox. (USD)</th>
                                 <th>Estado</th>
-                                <th>Acciones</th>
+                                {showActionsColumn && <th>Acciones</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -245,10 +250,12 @@ const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
                                                 />
                                             </td>
                                             <td>{item.status}</td>
-                                            <td>
-                                                <button onClick={handleSaveEdit} className="btn-action-icon save" title="Guardar">💾</button>
-                                                <button onClick={handleCancelEdit} className="btn-action-icon cancel" title="Cancelar">❌</button>
-                                            </td>
+                                            {showActionsColumn && (
+                                                <td>
+                                                    <button onClick={handleSaveEdit} className="btn-action-icon save" title="Guardar">💾</button>
+                                                    <button onClick={handleCancelEdit} className="btn-action-icon cancel" title="Cancelar">❌</button>
+                                                </td>
+                                            )}
                                         </>
                                     ) : (
                                         // VIEW MODE ROW
@@ -265,9 +272,10 @@ const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
                                                     {item.status}
                                                 </span>
                                             </td>
+                                            {showActionsColumn && (
                                             <td>
                                                 <div style={{ display: 'flex', gap: '5px' }}>
-                                                    {(item.status === 'pendiente' || item.status === 'en_progreso') && (
+                                                    {isJefe && (item.status === 'pendiente' || item.status === 'en_progreso') && (
                                                         <>
                                                             <button onClick={() => handleEditClick(item)} className="btn-action-icon edit" title="Editar">✏️</button>
                                                             <button
@@ -286,7 +294,7 @@ const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
                                                             </button>
                                                         </>
                                                     )}
-                                                    {item.status === 'cancelado' && (
+                                                    {isJefe && item.status === 'cancelado' && (
                                                         <>
                                                             <span className="canceled-text">Cancelado</span>
                                                             <button
@@ -299,9 +307,11 @@ const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
                                                             </button>
                                                         </>
                                                     )}
+                                                     {!isJefe && item.status === 'cancelado' && <span className="canceled-text">Cancelado</span>}
                                                     {item.status === 'completado' && <span className="completed-text">Completado</span>}
                                                 </div>
                                             </td>
+                                            )}
                                         </>
                                     )}
                                 </tr>
@@ -369,10 +379,12 @@ const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
                                         />
                                     </td>
                                     <td>Pendiente</td>
-                                    <td>
-                                        <button onClick={() => handleSaveNewItem(req.id)} className="btn-action-icon save" title="Agregar">✅</button>
-                                        <button onClick={handleCancelAdd} className="btn-action-icon cancel" title="Cancelar">❌</button>
-                                    </td>
+                                    {showActionsColumn && (
+                                        <td>
+                                            <button onClick={() => handleSaveNewItem(req.id)} className="btn-action-icon save" title="Agregar">✅</button>
+                                            <button onClick={handleCancelAdd} className="btn-action-icon cancel" title="Cancelar">❌</button>
+                                        </td>
+                                    )}
                                 </tr>
                             )}
                         </tbody>
@@ -399,7 +411,8 @@ const RequerimientosGroupList = ({ requerimientos, onDataChange }) => {
                         )}
                     </div>
                 </div>
-            ))}
+                );
+            })}
         </div>
     );
 };

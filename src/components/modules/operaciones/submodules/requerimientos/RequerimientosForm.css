@@ -1,0 +1,158 @@
+.requerimientos-form-container {
+    background-color: #1f2937;
+    border-radius: 20px;
+    padding: 20px; 
+    color: white;
+
+    header {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       padding: 10px;
+       color: white;
+    
+       label{
+           color: white;
+           font-size: 1.2rem;
+           
+       }
+    
+       input{
+           background-color: #fff;
+           padding: 5px;
+           border-radius: 5px;
+           border: none;
+           color: #28303B;
+       }
+    
+    }
+    
+    h4{
+        padding:10px;
+        margin-bottom: 10px;
+    }
+
+    .requerimiento-item-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        border: none;
+        background-color: transparent;
+        gap: 15px;
+        padding: 15px;
+        border-radius: 8px;
+        color: #fff;
+
+       .form-group {
+       
+           label{
+               color: #9ca3af;
+           }
+
+           input{
+              background-color: #0f172a;
+              color: #fff;
+              border: none;
+           }
+       }
+
+    }
+
+    
+     .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin: 10px;
+        gap: 10px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+
+        .btn-add-item-requerimiento{
+           background-color: #2aa835;
+           color: #fff;
+           border-radius: 5px;
+           padding: 20px;
+           cursor: pointer;
+           border: none;
+        }
+
+        .btn-submit-requerimiento{
+            background-color: #141ead;
+            color: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            cursor: pointer;
+            border: none;
+        }
+    }
+
+}    
+
+
+.requerimientos-form-container .separator {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #eee;
+}    
+
+.requerimientos-form-container .section-title {
+    color: #fff; 
+    margin-bottom: 10px;
+}    
+
+
+.requerimientos-form-container .add-button-container {
+    display: flex;
+    align-items: flex-end;
+}    
+
+.requerimientos-form-container .btn-add-item {
+    width: 100%;
+}    
+
+.requerimientos-form-container .input-readonly {
+    background-color: #f0f0f0;
+}    
+
+/* Table Styles */
+.requerimientos-form-container .items-list-preview {
+    margin-top: 20px;
+}    
+
+.requerimientos-form-container .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}    
+
+.requerimientos-form-container .items-table thead {
+    background-color: #f5f5f5;
+    text-align: left;
+}    
+
+.requerimientos-form-container .items-table th,
+.requerimientos-form-container .items-table td {
+    padding: 8px;
+}    
+
+.requerimientos-form-container .items-table tr {
+    border-bottom: 1px solid #eee;
+}    
+
+.requerimientos-form-container .product-name {
+    font-weight: bold;
+}    
+
+.requerimientos-form-container .product-details {
+    font-size: 0.8rem;
+    color: #666;
+}    
+
+.requerimientos-form-container .btn-remove {
+    color: red;
+    background: none;
+    border: none;
+    cursor: pointer;
+}    
+
+/* Actions */
