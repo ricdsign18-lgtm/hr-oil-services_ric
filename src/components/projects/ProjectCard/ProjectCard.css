@@ -147,6 +147,7 @@
 .detail-item {
   display: flex;
   flex-direction: column;
+  color: #000;
 }
 
 .detail-label {
@@ -161,7 +162,7 @@
 .detail-value {
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: #000;
   font-family: inherit;
 }
 
