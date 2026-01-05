@@ -66,15 +66,15 @@ const ProjectCard = ({ project, onEdit, onDelete, onSelect }) => {
       <div className="project-card-details">
         <div className="detail-item">
             <span className="detail-label">PRESUPUESTO</span>
-            <span className="detail-value">{formatCurrency(project.budget, project.currency)}</span>
+            <span className="detail-value-card">{formatCurrency(project.budget, project.currency)}</span>
         </div>
         <div className="detail-item">
             <span className="detail-label">INICIO</span>
-            <span className="detail-value">{formatDate(project.startDate)}</span>
+            <span className="detail-value-card">{formatDate(project.startDate)}</span>
         </div>
         <div className="detail-item">
             <span className="detail-label">FIN</span>
-            <span className="detail-value">{formatDate(project.endDate)}</span>
+            <span className="detail-value-card">{formatDate(project.endDate)}</span>
         </div>
       </div>
 
