@@ -159,8 +159,93 @@ export const ExecutionProvider = ({ children }) => {
     return data || [];
   }, []);
 
+  // Fetch Reports for entire Week (New Feature)
+  const getReportesSemana = useCallback(async (semanaId) => {
+    setLoading(true);
+    try {
+      // 1. Get Days of Week
+      const { data: days, error: daysError } = await supabase.from('plan_dias').select('id').eq('semana_id', semanaId);
+      if (daysError) throw daysError;
+      const dayIds = days.map(d => d.id);
+
+      if (dayIds.length === 0) return [];
+
+      // 2. Get Activities of those Days
+      const { data: acts, error: actsError } = await supabase.from('plan_actividades').select('id, descripcion, nombre_partida').in('dia_id', dayIds);
+      if (actsError) throw actsError;
+      const actIds = acts.map(a => a.id);
+
+      if (actIds.length === 0) return [];
+
+      // 3. Get Reports of those Activities
+      const { data: reports, error: reportsError } = await supabase
+        .from('ejecucion_reportes')
+        .select('*')
+        .in('actividad_id', actIds)
+        .order('fecha_reporte', { ascending: false });
+
+      if (reportsError) throw reportsError;
+
+      // Enrich reports with Activity Name (since we have acts data)
+      const enrichedReports = reports.map(r => {
+        const act = acts.find(a => a.id === r.actividad_id);
+        return {
+          ...r,
+          nombre_actividad: act ? act.descripcion : 'Actividad Desconocida',
+          nombre_partida: act ? act.nombre_partida : 'N/A'
+        };
+      });
+
+      return enrichedReports;
+    } catch (error) {
+      console.error("Error fetching weekly reports:", error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch Reports for a specific Day (New Feature)
+  const getReportesDia = useCallback(async (diaId) => {
+    setLoading(true);
+    try {
+      // 1. Get Activities of that Day
+      const { data: acts, error: actsError } = await supabase.from('plan_actividades').select('id, descripcion, nombre_partida').eq('dia_id', diaId);
+      if (actsError) throw actsError;
+      const actIds = acts.map(a => a.id);
+
+      if (actIds.length === 0) return [];
+
+      // 2. Get Reports of those Activities
+      const { data: reports, error: reportsError } = await supabase
+        .from('ejecucion_reportes')
+        .select('*')
+        .in('actividad_id', actIds)
+        .order('fecha_reporte', { ascending: false });
+
+      if (reportsError) throw reportsError;
+
+      // Enrich reports
+      const enrichedReports = reports.map(r => {
+        const act = acts.find(a => a.id === r.actividad_id);
+        return {
+          ...r,
+          nombre_actividad: act ? act.descripcion : 'Actividad Desconocida',
+          nombre_partida: act ? act.nombre_partida : 'N/A'
+        };
+      });
+
+      return enrichedReports;
+    } catch (error) {
+      console.error("Error fetching daily reports:", error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Registrar Cierre Diario (Pause/Partial Close OR Auto-Finalize)
-  const registrarCierreDiario = useCallback(async (actividadId, fechaCierre, cantidadHoy, reporteData) => {
+  const registrarCierreDiario = useCallback(async (actividadId, fechaCierre, cantidadHoy, reporteData, materiales = []) => {
     setLoading(true);
     try {
       // 1. Get current activity details
@@ -225,7 +310,8 @@ export const ExecutionProvider = ({ children }) => {
           partida_asociada: {
             id: currentAct.partida_id,
             nombre: currentAct.nombre_partida
-          }
+          },
+          materiales: materiales // Save used materials
         }
       };
 
@@ -280,8 +366,28 @@ export const ExecutionProvider = ({ children }) => {
     }
   }, []);
 
+  // Eliminar Personal de Actividad (New Feature)
+  const eliminarPersonalActividad = useCallback(async (assignmentId) => {
+    setLoading(true);
+    try {
+      if (!assignmentId) throw new Error("ID de asignación inválido");
+
+      const { error } = await supabase
+        .from('plan_actividad_personal')
+        .delete()
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error eliminando personal:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Finalizar Actividad (Complex)
-  const finalizarActividad = useCallback(async (actividadId, fechaFin, cantidadReal, reporteData, replanificacionData) => {
+  const finalizarActividad = useCallback(async (actividadId, fechaFin, cantidadReal, reporteData, replanificacionData, materiales = []) => {
     setLoading(true);
     try {
       // 1. Get current activity details (needed for Re-planning and Subactivities)
@@ -335,7 +441,8 @@ export const ExecutionProvider = ({ children }) => {
             partida_asociada: {
               id: currentAct.partida_id,
               nombre: currentAct.nombre_partida
-            }
+            },
+            materiales: materiales // Save used materials
           }
         };
         const { error: reportError } = await supabase.from('ejecucion_reportes').insert([reportPayload]);
@@ -549,8 +656,11 @@ export const ExecutionProvider = ({ children }) => {
     finalizarActividad,
     registrarCierreDiario,
     agregarPersonalActividad,
+    eliminarPersonalActividad,
     registrarTiempo,
-    getReportes
+    getReportes,
+    getReportesSemana,
+    getReportesDia
   }), [
     loading,
     getSubactividades,
@@ -559,8 +669,11 @@ export const ExecutionProvider = ({ children }) => {
     finalizarActividad,
     registrarCierreDiario,
     agregarPersonalActividad,
+    eliminarPersonalActividad,
     registrarTiempo,
-    getReportes
+    getReportes,
+    getReportesSemana,
+    getReportesDia
   ]);
 
   return (

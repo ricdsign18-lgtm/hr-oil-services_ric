@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useExecution } from '../../../../../../contexts/ExecutionContext';
 import { useNotification } from '../../../../../../contexts/NotificationContext';
 import { usePersonal } from '../../../../../../contexts/PersonalContext';
+import { useOperaciones } from '../../../../../../contexts/OperacionesContext';
 import { SubactividadesList } from './SubactividadesList';
 import Modal from '../../../../../common/Modal/Modal';
 
@@ -28,9 +29,15 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
   const [selectedPersonalId, setSelectedPersonalId] = useState('');
   const [selectedPersonalRol, setSelectedPersonalRol] = useState('');
 
-  const { iniciarEjecucionActividad, finalizarActividad, registrarCierreDiario, agregarPersonalActividad, loading, getReportes } = useExecution();
+  // Inventory Integration State
+  const [materialsToConsume, setMaterialsToConsume] = useState([]);
+  const [selectedMaterialId, setSelectedMaterialId] = useState('');
+  const [materialQuantity, setMaterialQuantity] = useState('');
+
+  const { iniciarEjecucionActividad, finalizarActividad, registrarCierreDiario, agregarPersonalActividad, eliminarPersonalActividad, loading, getReportes } = useExecution();
   const { showToast } = useNotification();
   const { getEmployeesByProject } = usePersonal();
+  const { inventory, withdrawInventory } = useOperaciones();
 
   // ... (rest of component code remains same until end)
 
@@ -59,13 +66,87 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
     }
   };
 
+  const handleRemovePersonal = async (assignmentId, nombre) => {
+    if (window.confirm(`¿Estás seguro de quitar a "${nombre}" de esta actividad?`)) {
+      try {
+        await eliminarPersonalActividad(assignmentId);
+        onUpdate();
+        showToast("Personal removido exitosamente", "success");
+      } catch (error) {
+        showToast("Error al remover personal: " + error.message, "error");
+      }
+    }
+  };
+
+  // ... (existing code) ...
+
   const handleCloseDayClick = (e) => {
     e.stopPropagation();
     setSelectedDate(new Date().toISOString().split('T')[0]);
     // Pre-fill with programmed amount or existing real amount (but usually empty for 'what did you do today')
     setCantidadRealInput('');
     setReporteData({ usuario: '', descripcion: '', justificacion: '' });
+    // Reset Material State
+    setMaterialsToConsume([]);
+    setSelectedMaterialId('');
+    setMaterialQuantity('');
     setShowCloseDayModal(true);
+  };
+
+  // Helper to add material to list
+  const handleAddMaterial = () => {
+    if (!selectedMaterialId || !materialQuantity || parseFloat(materialQuantity) <= 0) {
+      showToast("Seleccione un material y una cantidad válida", "error");
+      return;
+    }
+    const item = inventory.find(i => String(i.id) === String(selectedMaterialId));
+    if (!item) return;
+
+    if (parseFloat(materialQuantity) > item.cantidad_disponible) {
+      showToast(`Stock insuficiente. Disponible: ${item.cantidad_disponible}`, "error");
+      return;
+    }
+
+    setMaterialsToConsume(prev => [
+      ...prev,
+      {
+        id: item.id,
+        nombre: item.nombre_producto,
+        unidad: item.unidad,
+        cantidad: parseFloat(materialQuantity)
+      }
+    ]);
+    setSelectedMaterialId('');
+    setMaterialQuantity('');
+  };
+
+  const handleRemoveMaterial = (index) => {
+    setMaterialsToConsume(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const processMaterialWithdrawals = async (materials, reporteUsuario) => {
+    if (!materials || materials.length === 0) return true;
+
+    // We execute withdrawals one by one. If one fails, we might have partials.
+    // In a real app we'd want a transaction or batch endpoint.
+    // Here we will try best effort.
+    for (const mat of materials) {
+      // We reuse the existing withdrawInventory function which likely updates DB state
+      // We need to pass valid payload.
+      try {
+        await withdrawInventory({
+          inventario_id: mat.id,
+          cantidad_retirada: mat.cantidad,
+          retirado_por: reporteData.usuario, // Explicitly use the report user
+          observaciones: `Actividad: ${actividadPlanificada.descripcion}` // Clean connection info
+        });
+      } catch (err) {
+        console.error("Error withdrawing material:", mat, err);
+        showToast(`Error al retirar ${mat.nombre}. Verifique stock.`, "error");
+        return false;
+      }
+    }
+    return true;
   };
 
   const confirmCloseDay = async () => {
@@ -74,8 +155,18 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
       return;
     }
 
+    if (!window.confirm("¿Está seguro que desea registrar el cierre diario? Esto generará un reporte y actualizará el avance.")) {
+      return;
+    }
+
     try {
-      await registrarCierreDiario(actividadPlanificada.id, selectedDate, cantidadRealInput, reporteData);
+      // 1. Withdraw Materials
+      const withdrawalsSuccess = await processMaterialWithdrawals(materialsToConsume, reporteData.usuario);
+      if (!withdrawalsSuccess) return; // Stop if inventory fail
+
+      // 2. Register Close Day with Materials
+      await registrarCierreDiario(actividadPlanificada.id, selectedDate, cantidadRealInput, reporteData, materialsToConsume);
+
       setShowCloseDayModal(false);
       onUpdate();
       showToast("Cierre diario registrado y reporte generado", "success");
@@ -141,6 +232,10 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
     setCantidadRealInput(actividadPlanificada.cantidad_real || actividadPlanificada.cantidad_programada || '');
     setReporteData({ usuario: '', descripcion: '', justificacion: '' });
     setReplanData({ replanificar: true, fechaNueva: '', autoTomorrow: true }); // Default to Auto Replan if partial
+    // Reset Material State
+    setMaterialsToConsume([]);
+    setSelectedMaterialId('');
+    setMaterialQuantity('');
     setShowFinishModal(true);
   };
 
@@ -172,17 +267,24 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
     }
 
     // If complete or over-executed, finalize immediately
-    performFinalize(null);
+    if (window.confirm("¿Confirma que desea FINALIZAR esta actividad? Esta acción es irreversible.")) {
+      performFinalize(null);
+    }
   };
 
   const performFinalize = async (replanPayload) => {
     try {
+      // 1. Withdraw Materials
+      const withdrawalsSuccess = await processMaterialWithdrawals(materialsToConsume, reporteData.usuario);
+      if (!withdrawalsSuccess) return;
+
       await finalizarActividad(
         actividadPlanificada.id,
         selectedDate,
         cantidadRealInput,
         reporteData,
-        replanPayload
+        replanPayload,
+        materialsToConsume
       );
       setShowFinishModal(false);
       setShowReplanConfirmModal(false);
@@ -210,7 +312,9 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
       performFinalize(payload);
     } else {
       // Finalize without replanning (just close with partials)
-      performFinalize(null);
+      if (window.confirm("¿Seguro que desea finalizar con cantidades pendientes SIN replanificar? Las unidades restantes NO se programarán para otro día.")) {
+        performFinalize(null);
+      }
     }
   };
 
@@ -376,11 +480,35 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
                     fontSize: '0.85rem',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '6px',
+                    position: 'relative',
+                    paddingRight: (estadoActual === 'pendiente' || estadoActual === 'en_progreso') ? '28px' : '8px'
                   }}>
                     <span style={{ fontSize: '1rem' }}>👤</span>
                     <span style={{ fontWeight: 500 }}>{p.nombre_personal}</span>
                     {p.rol_en_actividad && <span style={{ color: '#64748b', fontSize: '0.8rem' }}>• {p.rol_en_actividad}</span>}
+
+                    {(estadoActual === 'pendiente' || estadoActual === 'en_progreso') && (
+                      <button
+                        onClick={() => handleRemovePersonal(p.id, p.nombre_personal)}
+                        title="Remover personal"
+                        style={{
+                          position: 'absolute',
+                          right: '2px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          padding: '2px 5px',
+                          lineHeight: 1
+                        }}
+                      >
+                        ✖
+                      </button>
+                    )}
                   </span>
                 ))}
               </div>
@@ -445,6 +573,10 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
                 placeholder="0.00"
                 step="0.01"
               />
+              <div style={{ marginTop: '5px', fontSize: '0.8rem', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Total Ejec: {actividadPlanificada.cantidad_real || 0}</span>
+                <span>Disp: {(parseFloat(actividadPlanificada.cantidad_programada || 0) - parseFloat(actividadPlanificada.cantidad_real || 0)).toFixed(2)}</span>
+              </div>
             </div>
           </div>
 
@@ -468,6 +600,60 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
               onChange={e => setReporteData(prev => ({ ...prev, descripcion: e.target.value }))}
               placeholder="Detalle de trabajos..."
             />
+          </div>
+
+          {/* Material Selection UI */}
+          <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#f0f9ff', borderRadius: '6px', border: '1px solid #bae6fd' }}>
+            <h5 style={{ fontSize: '0.9rem', marginBottom: '10px', color: '#0369a1' }}>Consumo de Materiales (Opcional)</h5>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+              <select
+                className="form-control"
+                value={selectedMaterialId}
+                onChange={e => setSelectedMaterialId(e.target.value)}
+                style={{ fontSize: '0.85rem' }}
+              >
+                <option value="">-- Seleccionar Material --</option>
+                {inventory.filter(i => i.cantidad_disponible > 0).map(item => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre_producto} (Disp: {item.cantidad_disponible} {item.unidad})
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                className="form-control"
+                style={{ width: '100px', fontSize: '0.85rem' }}
+                placeholder="Cant."
+                value={materialQuantity}
+                onChange={e => setMaterialQuantity(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn-info"
+                onClick={handleAddMaterial}
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                +
+              </button>
+            </div>
+
+            {/* List of pending materials */}
+            {materialsToConsume.length > 0 && (
+              <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.85rem' }}>
+                {materialsToConsume.map((mat, idx) => (
+                  <li key={idx}>
+                    {mat.nombre}: <strong>{mat.cantidad} {mat.unidad}</strong>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveMaterial(idx)}
+                      style={{ marginLeft: '10px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      ✖
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div style={{ marginTop: '15px' }}>
@@ -541,6 +727,58 @@ export const ActividadEjecucion = ({ actividadPlanificada, onUpdate }) => {
               onChange={e => setReporteData(prev => ({ ...prev, descripcion: e.target.value }))}
               placeholder="Detalles de la ejecución..."
             />
+          </div>
+
+          {/* Material Selection UI */}
+          <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#f0f9ff', borderRadius: '6px', border: '1px solid #bae6fd' }}>
+            <h5 style={{ fontSize: '0.9rem', marginBottom: '10px', color: '#0369a1' }}>Consumo de Materiales (Opcional)</h5>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+              <select
+                className="form-control"
+                value={selectedMaterialId}
+                onChange={e => setSelectedMaterialId(e.target.value)}
+                style={{ fontSize: '0.85rem' }}
+              >
+                <option value="">-- Seleccionar Material --</option>
+                {inventory.filter(i => i.cantidad_disponible > 0).map(item => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre_producto} (Disp: {item.cantidad_disponible} {item.unidad})
+                  </option>
+                ))}
+              </select>
+              <input
+                type="number"
+                className="form-control"
+                style={{ width: '100px', fontSize: '0.85rem' }}
+                placeholder="Cant."
+                value={materialQuantity}
+                onChange={e => setMaterialQuantity(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn-info"
+                onClick={handleAddMaterial}
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+              >
+                +
+              </button>
+            </div>
+            {materialsToConsume.length > 0 && (
+              <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.85rem' }}>
+                {materialsToConsume.map((mat, idx) => (
+                  <li key={idx}>
+                    {mat.nombre}: <strong>{mat.cantidad} {mat.unidad}</strong>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveMaterial(idx)}
+                      style={{ marginLeft: '10px', border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                      ✖
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div style={{ marginBottom: '10px' }}>
@@ -685,7 +923,7 @@ const ReportViewerModal = ({ isOpen, onClose, actividadId }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Historial de Reportes">
-      <div style={{ padding: '20px', maxHeight: '70vh', overflowY: 'auto' }}>
+      <div style={{ padding: '20px' }}>
         {loadingReport ? (
           <p>Cargando reportes...</p>
         ) : reports.length > 0 ? (
@@ -750,6 +988,20 @@ const ReportViewerModal = ({ isOpen, onClose, actividadId }) => {
                   </div>
                 )}
 
+                {/* Materials Used Section */}
+                {report.detalles?.materiales && report.detalles.materiales.length > 0 && (
+                  <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f0f9ff', borderRadius: '6px', border: '1px solid #bae6fd' }}>
+                    <small style={{ fontWeight: 600, color: '#0369a1', display: 'block', marginBottom: '5px' }}>📦 Materiales Utilizados:</small>
+                    <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.85rem' }}>
+                      {report.detalles.materiales.map((mat, idx) => (
+                        <li key={idx} style={{ color: '#0c4a6e' }}>
+                          {mat.nombre}: <strong>{mat.cantidad} {mat.unidad}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {/* Snapshots (Collapsible or Small) */}
                 {(report.detalles?.personal_snapshot || report.detalles?.subactividades_snapshot) && (
                   <details style={{ marginTop: '10px', borderTop: '1px dashed #e2e8f0', paddingTop: '5px' }}>
@@ -788,6 +1040,6 @@ const ReportViewerModal = ({ isOpen, onClose, actividadId }) => {
           <button className="btn-secondary" onClick={onClose}>Cerrar</button>
         </div>
       </div>
-    </Modal>
+    </Modal >
   );
 };

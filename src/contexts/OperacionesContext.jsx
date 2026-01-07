@@ -165,10 +165,10 @@ export const OperacionesProvider = ({ children }) => {
     const userRoleLevel = ROLES[user?.role]?.level || 0;
     const initialStatus = userRoleLevel >= 50 ? 'pendiente' : 'por_aprobar';
 
-    console.log("DEBUG ADD ITEM:", { 
-      role: user?.role, 
-      level: userRoleLevel, 
-      finalStatus: initialStatus 
+    console.log("DEBUG ADD ITEM:", {
+      role: user?.role,
+      level: userRoleLevel,
+      finalStatus: initialStatus
     });
 
     const { error } = await supabase
@@ -185,15 +185,15 @@ export const OperacionesProvider = ({ children }) => {
     } else {
       await getRequerimientos();
       showToast(
-        initialStatus === 'por_aprobar' 
-          ? "Item enviado para aprobación" 
-          : "Item agregado exitosamente", 
+        initialStatus === 'por_aprobar'
+          ? "Item enviado para aprobación"
+          : "Item agregado exitosamente",
         "success"
       );
 
       if (initialStatus === 'por_aprobar') {
         sendNotification({
-          message: `Nuevo requerimiento: ${itemData.nombre_producto?.substring(0,20)}... pendiente de aprobación.`,
+          message: `Nuevo requerimiento: ${itemData.nombre_producto?.substring(0, 20)}... pendiente de aprobación.`,
           type: 'warning',
           role_target: 'JEFE_OPERACIONES'
         });
@@ -246,7 +246,7 @@ export const OperacionesProvider = ({ children }) => {
     }
 
     await getRequerimientos();
-    
+
     if (initialStatus === 'por_aprobar') {
       sendNotification({
         message: `Nuevo requerimiento general creado por coordinar aprobaciones.`,
@@ -284,7 +284,7 @@ export const OperacionesProvider = ({ children }) => {
 
   const approveRequerimientoItem = useCallback(async (itemId) => {
     setLoading(true);
-    
+
     // 1. Aprobar el item
     const { data, error } = await supabase
       .from('requerimiento_items')
@@ -302,25 +302,25 @@ export const OperacionesProvider = ({ children }) => {
       // 2. Verificar si quedan items por aprobar en este requerimiento
       const updatedItem = data[0];
       const parentId = updatedItem.requerimiento_id;
-      
+
       if (parentId) {
         // Contamos cuantos items quedan con status 'por_aprobar'
         const { count, error: countError } = await supabase
-            .from('requerimiento_items')
-            .select('*', { count: 'exact', head: true })
-            .eq('requerimiento_id', parentId)
-            .eq('status', 'por_aprobar');
-            
+          .from('requerimiento_items')
+          .select('*', { count: 'exact', head: true })
+          .eq('requerimiento_id', parentId)
+          .eq('status', 'por_aprobar');
+
         // Si ya no queda ninguno pendiente de aprobación (count === 0),
         // actualizamos el requerimiento padre a 'pendiente' para que salga en compras
         if (!countError && count === 0) {
-            console.log("Todos los items aprobados. Actualizando requerimiento padre a pendiente.");
-            const { error: parentError } = await supabase
-               .from('requerimientos')
-               .update({ status: 'pendiente' })
-               .eq('id', parentId);
-               
-             if (parentError) console.error("Error syncing parent status:", parentError);
+          console.log("Todos los items aprobados. Actualizando requerimiento padre a pendiente.");
+          const { error: parentError } = await supabase
+            .from('requerimientos')
+            .update({ status: 'pendiente' })
+            .eq('id', parentId);
+
+          if (parentError) console.error("Error syncing parent status:", parentError);
         }
       }
 
@@ -334,7 +334,7 @@ export const OperacionesProvider = ({ children }) => {
     setLoading(true);
     const { error } = await supabase
       .from('requerimiento_items')
-      .update({ status: 'rechazado' }) 
+      .update({ status: 'rechazado' })
       .eq('id', itemId);
 
     if (error) {
@@ -382,10 +382,10 @@ export const OperacionesProvider = ({ children }) => {
     setLoading(true);
     const { inventario_id, cantidad_retirada, retirado_por, observaciones } = withdrawalData;
 
-    // Obtener el item del inventario
+    // Obtener el item del inventario incluyendo categoría
     const { data: item, error: itemError } = await supabase
       .from('inventario')
-      .select('cantidad_disponible')
+      .select('cantidad_disponible, categoria_producto, nombre_producto')
       .eq('id', inventario_id)
       .eq('project_id', selectedProject.id)
       .single();
@@ -396,21 +396,28 @@ export const OperacionesProvider = ({ children }) => {
       return;
     }
 
+    const isNonConsumable = ['HERRAMIENTA', 'EQUIPO'].includes(item.categoria_producto?.toUpperCase());
 
-    if (item.cantidad_disponible < cantidad_retirada) {
-      showToast('No hay suficiente stock para retirar.', 'error');
+    // Validation: Only validate stock if it is consumable. Tools often have stock 1 but can be used multiple times? 
+    // Actually, if I have 1 drill, I can check it out. If I check it out again, I shouldn't be able to?
+    // User said "NO SE REDUCIRA EN STOCK", which usually implies infinite use or returning.
+    // Let's assume we allow withdrawal even if stock is low for Tools if we aren't reducing it? 
+    // OR we validate availability but don't reduce? 
+    // SAFEST: Validate stock exists ( > 0) but don't reduce.
+    if (item.cantidad_disponible < cantidad_retirada && !isNonConsumable) {
+      showToast(`Stock insuficiente de ${item.nombre_producto}.`, 'error');
       setLoading(false);
       return;
     }
 
-    // Insertar en retiros_inventario
+    // Insertar en retiros_inventario (Always record the event)
     const { error: withdrawalError } = await supabase
       .from('retiros_inventario')
       .insert([{
         inventario_id,
         cantidad_retirada,
         retirado_por,
-        observaciones,
+        observaciones: observaciones || 'Retiro registrado desde Operaciones',
         fecha_retiro: new Date(),
         project_id: selectedProject.id
       }]);
@@ -421,20 +428,23 @@ export const OperacionesProvider = ({ children }) => {
       return;
     }
 
-    // Actualizar inventario
-    const newQuantity = item.cantidad_disponible - cantidad_retirada;
-    const { error: updateError } = await supabase
-      .from('inventario')
-      .update({ cantidad_disponible: newQuantity })
-      .eq('id', inventario_id);
+    // Actualizar inventario (SOLO SI NO ES HERRAMIENTA NI EQUIPO)
+    if (!isNonConsumable) {
+      const newQuantity = item.cantidad_disponible - cantidad_retirada;
+      const { error: updateError } = await supabase
+        .from('inventario')
+        .update({ cantidad_disponible: newQuantity })
+        .eq('id', inventario_id);
 
-    if (updateError) {
-      console.error('Error updating inventory:', updateError);
-    } else {
-      // Refrescar datos
-      await getInventory();
-      await getRetiros();
+      if (updateError) {
+        console.error('Error updating inventory:', updateError);
+      }
     }
+
+    // Refrescar datos
+    if (!isNonConsumable) await getInventory(); // Only refresh if changed? Or always? Always is safer.
+    await getInventory();
+    await getRetiros();
     setLoading(false);
   }, [selectedProject, getInventory, getRetiros, showToast]);
 
