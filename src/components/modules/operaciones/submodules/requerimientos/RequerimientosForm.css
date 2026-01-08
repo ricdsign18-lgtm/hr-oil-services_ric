@@ -46,7 +46,8 @@
         color: #fff;
 
        .form-group {
-        width: 50vh;
+        flex: 1 1 300px; /* Grow, shrink, base width 300px */
+        width: 100%; /* Fallback */
 
         
        
@@ -58,12 +59,15 @@
               background-color: #0f172a;
               color: #fff;
               border: none;
+              width: 100%; /* Ensure full width */
            }
        }
 
        .preview-item{
-        width: 50vh;
-        height: 50vh;
+        flex: 1 1 300px; /* Responsive flex item */
+        width: 100%;
+        min-height: 300px;
+        max-height: 50vh;
         background-color: #e4eaf5;
         border-radius: 8px;
         padding: 15px;

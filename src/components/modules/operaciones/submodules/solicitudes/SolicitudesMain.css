@@ -129,6 +129,29 @@
   background-color: #dc2626;
 }
 
+.btn-cancel-group {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  
+  svg {
+    fill: #fff;
+    max-width: 2.5rem;
+  }
+}
+
+.btn-cancel-group:hover {
+  background-color: #dc2626;
+}
+
 .btn-edit {
     background-color: #eab308;
     color: white;
@@ -152,4 +175,100 @@
   border: 1px dashed #cbd5e1;
   color: #64748b;
   margin-top: 20px;
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+}
+
+
+@media (max-width: 768px) {
+    /* Header en columna: Título arriba, Botones abajo */
+    .solicitud-header {
+        flex-direction: column;
+        align-items: flex-start; /* Alineado a la izquierda */
+        gap: 15px; 
+    }
+
+    /* Botones se quedan en fila, pero ocupan el ancho si es necesario o se distribuyen */
+    .button-container {
+        width: 100%;
+        display: flex;
+        justify-content: space-between; /* Separados o al final */
+        gap: 10px;
+    }
+    
+    /* Ajuste para que los botones no sean enormes pero si tocables */
+    .button-container button {
+        flex: 1; /* Crecen equitativamente */
+        justify-content: center;
+    }
+
+    /* Transformar tabla a tarjetas en móvil para evitar scroll horizontal y mostrar toda la info */
+    .solicitud-group-card {
+        overflow-x: visible; /* Ya no necesitamos scroll */
+    }
+
+    .solicitudes-table, 
+    .solicitudes-table tbody, 
+    .solicitudes-table tr, 
+    .solicitudes-table td {
+        display: block;
+        width: 100%;
+        min-width: 0; /* Reset min-width */
+    }
+
+    .solicitudes-table thead {
+        display: none; /* Ocultar encabezados de tabla */
+    }
+
+    .solicitudes-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background-color: #fff;
+        padding: 10px;
+    }
+
+    .solicitudes-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+        padding: 8px 5px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .solicitudes-table td:last-child {
+        border-bottom: none;
+        justify-content: flex-end; /* Acciones a la derecha */
+        padding-top: 15px;
+    }
+
+    /* Pseudo-elemento para mostrar el label (Titulo de columna) */
+    .solicitudes-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #64748b;
+        text-align: left;
+        margin-right: 15px;
+    }
+
+    /* Ajuste especifico para celda de Producto (primera) */
+    .solicitudes-table td[data-label="Producto"] {
+        background-color: #f8fafc;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        margin: -10px -10px 10px -10px; /* Expandir a bordes */
+        padding: 10px 15px;
+        border-bottom: 1px solid #e2e8f0;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .solicitudes-table td[data-label="Producto"]::before {
+        display: none; /* El producto es obvio, no necesita label 'Producto' repetido */
+    }
 }

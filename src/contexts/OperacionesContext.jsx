@@ -54,7 +54,7 @@ export const OperacionesProvider = ({ children }) => {
         requerimiento_items (*)
       `)
       .eq('project_id', selectedProject.id)
-      .order('fecha_requerimiento', { ascending: false });
+      .order('id', { ascending: true });
 
     if (error) {
       console.error('Error fetching requerimientos:', error);
@@ -411,6 +411,40 @@ export const OperacionesProvider = ({ children }) => {
     setLoading(false);
   }, [getRequerimientos]);
 
+  const cancelRequerimiento = useCallback(async (reqId) => {
+    if(!window.confirm("¿Estás seguro de cancelar toda esta solicitud?")) return;
+    
+    setLoading(true);
+
+    // 1. Cancelar Items del requerimiento
+    const { error: itemsError } = await supabase
+      .from('requerimiento_items')
+      .update({ status: 'cancelado' })
+      .eq('requerimiento_id', reqId);
+
+    if (itemsError) {
+        console.error('Error updating items status:', itemsError);
+        showToast("Error al cancelar items de la solicitud", "error");
+        setLoading(false);
+        return;
+    }
+
+    // 2. Cancelar Requerimiento Padre
+    const { error } = await supabase
+      .from('requerimientos')
+      .update({ status: 'cancelado' })
+      .eq('id', reqId);
+
+    if (error) {
+        console.error('Error updates status requerimiento:', error);
+        showToast("Error al cancelar la solicitud", "error");
+    } else {
+        await getRequerimientos();
+        showToast("Solicitud cancelada", "info");
+    }
+    setLoading(false);
+  }, [getRequerimientos, showToast]);
+
   const withdrawInventory = useCallback(async (withdrawalData) => {
     if (!selectedProject) return;
     setLoading(true);
@@ -739,6 +773,7 @@ export const OperacionesProvider = ({ children }) => {
     approveRequerimientoItem,
     approveRequerimiento,
     rejectRequerimientoItem,
+    cancelRequerimiento
   }), [
     inventory,
     compras,
@@ -754,7 +789,9 @@ export const OperacionesProvider = ({ children }) => {
     addRequerimiento,
     addRequerimientoItem,
     updateRequerimientoItem,
+    updateRequerimientoItem,
     cancelRequerimientoItem,
+    cancelRequerimiento,
     deleteRequerimientoItem,
     getInventorySummary,
     getLowStockItems,

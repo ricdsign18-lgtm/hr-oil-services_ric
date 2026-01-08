@@ -1,0 +1,264 @@
+.requerimientos-table-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.requerimiento-card {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+
+    background-color: #fff;
+    border-radius: 5px;
+
+    .requerimiento-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        gap: 40px;
+
+        .pendiente{
+            background-color: #f8ebb3;
+            color: #000;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .por_aprobar{
+            background-color: #FFCDD2;
+            color: #000;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        /* Responsive adjustments for header */
+        @media (max-width: 480px) {
+            gap: 5px; /* Reduce gap significantly on mobile */
+            
+             /* Ensure text is smaller to fit */
+            span {
+                font-size: 0.8rem;
+            }
+            h4 {
+                font-size: 0.9rem;
+            }
+        }
+    }
+    
+    /* Fixed height for the card */
+    height: 450px; 
+    
+    /* Wrapper for scrollable content */
+    .requerimiento-items-wrapper {
+        flex: 1; /* Take remaining space */
+        overflow-y: auto; /* Enable vertical scroll */
+        padding-right: 5px; /* Prevent content from hitting scrollbar */
+        
+        /* Custom Scrollbar Styling */
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+    }
+
+    .requerimiento-details{
+        font-size: 10px;
+
+        h3{
+            display: flex;
+            justify-content: space-between;
+            padding: 0;
+            margin: 0;
+            color: #000000;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px dashed #ccc; /* Linea discontinua */
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+
+        }
+
+        span{
+            font-weight: 400;
+        }
+
+        .total-line {
+            justify-content: flex-end;
+        }
+
+        .input-card {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 12px;
+            text-align: right;
+            width: 120px; /* Default width */
+        }
+
+        .input-card.unidad {
+            width: 50px;
+        }
+
+        .input-card.cantidad {
+            width: 60px;
+        }
+
+        .input-card.precio {
+            width: 70px;
+        }
+
+        .adding-form {
+            background-color: #f9f9f9;
+            border: 1px dashed #2196F3;
+            margin-top: 10px;
+            padding: 10px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+
+            button {
+                padding: 4px 10px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .btn-save {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+            .btn-cancel {
+                background-color: #f44336;
+                color: white;
+            }
+        }
+
+        .light-green{
+            background-color: #c5ecbfc3; /* Verde Neón */
+            color: #000; /* Texto negro para contraste */
+            padding: 5px; /* Un poco de padding para que no quede pegado */
+            border-radius: 10px; /* Opcional: bordes redondeados */
+        }
+    }
+}
+
+/* Footer Actions */
+.card-footer-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-footer-action {
+    flex: 1; /* Split width equally */
+    background: none;
+    border: 1px dashed #aaa;
+    color: #555;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 13px;
+    transition: all 0.2s;
+    font-weight: 500;
+
+    &:hover {
+        background-color: #f0f0f0;
+        border-color: #888;
+        color: #333;
+    }
+
+    &.add {
+        border-color: #4CAF50;
+        color: #2E7D32;
+        
+        &:hover {
+            background-color: #E8F5E9;
+        }
+    }
+
+    &.edit {
+        border-color: #2196F3;
+        color: #1565C0;
+
+        &:hover {
+            background-color: #E3F2FD;
+        }
+
+        &.active {
+            background-color: #2196F3;
+            color: white;
+            border-style: solid;
+            
+            &:hover {
+                background-color: #1976D2;
+            }
+        }
+    }
+
+    &.cancel {
+        border-color: #F44336;
+        color: #C62828;
+
+        &:hover {
+            background-color: #FFEBEE;
+        }
+    }
+}
+
+.item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dotted #eee;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border-radius: 4px;
+
+    & svg {
+        fill: #555;
+    }
+
+    &:hover {
+        opacity: 0.7;
+        background-color: #f5f5f5;
+    }
+
+    &.delete svg {
+        fill: #F44336;
+    }
+}

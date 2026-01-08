@@ -12,6 +12,7 @@ const SolicitudesMain = () => {
     approveRequerimientoItem,
     approveRequerimiento,
     rejectRequerimientoItem,
+    cancelRequerimiento, // Importar cancelRequerimiento
     updateRequerimientoItem, // Necesario para guardar edición
     loading
   } = useOperaciones();
@@ -44,6 +45,12 @@ const SolicitudesMain = () => {
   const handleApproveGroup = async (reqId) => {
     if (window.confirm("¿Aprobar TODA la solicitud? Esto aprobará todos los items pendientes en este bloque.")) {
         await approveRequerimiento(reqId);
+    }
+  };
+
+  const handleCancelGroup = async (reqId) => {
+    if (window.confirm("¿Está seguro de CANCELAR toda esta solicitud? Esto cambiará el estado de la solicitud a 'cancelado'.")) {
+        await cancelRequerimiento(reqId);
     }
   };
 
@@ -94,12 +101,21 @@ const SolicitudesMain = () => {
                         <h4>Solicitud #{group.reqId}</h4>
                         <span className="date-badge">{new Date(group.date).toLocaleDateString()}</span>
                     </div>
+                    <div className='button-container'>
                     <button
                         onClick={() => handleApproveGroup(group.reqId)}
                         className="btn-approve-group"
                     >
                         <CheckCircleIcon /> Aprobar Solicitud
                     </button>
+                    <button
+                        onClick={() => handleCancelGroup(group.reqId)}
+                        className="btn-cancel-group"
+                        style={{ marginLeft: '10px' }}
+                    >
+                        <XCircleIcon /> Cancelar Solicitud
+                    </button>
+                    </div>
                  </div>
                  
                  <table className="solicitudes-table">
@@ -115,15 +131,15 @@ const SolicitudesMain = () => {
                     <tbody>
                       {group.items.map(item => (
                         <tr key={item.id}>
-                          <td>
+                          <td data-label="Producto">
                             <strong>{item.nombre_producto}</strong>
                             <br />
                             <small>{item.categoria_producto} - {item.unidad}</small>
                           </td>
-                          <td>{item.cantidad_requerida}</td>
-                          <td>${(item.cantidad_requerida * (item.precio_unitario_usd_aprox || 0)).toFixed(2)}</td>
-                          <td>Auxiliar Operaciones</td>
-                          <td>
+                          <td data-label="Cant. Requerida">{item.cantidad_requerida}</td>
+                          <td data-label="Monto Aprox.">${(item.cantidad_requerida * (item.precio_unitario_usd_aprox || 0)).toFixed(2)}</td>
+                          <td data-label="Solicitante">Auxiliar Operaciones</td>
+                          <td data-label="Acciones">
                             <div className="actions-cell">
                               <button
                                 onClick={() => handleEdit(item)}
