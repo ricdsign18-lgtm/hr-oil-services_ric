@@ -154,20 +154,6 @@ const Sidebar = ({ items, isOpen, onToggle, isMobile }) => {
           </div>
         </div>
       </aside>
-
-      {/* {isMobile && !isOpen && (
-        <button
-          className="sidebar-floating-toggle"
-          onClick={() => onToggle(true)}
-          aria-label="Abrir menú"
-        >
-          <div className="hamburger-icon">
-            <div className="hamburger-line"></div>
-            <div className="hamburger-line"></div>
-            <div className="hamburger-line"></div>
-          </div>
-        </button>
-      )} */}
     </>
   );
 };

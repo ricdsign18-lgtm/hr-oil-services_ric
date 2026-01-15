@@ -77,37 +77,61 @@ const MainLayout = ({ children }) => {
   // Estado para el badge de solicitudes
   const [pendingCount, setPendingCount] = useState(0);
 
-  // Efecto para consultar solicitudes pendientes (Solo Jefes)
+  // Efecto para consultar solicitudes pendientes (Solo Jefes de Operaciones)
   useEffect(() => {
     const fetchPending = async () => {
-      if (!userData?.role || ROLES[userData.role]?.level < 50 || !selectedProject) return;
+      // 1. Validación de Roles: Solo Operaciones puede ver esto
+      // Si soy Admin (scope '*') o Consultor, NO debo ver estas notificaciones según requerimiento estricto.
+      if (!userData?.role || !selectedProject) return;
+
+      const userConfig = ROLES[userData.role];
+      const isOperaciones = userConfig?.scope === "operaciones";
+
+      if (!isOperaciones) {
+        setPendingCount(0);
+        return;
+      }
+
+      // Solo jefes o encargados (level >= 50) ven notificaciones de aprobación
+      if ((userConfig?.level || 0) < 50) return;
 
       try {
-        // Consultamos directamente los items "por_aprobar" en el proyecto actual
-        // Necesitamos un join manual o consulta directa. 
-        // Primero traemos requerimientos del proyecto
+        // 2. Obtener Jerarquía (Subordinados)
+        // Consultamos a quién superviso para filtrar sus solicitudes
+        const { data: staffData, error: staffError } = await supabase
+          .from("user_assignments")
+          .select("employee_id")
+          .eq("supervisor_id", userData.id);
+
+        const myStaffIds = staffData ? staffData.map((s) => s.employee_id) : [];
+        const visibleUserIds = [userData.id, ...myStaffIds];
+
+        // 3. Consultar Requerimientos FILTRADOS por Jerarquía
         const { data: reqs, error: reqError } = await supabase
-          .from('requerimientos')
-          .select('id')
-          .eq('project_id', selectedProject.id);
+          .from("requerimientos")
+          .select("id")
+          .eq("project_id", selectedProject.id)
+          .in("user_id", visibleUserIds); // FILTRO CLAVE
 
         if (reqError || !reqs) return;
-        
-        const reqIds = reqs.map(r => r.id);
-        
+
+        const reqIds = reqs.map((r) => r.id);
+
         if (reqIds.length > 0) {
-          // Modificado: Traemos los IDs para contar requerimientos UNICOS, no items totales
           const { data: items, error: countError } = await supabase
-            .from('requerimiento_items')
-            .select('requerimiento_id')
-            .in('requerimiento_id', reqIds)
-            .eq('status', 'por_aprobar');
-            
+            .from("requerimiento_items")
+            .select("requerimiento_id")
+            .in("requerimiento_id", reqIds)
+            .eq("status", "por_aprobar");
+
           if (!countError && items) {
-            // Usamos Set para contar IDs únicos de requerimientos
-            const uniqueReqs = new Set(items.map(i => i.requerimiento_id));
+            const uniqueReqs = new Set(items.map((i) => i.requerimiento_id));
             setPendingCount(uniqueReqs.size);
+          } else {
+            setPendingCount(0);
           }
+        } else {
+          setPendingCount(0);
         }
       } catch (err) {
         console.error("Error fetching pending count:", err);
@@ -115,20 +139,20 @@ const MainLayout = ({ children }) => {
     };
 
     fetchPending();
-    
+
     // Intervalo para refrescar badge cada 30s (polling ligero)
     const interval = setInterval(fetchPending, 30000);
     return () => clearInterval(interval);
   }, [userData, selectedProject]);
 
   if (userData?.role && ROLES[userData.role]?.level >= 50) {
-     sidebarItems.splice(1, 0, { 
-       id: "solicitudes",
-       label: "Solicitudes",
-       icon: <MultiUsersIcon className="sidebar-action-icon" />, 
-       path: "/solicitudes",
-       badge: pendingCount // Pasamos el conteo aquí
-     });
+    sidebarItems.splice(1, 0, {
+      id: "solicitudes",
+      label: "Solicitudes",
+      icon: <MultiUsersIcon className="sidebar-action-icon" />,
+      path: "/solicitudes",
+      badge: pendingCount, // Pasamos el conteo aquí
+    });
   }
 
   return (

@@ -28,6 +28,30 @@ export const OperacionesProvider = ({ children }) => {
   const [productos, setProductos] = useState([]);
   const [requerimientos, setRequerimientos] = useState([]);
   const [loading, setLoading] = useState(false);
+  
+  // Estado para almacenar los IDs de los subordinados del usuario actual
+  const [myStaffIds, setMyStaffIds] = useState([]);
+
+  // Cargar lista de subordinados al iniciar o cambiar de usuario
+  useEffect(() => {
+    const getMyStaff = async () => {
+      if (!user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('user_assignments')
+        .select('employee_id')
+        .eq('supervisor_id', user.id);
+
+      if (error) {
+        console.error("Error fetching staff:", error);
+      } else {
+        const ids = data.map(record => record.employee_id);
+        setMyStaffIds(ids);
+      }
+    };
+    
+    getMyStaff();
+  }, [user?.id]);
 
   const getProductos = useCallback(async () => {
     setLoading(true);
@@ -45,8 +69,26 @@ export const OperacionesProvider = ({ children }) => {
   }, []);
 
   const getRequerimientos = useCallback(async () => {
-    if (!selectedProject) return;
+    if (!selectedProject || !user) return;
+    
+    // FILTRO DE VISIBILIDAD DE SOLICITUDES
+    // 1. Roles permitidos explícitamente para ver solicitudes de OPERACIONES
+    // Usamos el scope 'operaciones' para identificar roles válidos
+    const userRoleConfig = ROLES[user.role];
+    const isOperationsRole = userRoleConfig?.scope === 'operaciones';
+    
+    // Si NO es del área de operaciones (incluso si es Admin/Director) -> No ve nada.
+    if (!isOperationsRole) {
+       // console.warn("Acceso denegado a solicitudes de operaciones para rol:", user.role);
+       setRequerimientos([]);
+       return; 
+    }
+
     setLoading(true);
+    
+    // 2. Construir lista de usuarios visibles (Yo + Mis Subordinados)
+    const visibleUserIds = [user.id, ...myStaffIds];
+
     const { data, error } = await supabase
       .from('requerimientos')
       .select(`
@@ -54,15 +96,19 @@ export const OperacionesProvider = ({ children }) => {
         requerimiento_items (*)
       `)
       .eq('project_id', selectedProject.id)
+      .in('user_id', visibleUserIds) // Visualizar solo propios y de subordinados
       .order('id', { ascending: true });
 
     if (error) {
       console.error('Error fetching requerimientos:', error);
+       if (error.code === '42703') { // Fallback si no existe la columna
+          console.error("Error: Columna 'user_id' no encontrada. La visibilidad jerárquica no funcionará sin este campo.");
+      }
     } else {
       setRequerimientos(data || []);
     }
     setLoading(false);
-  }, [selectedProject]);
+  }, [selectedProject, user, myStaffIds]);
 
   const getInventory = useCallback(async () => {
     if (!selectedProject) return;
@@ -203,7 +249,7 @@ export const OperacionesProvider = ({ children }) => {
   }, [getRequerimientos, user?.role, showToast, sendNotification]);
 
   const addRequerimiento = useCallback(async (requerimientoData) => {
-    if (!selectedProject) return;
+    if (!selectedProject || !user) return;
     setLoading(true);
 
     const { items, ...reqHeader } = requerimientoData;
@@ -218,7 +264,8 @@ export const OperacionesProvider = ({ children }) => {
       .insert([{
         ...reqHeader,
         project_id: selectedProject.id,
-        status: initialStatus
+        status: initialStatus,
+        user_id: user.id 
       }])
       .select()
       .single();
@@ -256,7 +303,7 @@ export const OperacionesProvider = ({ children }) => {
     }
 
     setLoading(false);
-  }, [selectedProject, getRequerimientos, sendNotification]);
+  }, [selectedProject, getRequerimientos, sendNotification, user]);
 
   const updateRequerimientoItem = useCallback(async (itemId, updatedData) => {
     setLoading(true);
