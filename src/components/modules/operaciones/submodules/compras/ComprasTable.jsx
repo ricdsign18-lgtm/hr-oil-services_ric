@@ -2,7 +2,9 @@
 import React from 'react';
 import './ComprasTable.css';
 
-const ComprasTable = ({ compras, onEdit }) => {
+import { DelateIcon } from '../../../../../assets/icons/Icons';
+
+const ComprasTable = ({ compras, onEdit, onDelete }) => {
   return (
     <div className="compras-table-container">
       <h3>Historial de Compras</h3>
@@ -39,6 +41,19 @@ const ComprasTable = ({ compras, onEdit }) => {
                 <td>
                   <button onClick={() => onEdit(compra)} className="btn-edit">
                     Editar
+                  </button>
+                  <button onClick={() => onEdit(compra)} className="btn-edit" style={{ marginRight: '5px' }}>
+                    Editar
+                  </button>
+                  <button onClick={() => onDelete(compra.id)} className="btn-delete" style={{
+                    padding: '5px 10px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    backgroundColor: '#fee2e2',
+                    color: '#ef4444',
+                    cursor: 'pointer'
+                  }}>
+                    <DelateIcon style={{ width: '16px', height: '16px' }} />
                   </button>
                 </td>
               </tr>
