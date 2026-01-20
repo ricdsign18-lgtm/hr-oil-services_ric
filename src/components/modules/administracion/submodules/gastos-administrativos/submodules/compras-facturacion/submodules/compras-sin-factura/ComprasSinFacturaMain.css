@@ -110,7 +110,7 @@
   .csf-tabs-container {
     display: none;
   }
-  
+
   .csf-mobile-dropdown {
     display: block;
   }
@@ -262,7 +262,7 @@
     flex: none;
     width: 100%;
   }
-  
+
   .csf-filter-select {
     width: 100%;
     min-width: 0;
@@ -420,10 +420,10 @@
 
 /* Adjust readonly value for light theme */
 .csf-readonly-value {
-    background-color: #e5e7eb !important; /* Gray 200 */
-    color: #374151 !important; /* Gray 700 */
-    border: 1px solid #d1d5db !important;
-    box-sizing: border-box !important;
+  background-color: #e5e7eb !important; /* Gray 200 */
+  color: #374151 !important; /* Gray 700 */
+  border: 1px solid #d1d5db !important;
+  box-sizing: border-box !important;
 }
 
 .csf-form-group textarea {
@@ -703,7 +703,6 @@
   width: 100%; /* Ensure full width in grid cell */
 }
 
-
 .resumen-card-item:hover {
   transform: translateY(-2px);
   border-color: var(--primary-color);
@@ -858,11 +857,11 @@
 }
 
 .categoria-item span:first-child {
-  color: var(--gray-300);
+  color: #000;
 }
 
 .categoria-item span:last-child {
-  color: var(--gray-100);
+  color: #000;
   font-weight: 500;
 }
 
@@ -1157,11 +1156,11 @@
 }
 
 .categoria-item span:last-child {
-  color: var(--gray-200);
+  color: #000;
   font-weight: 500;
 }
 
-  /* Mobile-specific adjustments for joined input groups */
+/* Mobile-specific adjustments for joined input groups */
 @media (max-width: 640px) {
   .csf-main-container {
     padding: 12px; /* Reduce container padding */
@@ -1187,8 +1186,6 @@
     align-items: stretch !important; /* Match heights */
   }
 
-
-
   /* Input styling in joined groups AND standard inputs */
   .csf-form-group input,
   .csf-form-group select,
@@ -1212,7 +1209,6 @@
     height: 38px !important;
   }
 
-
   /* RIF specific: The input is the second element (number) */
   .csf-rif-input input {
     border-top-left-radius: 0 !important;
@@ -1221,14 +1217,13 @@
     border-right-width: 1px !important; /* Restore right border */
     border-top-right-radius: var(--border-radius-sm) !important;
     border-bottom-right-radius: var(--border-radius-sm) !important;
-
   }
-  
+
   /* RIF specific: The select is the first element (type) */
-   .csf-rif-input select {
+  .csf-rif-input select {
     /* flex/width overrides removed, will inherit 100% from group rules */
     border-right: 1px solid var(--gray-700) !important;
-   }
+  }
 
   /* Button styling in joined groups */
   .csf-input-group button,
@@ -1242,16 +1237,16 @@
     width: 100% !important; /* Full width for stacked button */
     box-sizing: border-box !important; /* Ensure padding doesn't cause overflow */
   }
-  
+
   /* Special handling for subcategory remove button (middle element potential) */
   .csf-input-group .btn-remove-subcategory {
-      border-radius: 0 !important; /* No radius if it's in middle */
-      border-left: 1px solid var(--danger-color);
+    border-radius: 0 !important; /* No radius if it's in middle */
+    border-left: 1px solid var(--danger-color);
   }
-  
-   /* If add button follows remove button */
+
+  /* If add button follows remove button */
   .csf-input-group .btn-remove-subcategory + .btn-add-inline {
-      border-top-left-radius: 0 !important;
-      border-bottom-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
   }
 }

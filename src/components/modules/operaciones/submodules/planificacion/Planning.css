@@ -1,19 +1,15 @@
 /* src/styles/Planning.css */
-
 .planning-container {
-  color: var(--text-primary);
-  padding: 24px;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 24px;
+  color: var(--text-primary);
+  border-radius: 12px;
+  height: 100%;
   gap: 24px;
   overflow-y: auto;
 }
 
-/* --- Project Summary Section --- */
 .planning-summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -29,7 +25,6 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s;
 }
 
@@ -370,98 +365,6 @@
   opacity: 0.5;
 }
 
-.planning-dia-item {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 140px;
-  min-height: 180px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  position: relative;
-}
-
-.planning-dia-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  border-color: var(--primary-color);
-}
-
-.planning-dia-item.is-today {
-  border-color: var(--primary-color);
-  background-color: #f0f9ff;
-}
-
-.planning-dia-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 12px;
-}
-
-.dia-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-  line-height: 1;
-}
-
-.dia-month {
-  font-size: 0.9rem;
-  color: #64748b;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.dia-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.dia-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-}
-
-.stat-icon {
-  font-size: 1rem;
-}
-
-.stat-value {
-  font-weight: 600;
-  color: #334155;
-}
-
-.dia-hover-action {
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--primary-color);
-  font-weight: 600;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.2s;
-}
-
-.planning-dia-item:hover .dia-hover-action {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 /* --- Empty State --- */
 .planning-empty-state {
   display: flex;
@@ -549,9 +452,39 @@
   background-color: #dbeafe;
 }
 
+.btn-sync {
+  background-color: #e0f2f1;
+  color: #00695c;
+  border-color: #80cbc4;
+}
+
+.btn-delete-plan {
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #ef9a9a;
+}
+
+.planning-actions-container {
+  display: flex;
+  gap: 10px;
+
+  button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 25px;
+      fill: #fffcfc;
+    }
+  }
+}
+
 /* --- Responsive adjustments --- */
 @media (max-width: 1200px) {
-
   .planning-dias-container,
   .planning-days-header-row {
     grid-template-columns: repeat(4, 1fr);
@@ -601,7 +534,7 @@
 
 /* Status Indicator Strip on the left */
 .planning-actividad-item::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -613,7 +546,8 @@
 
 .planning-actividad-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   border-color: #cbd5e1;
 }
 

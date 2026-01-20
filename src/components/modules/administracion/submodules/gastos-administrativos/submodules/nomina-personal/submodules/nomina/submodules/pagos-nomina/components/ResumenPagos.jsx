@@ -14,12 +14,12 @@ const ResumenPagos = ({
   selectedProject,
   pagosContratistas = [], // New Prop
   contractorsCalculated = [], // New Prop for deferred contractors
-  tasaCambioContratistas = null // New Prop
+  tasaCambioContratistas = null, // New Prop
 }) => {
   // Calcular período de pago
   const calcularPeriodoPago = (pago) => {
     const { empleado, diasTrabajados } = pago;
-    const fecha = new Date(fechaPago.replace(/-/g, '\/'));
+    const fecha = new Date(fechaPago.replace(/-/g, "\/"));
 
     // Calcular fechas base (Lunes, Viernes, Sábado) de la semana de pago
     const lunes = new Date(fecha);
@@ -39,7 +39,11 @@ const ResumenPagos = ({
     }
 
     // CASO 2: Rango de periodo específico (Para "Solo Extras" Quincenal que debe mostrarse como semanal, o Semanal normal)
-    if (empleado.rangoPeriodo && empleado.rangoPeriodo.inicio && empleado.rangoPeriodo.fin) {
+    if (
+      empleado.rangoPeriodo &&
+      empleado.rangoPeriodo.inicio &&
+      empleado.rangoPeriodo.fin
+    ) {
       const inicio = new Date(empleado.rangoPeriodo.inicio);
       const fin = new Date(empleado.rangoPeriodo.fin);
       return `Semana del ${inicio.toLocaleDateString("es-ES")} al ${fin.toLocaleDateString("es-ES")}`;
@@ -52,7 +56,8 @@ const ResumenPagos = ({
       // Pago quincenal estándar
       const mes = fecha.getMonth();
       const año = fecha.getFullYear();
-      const mitad = empleado.mitadPagoQuincenal || empleado.mitadPago || "primera";
+      const mitad =
+        empleado.mitadPagoQuincenal || empleado.mitadPago || "primera";
 
       if (mitad === "primera") {
         const primerDia = new Date(año, mes, 1);
@@ -68,19 +73,24 @@ const ResumenPagos = ({
 
   // Separar pagos por frecuencia
   // Separar pagos por frecuencia
-  const pagosSemanal = pagosCalculados.filter(p => p.empleado.frecuenciaPago === "Semanal");
-  const pagosQuincenal = pagosCalculados.filter(p => p.empleado.frecuenciaPago === "Quincenal");
+  const pagosSemanal = pagosCalculados.filter(
+    (p) => p.empleado.frecuenciaPago === "Semanal",
+  );
+  const pagosQuincenal = pagosCalculados.filter(
+    (p) => p.empleado.frecuenciaPago === "Quincenal",
+  );
 
   // Filter contractors by fechaPago to only show relevant ones for this invoice
   // and FLATTEN the 'pagos' array from the batch record to get individual payments
   // UPDATE: If we have 'contractorsCalculated' (Preview Mode), use that directly.
-  const isPreviewMode = contractorsCalculated && contractorsCalculated.length > 0;
+  const isPreviewMode =
+    contractorsCalculated && contractorsCalculated.length > 0;
 
   const contractorsForDate = isPreviewMode
     ? contractorsCalculated
     : pagosContratistas
-      .filter(p => p.fecha_pago === fechaPago)
-      .flatMap(p => p.pagos || []);
+        .filter((p) => p.fecha_pago === fechaPago)
+        .flatMap((p) => p.pagos || []);
 
   const exportToExcel = () => {
     // Función auxiliar para formatear datos
@@ -112,14 +122,28 @@ const ResumenPagos = ({
 
       // Si se deben incluir deducciones de ley (porque hay empleados administrativos en la lista)
       if (includeLegalDeductions) {
-        const esAdministrativo = ["Administrativa", "Ejecucion"].includes(pago.empleado.tipoNomina);
+        const esAdministrativo = ["Administrativa", "Ejecucion"].includes(
+          pago.empleado.tipoNomina,
+        );
 
-        datos["Porcentaje ISLR Individual (%)"] = esAdministrativo ? (pago.empleado.porcentajeIslr || "0") : "";
-        datos["Deducciones Ley IVSS (Bs)"] = esAdministrativo ? (pago.desgloseDeduccionesLey?.ivss?.toFixed(2) || "0.00") : "";
-        datos["Deducciones Ley Paro Forzoso (Bs)"] = esAdministrativo ? (pago.desgloseDeduccionesLey?.paroForzoso?.toFixed(2) || "0.00") : "";
-        datos["Deducciones Ley FAOV (Bs)"] = esAdministrativo ? (pago.desgloseDeduccionesLey?.faov?.toFixed(2) || "0.00") : "";
-        datos["Deducciones Ley ISLR (Bs)"] = esAdministrativo ? (pago.desgloseDeduccionesLey?.islr?.toFixed(2) || "0.00") : "";
-        datos["Total Deducciones Ley (Bs)"] = esAdministrativo ? (pago.deduccionesLeyBs?.toFixed(2) || "0.00") : "";
+        datos["Porcentaje ISLR Individual (%)"] = esAdministrativo
+          ? pago.empleado.porcentajeIslr || "0"
+          : "";
+        datos["Deducciones Ley IVSS (Bs)"] = esAdministrativo
+          ? pago.desgloseDeduccionesLey?.ivss?.toFixed(2) || "0.00"
+          : "";
+        datos["Deducciones Ley Paro Forzoso (Bs)"] = esAdministrativo
+          ? pago.desgloseDeduccionesLey?.paroForzoso?.toFixed(2) || "0.00"
+          : "";
+        datos["Deducciones Ley FAOV (Bs)"] = esAdministrativo
+          ? pago.desgloseDeduccionesLey?.faov?.toFixed(2) || "0.00"
+          : "";
+        datos["Deducciones Ley ISLR (Bs)"] = esAdministrativo
+          ? pago.desgloseDeduccionesLey?.islr?.toFixed(2) || "0.00"
+          : "";
+        datos["Total Deducciones Ley (Bs)"] = esAdministrativo
+          ? pago.deduccionesLeyBs?.toFixed(2) || "0.00"
+          : "";
       }
 
       return datos;
@@ -128,18 +152,25 @@ const ResumenPagos = ({
     const wb = XLSX.utils.book_new();
 
     // Helper para determinar si una lista tiene empleados administrativos
-    const hasAdmin = (lista) => lista.some(p => ["Administrativa", "Ejecucion"].includes(p.empleado.tipoNomina));
+    const hasAdmin = (lista) =>
+      lista.some((p) =>
+        ["Administrativa", "Ejecucion"].includes(p.empleado.tipoNomina),
+      );
 
     // Hoja 1: Resumen General
     const generalHasAdmin = hasAdmin(pagosCalculados);
-    const generalData = pagosCalculados.map(p => formatPagoData(p, generalHasAdmin));
+    const generalData = pagosCalculados.map((p) =>
+      formatPagoData(p, generalHasAdmin),
+    );
     const wsGeneral = XLSX.utils.json_to_sheet(generalData);
     XLSX.utils.book_append_sheet(wb, wsGeneral, "Resumen General");
 
     // Hoja 2: Nómina Semanal (si hay)
     if (pagosSemanal.length > 0) {
       const semanalHasAdmin = hasAdmin(pagosSemanal);
-      const semanalData = pagosSemanal.map(p => formatPagoData(p, semanalHasAdmin));
+      const semanalData = pagosSemanal.map((p) =>
+        formatPagoData(p, semanalHasAdmin),
+      );
       const wsSemanal = XLSX.utils.json_to_sheet(semanalData);
       XLSX.utils.book_append_sheet(wb, wsSemanal, "Nómina Semanal");
     }
@@ -147,7 +178,9 @@ const ResumenPagos = ({
     // Hoja 3: Nómina Quincenal (si hay)
     if (pagosQuincenal.length > 0) {
       const quincenalHasAdmin = hasAdmin(pagosQuincenal);
-      const quincenalData = pagosQuincenal.map(p => formatPagoData(p, quincenalHasAdmin));
+      const quincenalData = pagosQuincenal.map((p) =>
+        formatPagoData(p, quincenalHasAdmin),
+      );
       const wsQuincenal = XLSX.utils.json_to_sheet(quincenalData);
       XLSX.utils.book_append_sheet(wb, wsQuincenal, "Nómina Quincenal");
     }
@@ -156,21 +189,24 @@ const ResumenPagos = ({
     XLSX.writeFile(wb, fileName);
   };
 
-
-
   const calcularTotales = (pagos) => {
     return pagos.reduce(
       (totales, pago) => ({
-        totalHorasExtras: totales.totalHorasExtras + (pago.totalHorasExtrasUSD || 0),
+        totalHorasExtras:
+          totales.totalHorasExtras + (pago.totalHorasExtrasUSD || 0),
         totalDeduccionesManuales:
           totales.totalDeduccionesManuales + (pago.deduccionesManualesUSD || 0),
         totalAdelantos: totales.totalAdelantos + (pago.adelantosUSD || 0),
         totalUSD: totales.totalUSD + (pago.subtotalUSD || 0), // Base + Extras - Deductions - Adelantos? No, subtotal usually is before conversion.
         // Adjust based on object structure. For contractors it might differ.
         totalMontoExtraBs: totales.totalMontoExtraBs + (pago.montoExtraBs || 0),
-        totalMontoExtraUSD: totales.totalMontoExtraUSD + (pago.montoExtraUSD || 0),
-        totalMontoTotalUSD: totales.totalMontoTotalUSD + (pago.montoTotalUSD || pago.monto_total_usd || 0),
-        totalPagar: totales.totalPagar + (pago.totalPagarBs || pago.monto_total_bs || 0),
+        totalMontoExtraUSD:
+          totales.totalMontoExtraUSD + (pago.montoExtraUSD || 0),
+        totalMontoTotalUSD:
+          totales.totalMontoTotalUSD +
+          (pago.montoTotalUSD || pago.monto_total_usd || 0),
+        totalPagar:
+          totales.totalPagar + (pago.totalPagarBs || pago.monto_total_bs || 0),
         // Totales de deducciones de ley
         totalIvss: totales.totalIvss + (pago.desgloseDeduccionesLey?.ivss || 0),
         totalParoForzoso:
@@ -195,7 +231,7 @@ const ResumenPagos = ({
         totalFaov: 0,
         totalIslr: 0,
         totalDeduccionesLey: 0,
-      }
+      },
     );
   };
 
@@ -220,18 +256,19 @@ const ResumenPagos = ({
   const totalesQuincenal = calcularTotales(pagosQuincenal);
 
   // Calculate contractor totals ensuring full structure
-  const totalesContratistas = contractorsForDate.reduce((acc, curr) => ({
-    ...acc,
-    totalMontoTotalUSD: acc.totalMontoTotalUSD + (curr.monto_total_usd || 0),
-    totalPagar: acc.totalPagar + (curr.monto_total_bs || 0)
-  }), { ...zeroTotales });
-
-
+  const totalesContratistas = contractorsForDate.reduce(
+    (acc, curr) => ({
+      ...acc,
+      totalMontoTotalUSD: acc.totalMontoTotalUSD + (curr.monto_total_usd || 0),
+      totalPagar: acc.totalPagar + (curr.monto_total_bs || 0),
+    }),
+    { ...zeroTotales },
+  );
 
   const RenderTable = ({ pagos, title, totales }) => {
     // Determinar si esta tabla específica tiene empleados administrativos
     const showLegalDeductions = pagos.some((pago) =>
-      ["Administrativa", "Ejecucion"].includes(pago.empleado?.tipoNomina)
+      ["Administrativa", "Ejecucion"].includes(pago.empleado?.tipoNomina),
     );
 
     return (
@@ -277,31 +314,58 @@ const ResumenPagos = ({
           <tbody>
             {pagos.map((pago, index) => {
               const periodoPago = calcularPeriodoPago(pago);
-              const esAdministrativo = ["Administrativa", "Ejecucion"].includes(pago.empleado?.tipoNomina);
+              const esAdministrativo = ["Administrativa", "Ejecucion"].includes(
+                pago.empleado?.tipoNomina,
+              );
 
               return (
-                <tr key={pago.empleado.id} className={index % 2 === 0 ? "even" : "odd"}>
+                <tr
+                  key={pago.empleado.id}
+                  className={index % 2 === 0 ? "even" : "odd"}
+                >
                   <td className="employee-name">{`${pago.empleado.nombre} ${pago.empleado.apellido}`}</td>
                   <td>{pago.empleado.cedula}</td>
                   <td>{pago.empleado.cargo}</td>
                   <td>
-                    <span className={`nomina - badge ${pago.empleado.tipoNomina.replace(/\s+/g, "-")} `}>
+                    <span
+                      className={`nomina - badge ${pago.empleado.tipoNomina.replace(/\s+/g, "-")} `}
+                    >
                       {pago.empleado.tipoNomina}
                     </span>
                   </td>
                   <td className="text-center">{pago.diasTrabajados}</td>
-                  <td className="text-right">${pago.montoDiarioCalculado?.toFixed(2) || "0.00"}</td>
+                  <td className="text-right">
+                    ${pago.montoDiarioCalculado?.toFixed(2) || "0.00"}
+                  </td>
                   <td className="text-center">{pago.horasExtras.diurna}</td>
                   <td className="text-center">{pago.horasExtras.nocturna}</td>
-                  <td className="text-right">${pago.totalHorasExtrasUSD?.toFixed(2)}</td>
-                  <td className="text-right">${pago.deduccionesManualesUSD?.toFixed(2)}</td>
-                  <td className="text-right">${(pago.adelantosUSD || 0).toFixed(2)}</td>
-                  <td className="text-right">${pago.subtotalUSD?.toFixed(2)}</td>
-                  <td className="text-right">Bs {(pago.montoExtraBs || 0).toFixed(2)}</td>
-                  <td className="text-right">${(pago.montoExtraUSD || 0).toFixed(2)}</td>
-                  <td className="text-right"><strong>${(pago.montoTotalUSD || 0).toFixed(2)}</strong></td>
-                  <td className="text-right">Bs {parseFloat(tasaCambio).toFixed(4)}</td>
-                  <td className="text-right total-pagar"><strong>Bs {(pago.totalPagarBs || 0).toFixed(2)}</strong></td>
+                  <td className="text-right">
+                    ${pago.totalHorasExtrasUSD?.toFixed(2)}
+                  </td>
+                  <td className="text-right">
+                    ${pago.deduccionesManualesUSD?.toFixed(2)}
+                  </td>
+                  <td className="text-right">
+                    ${(pago.adelantosUSD || 0).toFixed(2)}
+                  </td>
+                  <td className="text-right">
+                    ${pago.subtotalUSD?.toFixed(2)}
+                  </td>
+                  <td className="text-right">
+                    Bs {(pago.montoExtraBs || 0).toFixed(2)}
+                  </td>
+                  <td className="text-right">
+                    ${(pago.montoExtraUSD || 0).toFixed(2)}
+                  </td>
+                  <td className="text-right">
+                    <strong>${(pago.montoTotalUSD || 0).toFixed(2)}</strong>
+                  </td>
+                  <td className="text-right">
+                    Bs {parseFloat(tasaCambio).toFixed(4)}
+                  </td>
+                  <td className="text-right total-pagar">
+                    <strong>Bs {(pago.totalPagarBs || 0).toFixed(2)}</strong>
+                  </td>
                   <td>{pago.bancoPago || "No especificado"}</td>
                   <td className="periodo-pago">{periodoPago}</td>
                   <td>{selectedProject?.name || "No especificado"}</td>
@@ -311,23 +375,40 @@ const ResumenPagos = ({
                   {showLegalDeductions && (
                     <>
                       <td className="text-center">
-                        {esAdministrativo ? (pago.empleado.porcentajeIslr || "0") + "%" : ""}
+                        {esAdministrativo
+                          ? (pago.empleado.porcentajeIslr || "0") + "%"
+                          : ""}
                       </td>
                       <td className="text-right">
-                        {esAdministrativo ? (pago.desgloseDeduccionesLey?.ivss?.toFixed(2) || "0.00") : ""}
+                        {esAdministrativo
+                          ? pago.desgloseDeduccionesLey?.ivss?.toFixed(2) ||
+                            "0.00"
+                          : ""}
                       </td>
                       <td className="text-right">
-                        {esAdministrativo ? (pago.desgloseDeduccionesLey?.paroForzoso?.toFixed(2) || "0.00") : ""}
+                        {esAdministrativo
+                          ? pago.desgloseDeduccionesLey?.paroForzoso?.toFixed(
+                              2,
+                            ) || "0.00"
+                          : ""}
                       </td>
                       <td className="text-right">
-                        {esAdministrativo ? (pago.desgloseDeduccionesLey?.faov?.toFixed(2) || "0.00") : ""}
+                        {esAdministrativo
+                          ? pago.desgloseDeduccionesLey?.faov?.toFixed(2) ||
+                            "0.00"
+                          : ""}
                       </td>
                       <td className="text-right">
-                        {esAdministrativo ? (pago.desgloseDeduccionesLey?.islr?.toFixed(2) || "0.00") : ""}
+                        {esAdministrativo
+                          ? pago.desgloseDeduccionesLey?.islr?.toFixed(2) ||
+                            "0.00"
+                          : ""}
                       </td>
                       <td className="text-right deducciones-ley-total">
                         <strong>
-                          {esAdministrativo ? (pago.deduccionesLeyBs?.toFixed(2) || "0.00") : ""}
+                          {esAdministrativo
+                            ? pago.deduccionesLeyBs?.toFixed(2) || "0.00"
+                            : ""}
                         </strong>
                       </td>
                     </>
@@ -338,27 +419,55 @@ const ResumenPagos = ({
           </tbody>
           <tfoot>
             <tr className="table-totals">
-              <td colSpan="8" className="text-right"><strong>TOTALES:</strong></td>
-              <td className="text-right"><strong>${totales.totalHorasExtras.toFixed(2)}</strong></td>
-              <td className="text-right"><strong>${totales.totalDeduccionesManuales.toFixed(2)}</strong></td>
-              <td className="text-right"><strong>${totales.totalAdelantos.toFixed(2)}</strong></td>
-              <td className="text-right"><strong>${totales.totalUSD.toFixed(2)}</strong></td>
-              <td className="text-right"><strong>Bs {totales.totalMontoExtraBs.toFixed(2)}</strong></td>
-              <td className="text-right"><strong>${totales.totalMontoExtraUSD.toFixed(2)}</strong></td>
-              <td className="text-right"><strong>${totales.totalMontoTotalUSD.toFixed(2)}</strong></td>
+              <td colSpan="8" className="text-right">
+                <strong>TOTALES:</strong>
+              </td>
+              <td className="text-right">
+                <strong>${totales.totalHorasExtras.toFixed(2)}</strong>
+              </td>
+              <td className="text-right">
+                <strong>${totales.totalDeduccionesManuales.toFixed(2)}</strong>
+              </td>
+              <td className="text-right">
+                <strong>${totales.totalAdelantos.toFixed(2)}</strong>
+              </td>
+              <td className="text-right">
+                <strong>${totales.totalUSD.toFixed(2)}</strong>
+              </td>
+              <td className="text-right">
+                <strong>Bs {totales.totalMontoExtraBs.toFixed(2)}</strong>
+              </td>
+              <td className="text-right">
+                <strong>${totales.totalMontoExtraUSD.toFixed(2)}</strong>
+              </td>
+              <td className="text-right">
+                <strong>${totales.totalMontoTotalUSD.toFixed(2)}</strong>
+              </td>
               <td></td>
-              <td className="text-right total-pagar"><strong>Bs {totales.totalPagar.toFixed(2)}</strong></td>
+              <td className="text-right total-pagar">
+                <strong>Bs {totales.totalPagar.toFixed(2)}</strong>
+              </td>
               <td colSpan="4"></td>
 
               {/* Totales de deducciones de ley */}
               {showLegalDeductions && (
                 <>
                   <td></td>
-                  <td className="text-right"><strong>{totales.totalIvss.toFixed(2)}</strong></td>
-                  <td className="text-right"><strong>{totales.totalParoForzoso.toFixed(2)}</strong></td>
-                  <td className="text-right"><strong>{totales.totalFaov.toFixed(2)}</strong></td>
-                  <td className="text-right"><strong>{totales.totalIslr.toFixed(2)}</strong></td>
-                  <td className="text-right deducciones-ley-total"><strong>{totales.totalDeduccionesLey.toFixed(2)}</strong></td>
+                  <td className="text-right">
+                    <strong>{totales.totalIvss.toFixed(2)}</strong>
+                  </td>
+                  <td className="text-right">
+                    <strong>{totales.totalParoForzoso.toFixed(2)}</strong>
+                  </td>
+                  <td className="text-right">
+                    <strong>{totales.totalFaov.toFixed(2)}</strong>
+                  </td>
+                  <td className="text-right">
+                    <strong>{totales.totalIslr.toFixed(2)}</strong>
+                  </td>
+                  <td className="text-right deducciones-ley-total">
+                    <strong>{totales.totalDeduccionesLey.toFixed(2)}</strong>
+                  </td>
                 </>
               )}
             </tr>
@@ -378,6 +487,7 @@ const ResumenPagos = ({
               <th>Nombre del Contratista</th>
               <th>Personal (Días Trab.)</th>
               <th>Monto Diario ($)</th>
+              <th>Monto Extra ($)</th>
               <th>Monto Total ($)</th>
               <th>Tasa del Día</th>
               <th>Total Pagar (Bs)</th>
@@ -389,36 +499,66 @@ const ResumenPagos = ({
           <tbody>
             {pagos.map((pago, index) => {
               // Normalización de datos (snake_case DB vs camelCase Local)
-              const nombre = pago.nombre_contratista || pago.empleado?.nombre || "Contratista";
-              const totalDias = pago.total_personal_dias || pago.diasTrabajados || 0;
-              const montoDiario = pago.monto_diario || pago.montoDiarioCalculado || pago.empleado?.montoSalario || 0;
+              const nombre =
+                pago.nombre_contratista ||
+                pago.empleado?.nombre ||
+                "Contratista";
+              const totalDias =
+                pago.total_personal_dias || pago.diasTrabajados || 0;
+              const montoDiario =
+                pago.monto_diario ||
+                pago.montoDiarioCalculado ||
+                pago.empleado?.montoSalario ||
+                0;
               // Prioritize specific rate for contractors, fallback to global rate
-              const currentTasa = parseFloat(tasaCambioContratistas) || parseFloat(tasaCambio) || 0;
-              const montoTotalUSD = pago.monto_total_usd || pago.montoTotalUSD || 0;
+              const currentTasa =
+                parseFloat(tasaCambioContratistas) ||
+                parseFloat(tasaCambio) ||
+                0;
+              const montoTotalUSD =
+                pago.monto_total_usd || pago.montoTotalUSD || 0;
+              const montoExtra = pago.monto_extra || 0; // NEW: Retrieve monto_extra (default 0)
               let montoTotalBs = pago.monto_total_bs || pago.totalPagarBs || 0;
 
               // Fallback: Calculate Bs if missing/zero but we have USD and Rate
-              if ((!montoTotalBs || Number(montoTotalBs) === 0) && montoTotalUSD > 0 && currentTasa > 0) {
+              if (
+                (!montoTotalBs || Number(montoTotalBs) === 0) &&
+                montoTotalUSD > 0 &&
+                currentTasa > 0
+              ) {
                 montoTotalBs = montoTotalUSD * currentTasa;
               }
 
-              const banco = pago.banco_pago || pago.bancoPago || "No especificado";
+              const banco =
+                pago.banco_pago || pago.bancoPago || "No especificado";
               const obs = pago.observaciones || "";
 
               // Calculate period assuming Weekly frequency for contractors
               const periodoPago = calcularPeriodoPago({
                 empleado: { frecuenciaPago: "Semanal" },
-                diasTrabajados: totalDias
+                diasTrabajados: totalDias,
               });
 
               return (
-                <tr key={pago.id || index} className={index % 2 === 0 ? "even" : "odd"}>
+                <tr
+                  key={pago.id || index}
+                  className={index % 2 === 0 ? "even" : "odd"}
+                >
                   <td className="employee-name">{nombre}</td>
                   <td className="text-center">{totalDias}</td>
-                  <td className="text-right">${Number(montoDiario).toFixed(2)}</td>
-                  <td className="text-right"><strong>${Number(montoTotalUSD).toFixed(2)}</strong></td>
+                  <td className="text-right">
+                    ${Number(montoDiario).toFixed(2)}
+                  </td>
+                  <td className="text-right">
+                    ${Number(montoExtra).toFixed(2)}
+                  </td>
+                  <td className="text-right">
+                    <strong>${Number(montoTotalUSD).toFixed(2)}</strong>
+                  </td>
                   <td className="text-right">Bs {currentTasa.toFixed(4)}</td>
-                  <td className="text-right total-pagar"><strong>Bs {Number(montoTotalBs).toFixed(2)}</strong></td>
+                  <td className="text-right total-pagar">
+                    <strong>Bs {Number(montoTotalBs).toFixed(2)}</strong>
+                  </td>
                   <td className="periodo-pago">{periodoPago}</td>
                   <td>{banco}</td>
                   <td className="observaciones">{obs}</td>
@@ -428,10 +568,16 @@ const ResumenPagos = ({
           </tbody>
           <tfoot>
             <tr className="table-totals">
-              <td colSpan="3" className="text-right"><strong>TOTALES:</strong></td>
-              <td className="text-right"><strong>${totales.totalMontoTotalUSD.toFixed(2)}</strong></td>
+              <td colSpan="4" className="text-right">
+                <strong>TOTALES:</strong>
+              </td>
+              <td className="text-right">
+                <strong>${totales.totalMontoTotalUSD.toFixed(2)}</strong>
+              </td>
               <td></td>
-              <td className="text-right total-pagar"><strong>Bs {totales.totalPagar.toFixed(2)}</strong></td>
+              <td className="text-right total-pagar">
+                <strong>Bs {totales.totalPagar.toFixed(2)}</strong>
+              </td>
               <td colSpan="3"></td>
             </tr>
           </tfoot>
@@ -445,7 +591,7 @@ const ResumenPagos = ({
       <header className="resumen-header">
         <h3>
           Resumen de Pagos -{" "}
-          {new Date(fechaPago.replace(/-/g, '\/')).toLocaleDateString("es-ES", {
+          {new Date(fechaPago.replace(/-/g, "\/")).toLocaleDateString("es-ES", {
             weekday: "long",
             year: "numeric",
             month: "long",
@@ -456,9 +602,14 @@ const ResumenPagos = ({
           <span>
             <strong>Tasa de Cambio:</strong> Bs{" "}
             {parseFloat(tasaCambio).toFixed(4)}/$
-            {tasaCambioContratistas && parseFloat(tasaCambioContratistas) !== parseFloat(tasaCambio) && (
-              <> | <strong>Tasa Contratistas:</strong> Bs {parseFloat(tasaCambioContratistas).toFixed(4)}/$</>
-            )}
+            {tasaCambioContratistas &&
+              parseFloat(tasaCambioContratistas) !== parseFloat(tasaCambio) && (
+                <>
+                  {" "}
+                  | <strong>Tasa Contratistas:</strong> Bs{" "}
+                  {parseFloat(tasaCambioContratistas).toFixed(4)}/$
+                </>
+              )}
           </span>
           <span>
             <strong>Total Empleados:</strong> {pagosCalculados.length}
@@ -503,30 +654,52 @@ const ResumenPagos = ({
           totales={totalesContratistas}
         />
       ) : (
-        <div style={{ padding: '1rem', background: '#f3f4f6', borderRadius: '8px', color: '#6b7280', fontStyle: 'italic' }}>
-          No hay pagos de contratistas registrados para esta fecha ({fechaPago}).
+        <div
+          style={{
+            padding: "1rem",
+            background: "#f3f4f6",
+            borderRadius: "8px",
+            color: "#6b7280",
+            fontStyle: "italic",
+          }}
+        >
+          No hay pagos de contratistas registrados para esta fecha ({fechaPago}
+          ).
         </div>
       )}
 
-      <div className="separator-line" style={{ margin: "2rem 0", borderTop: "2px dashed #e5e7eb" }}></div>
-
+      <div
+        className="separator-line"
+        style={{ margin: "2rem 0", borderTop: "2px dashed #e5e7eb" }}
+      ></div>
 
       <RenderTable
         pagos={pagosCalculados}
         title="Resumen General de Pagos (Solo Empleados)"
         totales={totalesGeneral}
       />
-      <div className="resumen-total-summary" style={{ padding: '1rem', background: '#f9fafb', borderRadius: '8px', marginBottom: '1rem' }}>
+      <div className="resumen-total-summary">
         <h4>Totales Globales (Empleados + Contratistas)</h4>
-        <p><strong>Total USD:</strong> ${(totalesGeneral.totalMontoTotalUSD + totalesContratistas.totalMontoTotalUSD).toFixed(2)}</p>
-        <p><strong>Total Bs:</strong> Bs {(totalesGeneral.totalPagar + totalesContratistas.totalPagar).toFixed(2)}</p>
+        <p>
+          <strong>Total USD:</strong> $
+          {(
+            totalesGeneral.totalMontoTotalUSD +
+            totalesContratistas.totalMontoTotalUSD
+          ).toFixed(2)}
+        </p>
+        <p>
+          <strong>Total Bs:</strong> Bs{" "}
+          {(totalesGeneral.totalPagar + totalesContratistas.totalPagar).toFixed(
+            2,
+          )}
+        </p>
       </div>
 
       <div className="resumen-actions">
         <button className="btn-outline" onClick={onVolver}>
           ← Volver a Calculadora
         </button>
-        <div className="action-group" style={{ gap: '1rem' }}>
+        <div className="action-group" style={{ gap: "1rem" }}>
           <button className="btn-secondary" onClick={exportToExcel}>
             📊 Exportar a Excel
           </button>
@@ -534,7 +707,7 @@ const ResumenPagos = ({
           <button
             className="btn-primary"
             onClick={onGuardarTodo}
-            style={{ backgroundColor: '#22c55e', borderColor: '#22c55e' }}
+            style={{ backgroundColor: "#22c55e", borderColor: "#22c55e" }}
           >
             💾 Guardar Nómina Completa
           </button>

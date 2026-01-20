@@ -1,336 +1,339 @@
 .calculadora-contratistas {
-    background-color: #1f2937;
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    color: #f3f4f6;
-    margin-top: 1rem;
+  background-color: #1f2937;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  color: #f3f4f6;
+  margin-top: 1rem;
 }
 
 .calculadora-contratistas h3 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid #374151;
-    padding-bottom: 0.5rem;
-    color: #60a5fa;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #374151;
+  padding-bottom: 0.5rem;
+  color: #60a5fa;
 }
 
 .table-responsive {
-    overflow-x: auto;
+  overflow-x: auto;
 }
 
 .contratistas-pay-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
 }
 
 .contratistas-pay-table th {
-    background-color: #374151;
-    color: #e5e7eb;
-    padding: 0.75rem;
-    font-weight: 600;
-    vertical-align: middle;
+  background-color: #374151;
+  color: #e5e7eb;
+  padding: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
 }
 
 /* Helper Text Classes */
 .contratistas-pay-table .text-left {
-    text-align: left;
+  text-align: left;
 }
 
 .contratistas-pay-table .text-center {
-    text-align: center;
+  text-align: center;
 }
 
 .contratistas-pay-table .text-right {
-    text-align: right;
+  text-align: right;
 }
 
 .contratistas-pay-table td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #374151;
-    vertical-align: middle;
+  padding: 0.75rem;
+  border-bottom: 1px solid #374151;
+  vertical-align: middle;
 }
 
 .contratistas-pay-table tr:hover {
-    background-color: transparent !important;
+  background-color: transparent !important;
 }
 
 .days-inputs {
-    display: flex;
-    gap: 0.5rem;
-    /* Increased gap */
-    justify-content: center;
+  display: flex;
+  gap: 0.5rem;
+  /* Increased gap */
+  justify-content: center;
 }
 
 .day-input-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .day-label {
-    font-size: 0.7rem;
-    color: #9ca3af;
-    font-weight: 600;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  font-weight: 600;
 }
 
 .check-input-stack {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Single Day Mode: Horizontal Layout */
 .single-day-mode .check-input-stack {
-    flex-direction: row;
-    gap: 1rem;
-    align-items: center;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
 }
 
 .single-day-mode .day-checkbox-small {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .single-day-mode .day-number-input:not(.dimmed) {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 /* Toggle Switch Style */
 .day-checkbox-small {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 42px;
-    height: 24px;
-    background: #374151;
-    border-radius: 24px;
-    position: relative;
-    cursor: pointer;
-    outline: none;
-    transition: background 0.3s ease;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-    border: 1px solid #4b5563;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 42px;
+  height: 24px;
+  background: #374151;
+  border-radius: 24px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.3s ease;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  border: 1px solid #4b5563;
 }
 
 .day-checkbox-small::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 18px;
-    height: 18px;
-    background: #9ca3af;
-    border-radius: 50%;
-    transition: transform 0.3s ease, background 0.3s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #9ca3af;
+  border-radius: 50%;
+  transition:
+    transform 0.3s ease,
+    background 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .day-checkbox-small:checked {
-    background: #2563eb;
-    border-color: #3b82f6;
+  background: #2563eb;
+  border-color: #3b82f6;
 }
 
 .day-checkbox-small:checked::after {
-    transform: translateX(18px);
-    background: white;
+  transform: translateX(18px);
+  background: white;
 }
 
 /* Styled Number Input */
 .day-number-input {
-    width: 60px;
-    background-color: #1f2937;
-    border: 1px solid #4b5563;
-    color: white;
-    text-align: center;
-    border-radius: 0.5rem;
-    padding: 0.4rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    height: 40px;
-    transition: all 0.2s ease;
-    /* Hide spinners in Firefox */
-    -moz-appearance: textfield;
+  width: 60px;
+  background-color: #1f2937;
+  border: 1px solid #4b5563;
+  color: white;
+  text-align: center;
+  border-radius: 0.5rem;
+  padding: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  height: 40px;
+  transition: all 0.2s ease;
+  /* Hide spinners in Firefox */
+  -moz-appearance: textfield;
 }
 
 .day-number-input:focus {
-    outline: none;
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
-    background-color: #111827;
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+  background-color: #111827;
 }
 
 .day-number-input.dimmed {
-    opacity: 0.0; /* Hide completely when disabled/unchecked for cleaner look */
-    pointer-events: none;
-    height: 0; 
-    margin: 0;
-    padding: 0;
-    border: none;
-    overflow: hidden;
-    /* Transition for smooth hide */
-    transition: all 0.3s ease;
+  opacity: 0; /* Hide completely when disabled/unchecked for cleaner look */
+  pointer-events: none;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  overflow: hidden;
+  /* Transition for smooth hide */
+  transition: all 0.3s ease;
 }
 
 /* When not dimmed (active), ensure it animates in */
 .day-number-input:not(.dimmed) {
-    opacity: 1;
-    height: 40px;
-    margin-top: 0.25rem;
+  opacity: 1;
+  height: 40px;
+  margin-top: 0.25rem;
 }
 
 .c-name {
-    font-weight: 600;
-    color: white;
-    font-size: 0.95rem;
+  font-weight: 600;
+  color: white;
+  font-size: 0.95rem;
 }
 
 .c-desc {
-    font-size: 0.8rem;
-    color: #9ca3af;
-    margin-top: 0.1rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 0.1rem;
 }
 
 .c-meta {
-    font-size: 0.75rem;
-    color: #60a5fa;
-    margin-top: 0.25rem;
-    background-color: rgba(96, 165, 250, 0.1);
-    display: inline-block;
-    padding: 0.1rem 0.4rem;
-    border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: #60a5fa;
+  margin-top: 0.25rem;
+  background-color: rgba(96, 165, 250, 0.1);
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
 }
 
 .highlight-val {
-    color: #60a5fa;
-    font-weight: 600;
-    font-size: 1rem;
-    vertical-align: middle !important;
+  color: #60a5fa;
+  font-weight: 600;
+  font-size: 1rem;
+  vertical-align: middle !important;
 }
 
 .label-total {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #e5e7eb;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .val-total {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #4ade80;
-    /* Green */
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
 }
 
 .actions-footer {
-    margin-top: 2rem;
-    display: flex;
-    justify-content: flex-end;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .btn-save-pay {
-    background-color: #2563eb;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .btn-save-pay:hover {
-    background-color: #1d4ed8;
-    transform: translateY(-1px);
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
 }
 
 .loading-text {
-    text-align: center;
-    padding: 2rem;
-    color: #9ca3af;
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
 }
 
 /* Ensure table cells align middle generally, but top for the inputs row */
 .contratistas-pay-table td:first-child {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
-.contratistas-pay-table td:nth-child(n+3) {
-    vertical-align: middle;
+.contratistas-pay-table td:nth-child(n + 3) {
+  vertical-align: middle;
 }
 
 /* New Inputs Styles */
 .banco-select,
-.observacion-input {
-    width: 100%;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-    background-color: #374151;
-    border: 1px solid #4b5563;
-    color: white;
+.observacion-input,
+.monto-extra-input {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #374151;
+  border: 1px solid #4b5563;
+  color: white;
 }
 
 .banco-select:focus,
-.observacion-input:focus {
-    outline: none;
-    border-color: #60a5fa;
+.observacion-input:focus,
+.monto-extra-input:focus {
+  outline: none;
+  border-color: #60a5fa;
 }
 
 /* Modal Styles */
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 }
 
 .modal-content {
-    background: #ffffff;
-    padding: 2rem;
-    border-radius: 0.5rem;
-    min-width: 300px;
-    color: #000000;
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  min-width: 300px;
+  color: #000000;
 }
 
 .modal-content h4 {
-    margin-top: 0;
-    color: #111827;
+  margin-top: 0;
+  color: #111827;
 }
 
 .modal-content input {
-    width: 100%;
-    padding: 0.5rem;
-    margin: 1rem 0;
-   
-    border: 1px solid #d1d5db;
-    background-color: #ffffff;
-    color: #000000;
+  width: 100%;
+  padding: 0.5rem;
+  margin: 1rem 0;
 
-    border-radius: 0.25rem;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #000000;
+
+  border-radius: 0.25rem;
 }
 
 .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 
 .modal-actions button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 0.25rem;
-    cursor: pointer;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
 }
 
 .confirm-btn {
-    background: #2563eb;
-    color: white;
+  background: #2563eb;
+  color: white;
 }
 
 /* Read-only breakdown styles */
@@ -353,7 +356,7 @@
   border-radius: 4px;
   padding: 4px 6px;
   min-width: 32px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .day-label-sm {
@@ -383,4 +386,13 @@
 /* Adjust table widths if needed */
 .contratistas-pay-table th {
   white-space: nowrap;
+}
+
+/* Total cells styling */
+.contratistas-pay-table td.total-usd,
+.contratistas-pay-table td.total-bs {
+  text-align: right;
+  font-weight: 400;
+  color: #60a5fa;
+  font-size: 1rem;
 }

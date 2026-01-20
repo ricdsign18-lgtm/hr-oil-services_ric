@@ -130,7 +130,7 @@
 .pagos-table tfoot td {
   border-top: 2px solid var(--gray-700);
   border-bottom: none;
-  color: var(--gray-100);
+  color: #ffffff;
   padding: 1rem 16px;
 }
 
@@ -141,7 +141,7 @@
 /* Specific cell styling */
 .employee-name {
   font-weight: 500;
-  color: var(--gray-100) !important;
+  color: #000 !important;
   white-space: nowrap;
 }
 
@@ -180,19 +180,19 @@
 }
 
 .deducciones-ley-total {
-    color: var(--warning-color);
+  color: var(--warning-color);
 }
 
 .periodo-pago {
-    font-size: 0.8rem;
-    color: var(--gray-400);
+  font-size: 0.8rem;
+  color: var(--gray-400);
 }
 
 .observaciones {
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Actions Section */
@@ -263,27 +263,55 @@
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .resumen-actions {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
-  
+
   .action-group {
     justify-content: center;
   }
-  
+
   .pagos-table {
-      font-size: 0.8rem;
+    font-size: 0.8rem;
   }
-  
-  .pagos-table th, .pagos-table td {
-      padding: 8px 10px;
+
+  .pagos-table th,
+  .pagos-table td {
+    padding: 8px 10px;
   }
 }
 
 .separator-line {
-    border-top-color: var(--gray-700) !important;
-    opacity: 0.5;
+  border-top-color: var(--gray-700) !important;
+  opacity: 0.5;
+}
+
+/* New Dark Theme Summary Box */
+.resumen-total-summary {
+  padding: 1rem;
+  background: var(--gray-800);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--gray-700);
+  color: var(--gray-300);
+  box-shadow: var(--shadow-sm);
+}
+
+.resumen-total-summary h4 {
+  color: var(--gray-100);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.resumen-total-summary p {
+  color: var(--gray-200);
+  margin: 0.25rem 0;
+  font-size: 1rem;
+}
+
+.resumen-total-summary strong {
+  color: white;
 }

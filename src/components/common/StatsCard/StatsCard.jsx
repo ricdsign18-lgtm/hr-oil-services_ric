@@ -1,7 +1,5 @@
-import React from 'react';
-import './StatsCard.css';
-
-const StatsCard = ({ title, value, variant = 'primary', icon }) => {
+import "./StatsCard.css";
+const StatsCard = ({ title, value, variant = "primary", icon }) => {
   return (
     <div className={`common-stat-card ${variant}`}>
       <h4>{title}</h4>
