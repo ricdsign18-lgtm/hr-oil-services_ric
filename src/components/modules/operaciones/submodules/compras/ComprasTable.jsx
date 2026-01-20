@@ -39,9 +39,9 @@ const ComprasTable = ({ compras, onEdit, onDelete }) => {
                 <td>{compra.total_usd}</td>
                 <td>{new Date(compra.created_at).toLocaleString()}</td>
                 <td>
-                  <button onClick={() => onEdit(compra)} className="btn-edit">
+                  {/* <button onClick={() => onEdit(compra)} className="btn-edit">
                     Editar
-                  </button>
+                  </button> */}
                   <button onClick={() => onEdit(compra)} className="btn-edit" style={{ marginRight: '5px' }}>
                     Editar
                   </button>
