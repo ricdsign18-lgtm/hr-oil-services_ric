@@ -213,7 +213,7 @@
 .label-total {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #e5e7eb;
+  color: #ffffff;
 }
 
 .val-total {
@@ -386,4 +386,13 @@
 /* Adjust table widths if needed */
 .contratistas-pay-table th {
   white-space: nowrap;
+}
+
+/* Total cells styling */
+.contratistas-pay-table td.total-usd,
+.contratistas-pay-table td.total-bs {
+  text-align: right;
+  font-weight: 400;
+  color: #60a5fa;
+  font-size: 1rem;
 }

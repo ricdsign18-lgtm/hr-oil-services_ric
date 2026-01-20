@@ -357,10 +357,10 @@ const CalculadoraPagosContratistas = ({
                     style={{ width: "80px", textAlign: "right" }}
                   />
                 </td>
-                <td className="text-right font-bold">
+                <td className="total-usd">
                   $ {calculateTotalUSD(c).toFixed(2)}
                 </td>
-                <td className="text-right font-bold">
+                <td className="total-bs">
                   Bs {calculateTotalBs(calculateTotalUSD(c)).toFixed(2)}
                 </td>
                 <td>

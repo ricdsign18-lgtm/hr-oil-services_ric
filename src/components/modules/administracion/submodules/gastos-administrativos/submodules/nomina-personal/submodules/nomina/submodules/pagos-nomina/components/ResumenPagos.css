@@ -130,7 +130,7 @@
 .pagos-table tfoot td {
   border-top: 2px solid var(--gray-700);
   border-bottom: none;
-  color: var(--gray-100);
+  color: #ffffff;
   padding: 1rem 16px;
 }
 
@@ -287,4 +287,31 @@
 .separator-line {
   border-top-color: var(--gray-700) !important;
   opacity: 0.5;
+}
+
+/* New Dark Theme Summary Box */
+.resumen-total-summary {
+  padding: 1rem;
+  background: var(--gray-800);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--gray-700);
+  color: var(--gray-300);
+  box-shadow: var(--shadow-sm);
+}
+
+.resumen-total-summary h4 {
+  color: var(--gray-100);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.resumen-total-summary p {
+  color: var(--gray-200);
+  margin: 0.25rem 0;
+  font-size: 1rem;
+}
+
+.resumen-total-summary strong {
+  color: white;
 }

@@ -678,15 +678,7 @@ const ResumenPagos = ({
         title="Resumen General de Pagos (Solo Empleados)"
         totales={totalesGeneral}
       />
-      <div
-        className="resumen-total-summary"
-        style={{
-          padding: "1rem",
-          background: "#f9fafb",
-          borderRadius: "8px",
-          marginBottom: "1rem",
-        }}
-      >
+      <div className="resumen-total-summary">
         <h4>Totales Globales (Empleados + Contratistas)</h4>
         <p>
           <strong>Total USD:</strong> $
