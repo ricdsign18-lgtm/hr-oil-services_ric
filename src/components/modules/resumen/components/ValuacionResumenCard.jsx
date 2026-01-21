@@ -21,24 +21,31 @@ const ValuacionResumenCard = ({
 }) => {
   const { formatCurrency, convertToUSD } = useCurrency();
   const { facturas, comprasSinFactura } = useOperaciones();
-  const { getPagosByProject } = usePersonal();
+  const { getPagosByProject, getPagosContratistasByProject } = usePersonal();
 
   const [pagos, setPagos] = useState([]);
+  const [pagosContratistas, setPagosContratistas] = useState([]);
   const [loadingPagos, setLoadingPagos] = useState(true);
   const [showCategories, setShowCategories] = useState(false);
+  const [showAllCategoriesModal, setShowAllCategoriesModal] = useState(false);
+  const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [seniatAmount, setSeniatAmount] = useState(0);
 
   useEffect(() => {
     const fetchPagos = async () => {
       if (valuacion.projectId) {
         setLoadingPagos(true);
-        const fetchedPagos = await getPagosByProject(valuacion.projectId);
+        const [fetchedPagos, fetchedContratistas] = await Promise.all([
+          getPagosByProject(valuacion.projectId),
+          getPagosContratistasByProject(valuacion.projectId)
+        ]);
         setPagos(fetchedPagos);
+        setPagosContratistas(fetchedContratistas);
         setLoadingPagos(false);
       }
     };
     fetchPagos();
-  }, [valuacion.projectId, getPagosByProject]);
+  }, [valuacion.projectId, getPagosByProject, getPagosContratistasByProject]);
 
   useEffect(() => {
     const calculateSeniatAmount = async () => {
@@ -137,8 +144,7 @@ const ValuacionResumenCard = ({
     ? comprasSinFactura.filter((item) => isItemInValuation(item, "fechaCompra"))
     : [];
 
-  // Pagos remain filtered by period as they are payroll related
-  const filterDataByPeriod = (data, dateField) => {
+  const filterDataByPeriod = (data, dateField, toleranceDays = 0) => {
     if (!data) return [];
     const startDate = new Date(periodo_inicio);
     startDate.setHours(0, 0, 0, 0);
@@ -146,13 +152,18 @@ const ValuacionResumenCard = ({
     const endDate = new Date(periodo_fin);
     endDate.setHours(23, 59, 59, 999);
 
+    if (toleranceDays > 0) {
+      endDate.setDate(endDate.getDate() + toleranceDays);
+    }
+
     return data.filter((item) => {
       const itemDate = new Date(item[dateField]);
       return itemDate >= startDate && itemDate <= endDate;
     });
   };
 
-  const pagosPeriodo = filterDataByPeriod(pagos, "fechaPago");
+  const pagosPeriodo = filterDataByPeriod(pagos, "fechaPago", 3);
+  const pagosContratistasPeriodo = filterDataByPeriod(pagosContratistas, "fechaPago", 3);
 
   // Agrupar gastos por categoría
   const gastosPorCategoria = {};
@@ -210,9 +221,22 @@ const ValuacionResumenCard = ({
     return acc + totalPagoUSD;
   }, 0);
 
+  // Contractor payments summation
+  // Structure: batch -> pagos (array of objects with monto_total_usd)
+  const totalPagosContratistasUSD = pagosContratistasPeriodo.reduce((acc, curr) => {
+    if (!curr.pagos || !Array.isArray(curr.pagos)) return acc;
+    const totalBatchUSD = curr.pagos.reduce(
+      (pagoAcc, pago) => pagoAcc + parseFloat(pago.monto_total_usd || 0),
+      0
+    );
+    return acc + totalBatchUSD;
+  }, 0);
+
+  const totalLaboralUSD = totalPagosNominaUSD + totalPagosContratistasUSD;
+
   const totalGastosComprasUSD =
     totalComprasConFacturaUSD + totalComprasSinFacturaUSD;
-  const totalGastosUSD = totalGastosComprasUSD + totalPagosNominaUSD;
+  const totalGastosUSD = totalGastosComprasUSD + totalLaboralUSD;
 
   const categoriasOrdenadas = Object.entries(gastosPorCategoria).sort(
     (a, b) => b[1].total - a[1].total
@@ -288,17 +312,67 @@ const ValuacionResumenCard = ({
     );
   };
 
+  // Helper to flatten payroll items for the modal
+  const getAllPayrollItems = () => {
+    const items = [];
+
+    // Regular Payroll
+    if (pagosPeriodo) {
+      pagosPeriodo.forEach(batch => {
+        batch.pagos.forEach(pago => {
+          items.push({
+            id: pago.id,
+            fecha: batch.fechaPago,
+            createdAt: batch.timestamp,
+            empleado: `${pago.empleado.nombre} ${pago.empleado.apellido}`,
+            cedula: pago.empleado.cedula,
+            cargo: pago.empleado.cargo,
+            monto: parseFloat(pago.montoTotalUSD || 0),
+            tipo: "Nómina"
+          });
+        });
+      });
+    }
+
+    // Contractor Payments
+    if (pagosContratistasPeriodo) {
+      pagosContratistasPeriodo.forEach(batch => {
+        if (batch.pagos && Array.isArray(batch.pagos)) {
+          batch.pagos.forEach(pago => {
+            const nombre = pago.nombre_contratista || pago.nombre || "Contratista";
+            items.push({
+              id: pago.id || `contr-${batch.id}-${Math.random()}`,
+              fecha: batch.fechaPago,
+              createdAt: batch.timestamp,
+              empleado: nombre,
+              cedula: pago.cedula || "N/A",
+              cargo: pago.cargo || "Servicios Profesionales",
+              monto: parseFloat(pago.monto_total_usd || 0),
+              tipo: "Contratista"
+            });
+          });
+        }
+      });
+    }
+
+    return items.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  };
+
   return (
     <div className="valuacion-resumen-card">
       <div className="card-header">
         <h4>{numero_valuacion}</h4>
         <div className="header-details">
           <span className="periodo">
-            {new Date(periodo_inicio).toLocaleDateString()} -{" "}
-            {new Date(periodo_fin).toLocaleDateString()}
-          </span>
-          <span className="porcentaje-ejecutado">
-            {porcentajeEjecutado.toFixed(1)}% Ejecutado
+            {new Date(
+              new Date(periodo_inicio).getTime() +
+              new Date().getTimezoneOffset() * 60000
+            ).toLocaleDateString()}{" "}
+            -{" "}
+            {new Date(
+              new Date(periodo_fin).getTime() +
+              new Date().getTimezoneOffset() * 60000
+            ).toLocaleDateString()}
           </span>
         </div>
       </div>
@@ -359,87 +433,72 @@ const ValuacionResumenCard = ({
                 </div>
               </div>
             </div>
+
+            {/* Promedio Avance Card */}
+            <div className="valuacion-total-card purple">
+              <div className="valuacion-card-content">
+                <span className="valuacion-card-label">
+                  PROMEDIO DE AVANCE / VALUACION
+                </span>
+                <span className="valuacion-card-value-main">
+                  {(
+                    (numero_valuacion.match(/\d+/)
+                      ? porcentajeEjecutado /
+                      parseInt(numero_valuacion.match(/\d+/)[0], 10)
+                      : 0) || 0
+                  ).toFixed(2)}
+                  %
+                </span>
+                <span className="valuacion-card-value-secondary">
+                  Promedio por valuación
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Gastos por Categoría */}
-        <div className="financial-section-full">
-          <h5
-            onClick={() => setShowCategories(!showCategories)}
-            style={{ cursor: "pointer", userSelect: "none" }}
-          >
-            <span style={{ marginRight: "0.5rem" }}>
-              {showCategories ? "▼" : "▶"}
-            </span>
-            Gastos por Categoría
-          </h5>
-          {showCategories && (
-            <>
-              {categoriasOrdenadas.length > 0 ? (
-                <div className="categorias-grid">
-                  {categoriasOrdenadas.map(([categoria, montos]) => {
-                    const porcentaje =
-                      subtotalValuacionUSD > 0
-                        ? (montos.total / subtotalValuacionUSD) * 100
-                        : 0;
 
-                    return (
-                      <div
-                        key={categoria}
-                        className="categoria-item clickable"
-                        onClick={() => handleCategoryClick(categoria)}
-                        style={{ cursor: "pointer" }}
-                        title="Ver detalle"
-                      >
-                        <div className="categoria-header-simple">
-                          <span className="categoria-nombre">{categoria}</span>
-                          <div className="categoria-stats">
-                            <span className="categoria-total">
-                              {formatCurrency(montos.total, "USD")}
-                            </span>
-                            <span className="categoria-porcentaje">
-                              {porcentaje.toFixed(2)}%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="empty-message">
-                  <span>Sin gastos por categoría registrados</span>
-                </div>
-              )}
-            </>
-          )}
-        </div>
 
         {/* Resumen de Gastos */}
         {/* Resumen de Gastos */}
         <div className="financial-section-full compact-summary">
           <h5>Resumen de Gastos</h5>
           <div className="valuacion-totales-grid">
-            <div className="valuacion-total-card orange">
+            <div
+              className="valuacion-total-card orange interactive-card"
+              onClick={() => setShowAllCategoriesModal(true)}
+              style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+            >
               <div className="valuacion-card-icon">
                 <CartShoppingIcon width={32} height={32} fill="#ea580c" />
               </div>
               <div className="valuacion-card-content">
-                <span className="valuacion-card-label">Total Compras</span>
+                <span className="valuacion-card-label">Gastos Administrativos y Operativos</span>
                 <span className="valuacion-card-value-main text-xl text-orange-700">
                   {formatCurrency(totalGastosComprasUSD, "USD")}
+                </span>
+                <span className="valuacion-card-value-secondary" style={{ fontSize: '0.75rem' }}>
+                  Click para ver detalle por categorías
                 </span>
               </div>
             </div>
 
-            <div className="valuacion-total-card orange">
+            <div
+              className="valuacion-total-card orange interactive-card"
+              onClick={() => setShowPayrollModal(true)}
+              style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+            >
               <div className="valuacion-card-icon">
                 <MultiUsersIcon width={32} height={32} fill="#ea580c" />
               </div>
               <div className="valuacion-card-content">
-                <span className="valuacion-card-label">Nómina</span>
+                <span className="valuacion-card-label">Nómina y Contrataciones</span>
                 <span className="valuacion-card-value-main text-xl text-orange-700">
-                  {formatCurrency(totalPagosNominaUSD, "USD")}
+                  {formatCurrency(totalLaboralUSD, "USD")}
+                </span>
+                <span className="valuacion-card-value-secondary" style={{ fontSize: '0.75rem' }}>
+                  Click para ver detalle de pagos
                 </span>
               </div>
             </div>
@@ -839,6 +898,202 @@ const ValuacionResumenCard = ({
                   {new Intl.NumberFormat("de-DE", {
                     minimumFractionDigits: 2,
                   }).format(gastosPorCategoria[selectedCategory]?.total || 0)}
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* Modal de Todas las Categorías */}
+      {showAllCategoriesModal &&
+        createPortal(
+          <div
+            className="category-detail-modal-overlay"
+            onClick={() => setShowAllCategoriesModal(false)}
+          >
+            <div
+              className="category-detail-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="valuacion-modal-header">
+                <h3 className="modal-title">Gastos Administrativos y Operativos</h3>
+                <button
+                  onClick={() => setShowAllCategoriesModal(false)}
+                  className="close-btn"
+                  title="Cerrar"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="valuacion-modal-content">
+                <div className="categorias-grid-modal">
+                  {categoriasOrdenadas.length > 0 ? (
+                    <div className="categorias-grid">
+                      {categoriasOrdenadas.map(([categoria, montos]) => {
+                        const porcentaje =
+                          subtotalValuacionUSD > 0
+                            ? (montos.total / subtotalValuacionUSD) * 100
+                            : 0;
+
+                        return (
+                          <div
+                            key={categoria}
+                            className="categoria-item clickable"
+                            onClick={() => {
+                              handleCategoryClick(categoria);
+                              // Optional: keep main modal open or close it? 
+                              // Current logic opens a SECOND modal on top, which is fine for drilling down
+                            }}
+                            style={{ cursor: "pointer" }}
+                            title="Ver detalle"
+                          >
+                            <div className="categoria-header-simple">
+                              <span className="categoria-nombre">{categoria}</span>
+                              <div className="categoria-stats">
+                                <span className="categoria-total">
+                                  {formatCurrency(montos.total, "USD")}
+                                </span>
+                                <span className="categoria-porcentaje">
+                                  {porcentaje.toFixed(2)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="empty-message-modal">
+                      <span>Sin gastos por categoría registrados</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="valuacion-modal-footer">
+                <div className="total-label">Total Gastos</div>
+                <div className="total-amount">
+                  {formatCurrency(totalGastosComprasUSD, "USD")}
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* Modal de Nómina */}
+      {showPayrollModal &&
+        createPortal(
+          <div
+            className="category-detail-modal-overlay"
+            onClick={() => setShowPayrollModal(false)}
+          >
+            <div
+              className="category-detail-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="valuacion-modal-header">
+                <h3 className="modal-title">Detalle de Nómina</h3>
+                <button
+                  onClick={() => setShowPayrollModal(false)}
+                  className="close-btn"
+                  title="Cerrar"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="valuacion-modal-content">
+                {/* Deskop View */}
+                <div className="valuacion-desktop-view">
+                  <div className="valuacion-table-wrapper">
+                    <table className="valuacion-detail-table">
+                      <thead>
+                        <tr>
+                          <th className="th-date">Fecha Pago</th>
+                          <th className="th-provider">Empleado</th>
+                          <th className="th-desc">Cargo</th>
+                          <th className="th-amount">Monto ($)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getAllPayrollItems().map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="td-date">
+                              {new Date(item.fecha).toLocaleDateString()}
+                              {item.createdAt && (
+                                <div className="text-xs text-muted" style={{ fontSize: '0.7rem', marginTop: '2px' }}>
+                                  Creado: {new Date(item.createdAt).toLocaleString()}
+                                </div>
+                              )}
+                            </td>
+                            <td className="td-provider font-medium">
+                              {item.empleado}
+                              <div className="text-xs text-muted">{item.cedula}</div>
+                            </td>
+                            <td className="td-desc text-muted">
+                              {item.cargo}
+                            </td>
+                            <td className="td-amount text-right font-bold">
+                              {formatCurrency(item.monto, "USD")}
+                            </td>
+                          </tr>
+                        ))}
+                        {getAllPayrollItems().length === 0 && (
+                          <tr>
+                            <td colSpan="4" className="text-center py-4 text-muted">
+                              No hay pagos registrados en este periodo
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile View */}
+                <div className="mobile-view">
+                  {getAllPayrollItems().map((item, idx) => (
+                    <div key={idx} className="mobile-card">
+                      <div className="mobile-card-header">
+                        <span className="mobile-date">
+                          {new Date(item.fecha).toLocaleDateString()}
+                          {item.createdAt && (
+                            <div className="text-muted" style={{ fontSize: '0.7rem', fontWeight: 'normal' }}>
+                              Creado: {new Date(item.createdAt).toLocaleString()}
+                            </div>
+                          )}
+                        </span>
+                        <span className="mobile-amount">
+                          {formatCurrency(item.monto, "USD")}
+                        </span>
+                      </div>
+                      <div className="mobile-card-body">
+                        <div className="mobile-row">
+                          <span className="label">Empleado:</span>
+                          <span className="value font-medium">{item.empleado}</span>
+                        </div>
+                        <div className="mobile-row">
+                          <span className="label">Cargo:</span>
+                          <span className="value text-muted">{item.cargo}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {getAllPayrollItems().length === 0 && (
+                    <div className="text-center py-4 text-muted">
+                      No hay pagos registrados
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="valuacion-modal-footer">
+                <div className="total-label">Total Nómina y Contrataciones</div>
+                <div className="total-amount">
+                  {formatCurrency(totalLaboralUSD, "USD")}
                 </div>
               </div>
             </div>

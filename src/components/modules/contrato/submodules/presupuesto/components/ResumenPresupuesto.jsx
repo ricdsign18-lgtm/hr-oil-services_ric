@@ -17,6 +17,8 @@ const ResumenPresupuesto = ({ totales }) => {
     subtotalSinIVA_USD,
     ivaCalculado_USD,
     totalGeneral_USD,
+    itemsConIva,
+    itemsSinIva,
   } = calculateBudgetSummary(totales, convertToUSD, customRates);
 
   return (
@@ -32,15 +34,15 @@ const ResumenPresupuesto = ({ totales }) => {
         <div className="resumen-card subtotal-con-iva">
           <div className="resumen-icon">📊</div>
           <div className="resumen-content">
-            <div className="resumen-label">Sub Total con IVA</div>
+            <div className="resumen-label">Subtotal Presupuesto</div>
             <div className="resumen-value">
               {formatCurrency(subtotalConIVA_Main, mainCurrency)}
             </div>
             <div className="resumen-conversion">
-              ≈ {formatCurrency(subtotalConIVA_USD)} USD
+              ≈ {formatCurrency(subtotalConIVA_USD, "USD")}
             </div>
             <div className="resumen-desc">
-              {totales.itemsConIva || 0} ítem(s) gravables
+              {itemsConIva || 0} ítem(s) gravables
             </div>
           </div>
         </div>
@@ -48,15 +50,15 @@ const ResumenPresupuesto = ({ totales }) => {
         <div className="resumen-card subtotal-sin-iva">
           <div className="resumen-icon">📈</div>
           <div className="resumen-content">
-            <div className="resumen-label">Sub Total sin IVA</div>
+            <div className="resumen-label">Subtotal Gastos Reembolsables</div>
             <div className="resumen-value">
               {formatCurrency(subtotalSinIVA_Main, mainCurrency)}
             </div>
             <div className="resumen-conversion">
-              ≈ {formatCurrency(subtotalSinIVA_USD)} USD
+              ≈ {formatCurrency(subtotalSinIVA_USD, "USD")}
             </div>
             <div className="resumen-desc">
-              {totales.itemsSinIva || 0} ítem(s) exentos
+              {itemsSinIva || 0} ítem(s) exentos
             </div>
           </div>
         </div>
@@ -69,10 +71,10 @@ const ResumenPresupuesto = ({ totales }) => {
               {formatCurrency(ivaCalculado_Main, mainCurrency)}
             </div>
             <div className="resumen-conversion">
-              ≈ {formatCurrency(ivaCalculado_USD)} USD
+              ≈ {formatCurrency(ivaCalculado_USD, "USD")}
             </div>
             <div className="resumen-desc">
-              Sobre {totales.itemsConIva || 0} ítem(s)
+              Sobre {itemsConIva || 0} ítem(s)
             </div>
           </div>
         </div>
@@ -85,7 +87,7 @@ const ResumenPresupuesto = ({ totales }) => {
               {formatCurrency(totalGeneral_Main, mainCurrency)}
             </div>
             <div className="resumen-conversion">
-              ≈ {formatCurrency(totalGeneral_USD)} USD
+              ≈ {formatCurrency(totalGeneral_USD, "USD")}
             </div>
             <div className="resumen-desc">Monto total del contrato</div>
           </div>
@@ -98,7 +100,7 @@ const ResumenPresupuesto = ({ totales }) => {
         <div className="desglose-grid">
           <div className="desglose-item">
             <span className="desglose-label">
-              Subtotal ítems con IVA ({totales.itemsConIva || 0} ítems):
+              Subtotal ítems con IVA ({itemsConIva || 0} ítems):
             </span>
             <span className="desglose-value">
               {formatCurrency(subtotalConIVA_Main, mainCurrency)}
@@ -106,7 +108,7 @@ const ResumenPresupuesto = ({ totales }) => {
           </div>
           <div className="desglose-item">
             <span className="desglose-label">
-              Subtotal ítems sin IVA ({totales.itemsSinIva || 0} ítems):
+              Subtotal ítems sin IVA ({itemsSinIva || 0} ítems):
             </span>
             <span className="desglose-value">
               {formatCurrency(subtotalSinIVA_Main, mainCurrency)}
@@ -142,19 +144,19 @@ const ResumenPresupuesto = ({ totales }) => {
         <div className="conversion-grid">
           <div className="conversion-item">
             <span>Subtotal con IVA:</span>
-            <span>{formatCurrency(subtotalConIVA_USD)}</span>
+            <span>{formatCurrency(subtotalConIVA_USD, "USD")}</span>
           </div>
           <div className="conversion-item">
             <span>Subtotal sin IVA:</span>
-            <span>{formatCurrency(subtotalSinIVA_USD)}</span>
+            <span>{formatCurrency(subtotalSinIVA_USD, "USD")}</span>
           </div>
           <div className="conversion-item">
             <span>IVA (16%):</span>
-            <span>${formatCurrency(ivaCalculado_USD)}</span>
+            <span>{formatCurrency(ivaCalculado_USD, "USD")}</span>
           </div>
           <div className="conversion-item total">
             <span>TOTAL USD:</span>
-            <span>{formatCurrency(totalGeneral_USD)}</span>
+            <span>{formatCurrency(totalGeneral_USD, "USD")}</span>
           </div>
         </div>
       </div>
@@ -174,7 +176,7 @@ const ResumenPresupuesto = ({ totales }) => {
           <div className="estadistica-icon">📋</div>
           <div className="estadistica-content">
             <div className="estadistica-number">
-              {totales.cantidadItems || 0}
+              {(itemsConIva || 0) + (itemsSinIva || 0)}
             </div>
             <div className="estadistica-label">Total Ítems</div>
           </div>
@@ -183,7 +185,7 @@ const ResumenPresupuesto = ({ totales }) => {
         <div className="estadistica">
           <div className="estadistica-icon">✅</div>
           <div className="estadistica-content">
-            <div className="estadistica-number">{totales.itemsConIva || 0}</div>
+            <div className="estadistica-number">{itemsConIva || 0}</div>
             <div className="estadistica-label">Con IVA</div>
           </div>
         </div>
@@ -191,7 +193,7 @@ const ResumenPresupuesto = ({ totales }) => {
         <div className="estadistica">
           <div className="estadistica-icon">⭕</div>
           <div className="estadistica-content">
-            <div className="estadistica-number">{totales.itemsSinIva || 0}</div>
+            <div className="estadistica-number">{itemsSinIva || 0}</div>
             <div className="estadistica-label">Sin IVA</div>
           </div>
         </div>

@@ -600,11 +600,11 @@ export const PersonalProvider = ({ children }) => {
       // Re-checking CalculadoraContratistas logic:
       // It inserts/updates 'pagos_contratistas'. The schema seems to be:
       // id, project_id, fecha_pago, tasa_cambio, pagos (JSONB)
-      
+
       // We will check if a record already exists for this date and project to Update it, or Insert new.
       // Ideally we would APPEND to the existing JSONB, but simple overwrite/upsert of the whole day's payment is safer/easier
       // IF the user is saving everything from the main Calculator.
-      
+
       // Strategy: Upsert based on project_id and fecha_pago IF there's a constraint, but generally we want to add to it.
       // However, managing partial updates to a JSONB array is hard.
       // For now, we will INSERT a new record. The 'CalculadoraPagos' saves a snapshot. 
@@ -612,7 +612,7 @@ export const PersonalProvider = ({ children }) => {
       // CalculadoraContratistas logic: 
       // ".eq('id', initialData.id)" -> it edits a specific record. 
       // Here we are creating a NEW one from the main payroll flow.
-      
+
       const { error } = await supabase
         .from("pagos_contratistas")
         .insert([payload]);
@@ -681,7 +681,7 @@ export const PersonalProvider = ({ children }) => {
           bancoPago: detail.banco_pago,
           observaciones: detail.observaciones,
         })),
-        timestamp: payment.createdAt,
+        timestamp: payment.created_at || payment.createdAt || payment.inserted_at,
       }));
 
       console.log(
@@ -773,7 +773,7 @@ export const PersonalProvider = ({ children }) => {
 
       console.log("✅ PersonalContext: Pago eliminado exitosamente");
       if (!silent) {
-          addNotification("Pago eliminado exitosamente", "delete");
+        addNotification("Pago eliminado exitosamente", "delete");
       }
       return true;
     } catch (error) {
@@ -782,6 +782,40 @@ export const PersonalProvider = ({ children }) => {
       throw error;
     }
   }, [addNotification]);
+
+  const getPagosContratistasByProject = useCallback(async (projectId = null) => {
+    const projectToUse = projectId || selectedProject?.id;
+    if (!projectToUse) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from("pagos_contratistas")
+        .select("*")
+        .eq("project_id", projectToUse)
+        .order("fecha_pago", { ascending: false });
+
+      if (error) throw error;
+
+      // Transform
+      const pagos = data.map(p => ({
+        id: p.id,
+        projectId: p.project_id,
+        fechaPago: p.fecha_pago,
+        tasaCambio: p.tasa_cambio,
+        pagos: p.pagos, // Array of objects
+        timestamp: p.created_at
+      }));
+
+      console.log(
+        `👷‍♂️ PersonalContext: Pagos contratistas del proyecto ${projectToUse}:`,
+        pagos.length
+      );
+      return pagos;
+    } catch (error) {
+      console.error("Error cargando pagos contratistas:", error);
+      return [];
+    }
+  }, [selectedProject?.id]);
 
   // ========== BANCOS ==========
   const getBancos = useCallback(async () => {
@@ -838,6 +872,7 @@ export const PersonalProvider = ({ children }) => {
     getPagosByProject,
     getPagoById,
     deletePago,
+    getPagosContratistasByProject,
 
     // Bancos
     getBancos,
@@ -858,6 +893,7 @@ export const PersonalProvider = ({ children }) => {
     getPagosByProject,
     getPagoById,
     deletePago,
+    getPagosContratistasByProject,
     getBancos,
     addBanco,
   ]);

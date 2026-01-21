@@ -70,7 +70,7 @@ const AvancePresupuesto = ({ presupuestoData, projectId }) => {
     setAvancePartidas(avance);
   };
 
-  // Calcular totales por moneda
+  // Calcular totales por moneda (TODOS LOS ITEMS)
   const getTotalesPorMoneda = () => {
     return avancePartidas.reduce((acc, partida) => {
       const moneda = partida.moneda || "USD";
@@ -83,19 +83,39 @@ const AvancePresupuesto = ({ presupuestoData, projectId }) => {
     }, {});
   };
 
+  // Calcular totales por moneda (SOLO ITEMS QUE APLICAN IVA - SUBTOTAL PRESUPUESTO)
+  const getTotalesPorMonedaBase = () => {
+    return avancePartidas.reduce((acc, partida) => {
+      // Filtrar items que son parte del "Subtotal Presupuesto" (aplicaIVA = true)
+      // Ajustar esta lógica si "Subtotal Presupuesto" se define de otra manera
+      if (partida.aplicaIVA) {
+        const moneda = partida.moneda || "USD";
+        if (!acc[moneda]) {
+          acc[moneda] = { ejecutado: 0, presupuestado: 0 };
+        }
+        acc[moneda].ejecutado += partida.montoEjecutado;
+        acc[moneda].presupuestado += partida.montoContrato;
+      }
+      return acc;
+    }, {});
+  };
+
+  // Totales completos para la tabla (sin filtrar)
   const totalesPorMoneda = getTotalesPorMoneda();
+  // Totales base para el porcentaje (filtrados)
+  const totalesPorMonedaBase = getTotalesPorMonedaBase();
 
   const getPorcentajeTotal = () => {
-    const totalPresupuestadoGeneral = Object.values(totalesPorMoneda).reduce(
+    const totalPresupuestadoBase = Object.values(totalesPorMonedaBase).reduce(
       (sum, { presupuestado }) => sum + presupuestado,
       0
     );
-    const totalEjecutadoGeneral = Object.values(totalesPorMoneda).reduce(
+    const totalEjecutadoBase = Object.values(totalesPorMonedaBase).reduce(
       (sum, { ejecutado }) => sum + ejecutado,
       0
     );
-    return totalPresupuestadoGeneral > 0
-      ? (totalEjecutadoGeneral / totalPresupuestadoGeneral) * 100
+    return totalPresupuestadoBase > 0
+      ? (totalEjecutadoBase / totalPresupuestadoBase) * 100
       : 0;
   };
 

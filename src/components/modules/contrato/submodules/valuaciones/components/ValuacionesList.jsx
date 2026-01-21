@@ -29,18 +29,28 @@ const ValuacionesList = ({
   const getProgressPercentage = () => {
     if (!presupuestoData || !presupuestoData.items) return 0;
 
-    // Calcular el subtotal del presupuesto (sin IVA)
-    const subtotalPresupuesto = presupuestoData.items.reduce((sum, item) => {
-      return sum + (item.montoContrato || 0);
+    // Calcular el subtotal del presupuesto ("Subtotal Presupuesto" = Items que aplican IVA)
+    const subtotalPresupuestoBase = presupuestoData.items.reduce((sum, item) => {
+      // Filtrar items que son parte del "Subtotal Presupuesto" (aplicaIVA = true)
+      if (item.aplicaIVA) {
+        return sum + (item.montoContrato || 0);
+      }
+      return sum;
     }, 0);
 
-    // Calcular el subtotal valuado (sin IVA)
-    const subtotalValuado = valuaciones.reduce((sum, valuacion) => {
-      return sum + (valuacion.totales?.subtotal || 0);
+    // Calcular el subtotal valuado de los items base
+    const subtotalValuadoBase = valuaciones.reduce((sumVal, valuacion) => {
+      const sumaPartidas = valuacion.partidas?.reduce((sumPar, partida) => {
+        if (partida.aplicaIVA) {
+          return sumPar + (partida.montoTotal || 0);
+        }
+        return sumPar;
+      }, 0) || 0;
+      return sumVal + sumaPartidas;
     }, 0);
 
-    return subtotalPresupuesto > 0
-      ? (subtotalValuado / subtotalPresupuesto) * 100
+    return subtotalPresupuestoBase > 0
+      ? (subtotalValuadoBase / subtotalPresupuestoBase) * 100
       : 0;
   };
 
@@ -125,7 +135,7 @@ const ValuacionesList = ({
                   {progressPercentage.toFixed(1)}%
                 </div>
                 <div className="resumen-label">Avance Global</div>
-                <div className="resumen-subtitle">(Sobre subtotal sin IVA)</div>
+                <div className="resumen-subtitle">(Sobre Subtotal Presupuesto)</div>
               </div>
             </div>
           </div>
@@ -133,7 +143,7 @@ const ValuacionesList = ({
           {/* Barra de progreso */}
           <div className="progress-section">
             <div className="progress-header">
-              <span>Progreso del Contrato (Sobre subtotal sin IVA)</span>
+              <span>Progreso del Contrato (Sobre Subtotal Presupuesto)</span>
               <span>{progressPercentage.toFixed(1)}%</span>
             </div>
             <div className="progress-bar">

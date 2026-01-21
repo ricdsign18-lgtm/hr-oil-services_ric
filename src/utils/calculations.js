@@ -7,6 +7,9 @@ export const calculateBudgetSummary = (budget, convertToUSD, customRates) => {
     BS: { conIVA: 0, sinIVA: 0 },
   };
 
+  let itemsConIva = 0;
+  let itemsSinIva = 0;
+
   if (budget?.items) {
     budget.items.forEach((item) => {
       if (!item || !item.moneda) return;
@@ -17,12 +20,14 @@ export const calculateBudgetSummary = (budget, convertToUSD, customRates) => {
           sinIVA: 0,
         };
         subtotales[item.moneda].conIVA += monto;
+        itemsConIva++;
       } else {
         subtotales[item.moneda] = subtotales[item.moneda] || {
           conIVA: 0,
           sinIVA: 0,
         };
         subtotales[item.moneda].sinIVA += monto;
+        itemsSinIva++;
       }
     });
   }
@@ -62,6 +67,8 @@ export const calculateBudgetSummary = (budget, convertToUSD, customRates) => {
 
   return {
     subtotalsByCurrency: subtotales,
+    itemsConIva,
+    itemsSinIva,
     subtotalConIVA_USD,
     subtotalSinIVA_USD,
     totalPresupuesto_USD,

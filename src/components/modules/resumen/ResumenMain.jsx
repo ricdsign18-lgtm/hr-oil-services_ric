@@ -87,6 +87,7 @@ const ResumenMain = () => {
     totalComisionesYDeduccionesGlobal_USD,
     budgetChartData,
     valuationsChartData,
+    subtotalConIVA_USD,
   } = useMemo(() => {
     const subtotales = {
       USD: { conIVA: 0, sinIVA: 0 },
@@ -122,8 +123,8 @@ const ResumenMain = () => {
       }, 0) || 0;
 
     const porcentajeTotalEjecutado =
-      totalPresupuesto_USD > 0
-        ? (totalEjecutado_USD / totalPresupuesto_USD) * 100
+      subtotalConIVA_USD > 0
+        ? (totalEjecutado_USD / subtotalConIVA_USD) * 100
         : 0;
 
     const generarConversiones = (usdAmount) => {
@@ -224,7 +225,7 @@ const ResumenMain = () => {
     // PREPARE CHART DATA
     const budgetChartData = [
       { name: 'Ejecutado', value: totalEjecutado_USD, color: '#3b82f6', formattedValue: formatCurrency(convertFromUSD(totalEjecutado_USD), mainCurrency) },
-      { name: 'Disponible', value: Math.max(0, totalPresupuesto_USD - totalEjecutado_USD), color: '#e2e8f0', formattedValue: formatCurrency(convertFromUSD(Math.max(0, totalPresupuesto_USD - totalEjecutado_USD)), mainCurrency) }
+      { name: 'Disponible', value: Math.max(0, subtotalConIVA_USD - totalEjecutado_USD), color: '#e2e8f0', formattedValue: formatCurrency(convertFromUSD(Math.max(0, subtotalConIVA_USD - totalEjecutado_USD)), mainCurrency) }
     ];
 
     const valuationsChartData = [
@@ -236,32 +237,29 @@ const ResumenMain = () => {
 
     const presupuestoItems = [
       {
-        label: "Total Presupuesto",
-        value: formatCurrency(
-          convertFromUSD(totalPresupuesto_USD),
-          mainCurrency
-        ),
-        equivalentValue: generarConversiones(totalPresupuesto_USD),
-        highlight: true,
-      },
-      {
-        label: "Subtotal Presupuesto (con IVA)",
+        label: "Subtotal Presupuesto",
         value: formatCurrency(convertFromUSD(subtotalConIVA_USD), mainCurrency),
         equivalentValue: generarConversiones(subtotalConIVA_USD),
+        highlight: true,
       },
       {
         label: "Subtotal Gastos Reembolsables",
         value: formatCurrency(convertFromUSD(subtotalSinIVA_USD), mainCurrency),
         equivalentValue: generarConversiones(subtotalSinIVA_USD),
       },
-      // Legend items for Chart removed as per user request
-    ];
-
-    const valuacionesItems = [
+      {
+        label: "Total Presupuesto",
+        value: formatCurrency(
+          convertFromUSD(totalPresupuesto_USD),
+          mainCurrency
+        ),
+        equivalentValue: generarConversiones(totalPresupuesto_USD),
+      },
       {
         label: `Total Ejecutado`,
         value: formatCurrency(convertFromUSD(totalEjecutado_USD), mainCurrency),
         equivalentValue: generarConversiones(totalEjecutado_USD),
+        color: '#3b82f6' // Blue to match chart
       },
       {
         label: "Total Gastos (incl. Nómina)",
@@ -271,33 +269,7 @@ const ResumenMain = () => {
         ),
         equivalentValue: generarConversiones(totalGastosTodasValuaciones_USD),
         color: '#ef4444'
-      },
-      {
-        label: "Total Comisiones y Deducciones",
-        value: formatCurrency(
-          convertFromUSD(totalComisionesYDeduccionesGlobal_USD),
-          mainCurrency
-        ),
-        equivalentValue: generarConversiones(totalComisionesYDeduccionesGlobal_USD),
-        isNegative: true,
-        color: '#f59e0b'
-      },
-      {
-        label: "Utilidad Proyectada",
-        value: formatCurrency(
-          convertFromUSD(totalUtilidadProyectadaGlobal_USD),
-          mainCurrency
-        ),
-        equivalentValue: generarConversiones(totalUtilidadProyectadaGlobal_USD),
-        highlight: true,
-        color: '#10b981'
-      },
-      {
-        label: "Progreso Global",
-        value: `${porcentajeTotalEjecutado.toFixed(2)}%`,
-        equivalentValue: `${valuations?.length || 0} valuación(es)`,
-        progress: porcentajeTotalEjecutado,
-      },
+      }
     ];
 
     return {
@@ -305,12 +277,11 @@ const ResumenMain = () => {
       totalEjecutado_USD,
       porcentajeTotalEjecutado,
       presupuestoItems,
-      valuacionesItems,
       totalGastosTodasValuaciones_USD,
       totalUtilidadProyectadaGlobal_USD,
       totalComisionesYDeduccionesGlobal_USD,
       budgetChartData,
-      valuationsChartData
+      subtotalConIVA_USD
     };
   }, [
     budget,
@@ -328,7 +299,6 @@ const ResumenMain = () => {
   const isLoading =
     budgetLoading ||
     valuationsLoading ||
-    //planificacionLoading ||
     loadingAllPagos;
 
   if (isLoading) {
@@ -363,12 +333,6 @@ const ResumenMain = () => {
             chartConfig={{ centerLabel: `${porcentajeTotalEjecutado.toFixed(0)}%` }}
             chartType="donut"
           />
-          <ResumeCard
-            title="Resumen de Valuaciones"
-            items={valuacionesItems}
-            icon={<DashboarddIcon />}
-            chartData={valuationsChartData}
-          />
         </aside>
 
         <section className="valuaciones-resumen-container">
@@ -385,9 +349,21 @@ const ResumenMain = () => {
                     const cumulativeValuationUSD = valuations
                       .slice(0, index + 1) // Get current and all previous valuations
                       .reduce((sum, v) => {
-                        const subtotal = v.totales?.subtotal || 0;
-                        const currency = v.totales?.currency || mainCurrency;
-                        return sum + safeConvertToUSD(subtotal, currency);
+                        // Calculate filtered subtotal (only items with IVA)
+                        const valSum =
+                          v.partidas?.reduce((acc, p) => {
+                            if (p.aplicaIVA) {
+                              return (
+                                acc +
+                                safeConvertToUSD(
+                                  p.montoTotal || 0,
+                                  p.moneda || v.totales?.currency || mainCurrency
+                                )
+                              );
+                            }
+                            return acc;
+                          }, 0) || 0;
+                        return sum + valSum;
                       }, 0);
 
                     return (
@@ -398,7 +374,7 @@ const ResumenMain = () => {
                         <ValuacionResumenCard
                           valuacion={valuacion}
                           mainCurrency={mainCurrency}
-                          budgetTotalUSD={totalPresupuesto_USD}
+                          budgetTotalUSD={subtotalConIVA_USD}
                           cumulativeProgressUSD={cumulativeValuationUSD}
                         />
                       </div>

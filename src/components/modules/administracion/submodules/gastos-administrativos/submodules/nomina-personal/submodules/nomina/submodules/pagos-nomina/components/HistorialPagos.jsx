@@ -315,19 +315,33 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
                     <h4>{new Date(date.replace(/-/g, '\/')).toLocaleDateString("es-ES", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</h4>
                     <div className="pago-details-grid">
                       {employeeData && (
-                        <div className="detail-row">
-                          <span className="detail-label">Personal:</span>
-                          <span className="detail-value">{employeeData.pagos.length} trab.</span>
-                          <span className="detail-amount">$ {empTotals.totalUSD.toFixed(2)}</span>
-                          <span className="detail-rate">(Tasa: {parseFloat(employeeData.tasaCambio).toFixed(2)})</span>
+                        <div className="detail-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: "0.25rem" }}>
+                          <div style={{ display: "flex", gap: "1rem", width: "100%", alignItems: "center" }}>
+                            <span className="detail-label">Personal:</span>
+                            <span className="detail-value">{employeeData.pagos.length} trab.</span>
+                            <span className="detail-amount">$ {empTotals.totalUSD.toFixed(2)}</span>
+                            <span className="detail-rate">(Tasa: {parseFloat(employeeData.tasaCambio).toFixed(2)})</span>
+                          </div>
+                          {(employeeData.timestamp || employeeData.created_at) && (
+                            <div className="text-muted" style={{ fontSize: "0.7rem", marginLeft: "auto" }}>
+                              Creado: {new Date(employeeData.timestamp || employeeData.created_at).toLocaleString()}
+                            </div>
+                          )}
                         </div>
                       )}
                       {contractorData && (
-                        <div className="detail-row">
-                          <span className="detail-label">Contratistas:</span>
-                          <span className="detail-value">{(contractorData.pagos || []).length} cont.</span>
-                          <span className="detail-amount">$ {contTotals.totalUSD.toFixed(2)}</span>
-                          <span className="detail-rate">(Tasa: {parseFloat(contractorData.tasa_cambio).toFixed(2)})</span>
+                        <div className="detail-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: "0.25rem" }}>
+                          <div style={{ display: "flex", gap: "1rem", width: "100%", alignItems: "center" }}>
+                            <span className="detail-label">Contratistas:</span>
+                            <span className="detail-value">{(contractorData.pagos || []).length} cont.</span>
+                            <span className="detail-amount">$ {contTotals.totalUSD.toFixed(2)}</span>
+                            <span className="detail-rate">(Tasa: {parseFloat(contractorData.tasa_cambio).toFixed(2)})</span>
+                          </div>
+                          {(contractorData.timestamp || contractorData.created_at) && (
+                            <div className="text-muted" style={{ fontSize: "0.7rem", marginLeft: "auto" }}>
+                              Creado: {new Date(contractorData.timestamp || contractorData.created_at).toLocaleString()}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
