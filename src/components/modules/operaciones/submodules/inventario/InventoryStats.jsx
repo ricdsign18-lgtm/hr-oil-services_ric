@@ -11,27 +11,27 @@ const InventoryStats = ({ inventory, lowStockItems }) => {
   const categories = [...new Set(inventory.map(item => item.categoria_producto))].length;
   const inventoryCard = [
     {
-      icon: <BoxIcon/>,
+      icon: <BoxIcon />,
       title: 'Total de Productos',
       number: totalItems,
     },
     {
-      icon: <BudgetIcon/>,
+      icon: <BudgetIcon />,
       title: 'Valor Total Estimado',
-      number: totalValue,
+      number: `$${totalValue.toFixed(2)}`,
     },
     {
-      icon: <ClassificationIcon/>,
+      icon: <ClassificationIcon />,
       title: 'Categorías',
       number: categories,
     },
     {
-      icon: <WarningIcon/>,
+      icon: <WarningIcon />,
       title: 'Bajo Stock',
       number: lowStockItems.length,
     },
     {
-      icon: <XIcon/>,
+      icon: <XIcon />,
       title: 'Sin Stock',
       number: outOfStock,
     },

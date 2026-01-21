@@ -331,7 +331,7 @@ export const OperacionesProvider = ({ children }) => {
 
   const approveRequerimiento = useCallback(async (reqId) => {
     setLoading(true);
-    
+
     // 1. Aprobar todos los items pendientes de este requerimiento
     const { error: itemsError } = await supabase
       .from('requerimiento_items')
@@ -353,13 +353,13 @@ export const OperacionesProvider = ({ children }) => {
       .eq('id', reqId);
 
     if (reqError) {
-        console.error('Error approving requirement parent:', reqError);
-        showToast("Error al actualizar estado del requerimiento", "error");
+      console.error('Error approving requirement parent:', reqError);
+      showToast("Error al actualizar estado del requerimiento", "error");
     } else {
-        await getRequerimientos();
-        showToast("Solicitud aprobada correctamente", "success");
+      await getRequerimientos();
+      showToast("Solicitud aprobada correctamente", "success");
     }
-    
+
     setLoading(false);
   }, [getRequerimientos, showToast]);
 
@@ -459,8 +459,8 @@ export const OperacionesProvider = ({ children }) => {
   }, [getRequerimientos]);
 
   const cancelRequerimiento = useCallback(async (reqId) => {
-    if(!window.confirm("¿Estás seguro de cancelar toda esta solicitud?")) return;
-    
+    if (!window.confirm("¿Estás seguro de cancelar toda esta solicitud?")) return;
+
     setLoading(true);
 
     // 1. Cancelar Items del requerimiento
@@ -470,10 +470,10 @@ export const OperacionesProvider = ({ children }) => {
       .eq('requerimiento_id', reqId);
 
     if (itemsError) {
-        console.error('Error updating items status:', itemsError);
-        showToast("Error al cancelar items de la solicitud", "error");
-        setLoading(false);
-        return;
+      console.error('Error updating items status:', itemsError);
+      showToast("Error al cancelar items de la solicitud", "error");
+      setLoading(false);
+      return;
     }
 
     // 2. Cancelar Requerimiento Padre
@@ -483,11 +483,11 @@ export const OperacionesProvider = ({ children }) => {
       .eq('id', reqId);
 
     if (error) {
-        console.error('Error updates status requerimiento:', error);
-        showToast("Error al cancelar la solicitud", "error");
+      console.error('Error updates status requerimiento:', error);
+      showToast("Error al cancelar la solicitud", "error");
     } else {
-        await getRequerimientos();
-        showToast("Solicitud cancelada", "info");
+      await getRequerimientos();
+      showToast("Solicitud cancelada", "info");
     }
     setLoading(false);
   }, [getRequerimientos, showToast]);
@@ -728,6 +728,28 @@ export const OperacionesProvider = ({ children }) => {
     setLoading(false);
   }, [selectedProject, getCompras]);
 
+  const deletePurchase = useCallback(async (compraId) => {
+    if (!selectedProject) return;
+    setLoading(true);
+
+    const { error } = await supabase
+      .from('compras')
+      .delete()
+      .eq('id', compraId)
+      .eq('project_id', selectedProject.id);
+
+    if (error) {
+      console.error('Error deleting purchase:', error);
+      showToast("Error al eliminar compra", "error");
+    } else {
+      await getCompras();
+      showToast("Compra eliminada correctamente", "success");
+    }
+    setLoading(false);
+  }, [selectedProject, getCompras, showToast]);
+
+
+
   const updateInventoryItem = useCallback(async (itemId, updatedData) => {
     setLoading(true);
     const { error } = await supabase
@@ -814,6 +836,7 @@ export const OperacionesProvider = ({ children }) => {
     addPurchase,
     withdrawInventory,
     updateCompra,
+    deletePurchase,
     getRequerimientos,
     addRequerimiento,
     addRequerimientoItem,
@@ -842,6 +865,8 @@ export const OperacionesProvider = ({ children }) => {
     addPurchase,
     withdrawInventory,
     updateCompra,
+    deletePurchase,
+    getRequerimientos,
     getRequerimientos,
     addRequerimiento,
     addRequerimientoItem,
