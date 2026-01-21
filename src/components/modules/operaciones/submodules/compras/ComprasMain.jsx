@@ -9,9 +9,10 @@ import './ComprasMain.css';
 import supabase from '../../../../../api/supaBase';
 
 const ComprasMain = () => {
-  const { addPurchase, loading, productos, compras, updateCompra, requerimientos } = useOperaciones();
+  const { addPurchase, loading, productos, compras, updateCompra, deletePurchase, requerimientos } = useOperaciones();
   const { showToast } = useNotification();
   const [activeTab, setActiveTab] = useState('nueva-compra');
+  const [searchTerm, setSearchTerm] = useState('');
   const [proveedores, setProveedores] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [formData, setFormData] = useState({
@@ -199,6 +200,18 @@ const ComprasMain = () => {
     setSelectedCompra(null);
     showToast('Compra actualizada exitosamente', 'success');
   };
+
+  const handleDelete = async (compraId) => {
+    if (window.confirm('¿Está seguro de que desea eliminar esta compra?')) {
+      await deletePurchase(compraId);
+    }
+  };
+
+  const filteredCompras = compras.filter(compra =>
+    compra.nombre_producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    compra.proveedor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    compra.nro_factura?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Calcular totales en tiempo real
   const totalBs = () => {
@@ -425,6 +438,29 @@ const ComprasMain = () => {
       {/* Tabla de compras */}
       {activeTab === 'historial' && (
         <ComprasTable compras={compras} onEdit={handleEdit} />
+      )}
+
+      {/* Tabla de compras */}
+      {activeTab === 'historial' && (
+        <>
+          <div className="search-container" style={{ marginBottom: '1rem' }}>
+            <input
+              type="text"
+              placeholder="Buscar por producto, proveedor o factura..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: '8px',
+                border: '1px solid var(--gray-200)',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+          <ComprasTable compras={filteredCompras} onEdit={handleEdit} onDelete={handleDelete} />
+        </>
       )}
 
       {/* Modal de edición */}

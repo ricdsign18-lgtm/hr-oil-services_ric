@@ -6,7 +6,7 @@ import RetirosTable from './RetirosTable';
 import InventoryStats from './InventoryStats';
 import InventoryHeader from './InventoryHeader';
 import './InventarioMain.css';
-import { BoxIcon } from '../../../../../assets/icons/Icons';
+import { BoxIcon, EditIcon } from '../../../../../assets/icons/Icons';
 
 const InventarioMain = () => {
   const tabs = [
@@ -33,7 +33,15 @@ const InventarioMain = () => {
     observaciones: '',
   });
 
-  
+  // State for Edit Modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editData, setEditData] = useState({
+    nombre_producto: '',
+    unidad: '',
+    categoria_producto: '',
+  });
+
+
 
   const lowStockItems = useMemo(() => getLowStockItems(), [getLowStockItems]);
 
@@ -90,6 +98,40 @@ const InventarioMain = () => {
     handleCloseWithdrawModal();
   };
 
+  // Edit Handlers
+  const handleOpenEditModal = (item) => {
+    setSelectedItem(item);
+    setEditData({
+      nombre_producto: item.nombre_producto,
+      unidad: item.unidad,
+      categoria_producto: item.categoria_producto,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedItem(null);
+    setEditData({
+      nombre_producto: '',
+      unidad: '',
+      categoria_producto: '',
+    });
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedItem) return;
+
+    await updateInventoryItem(selectedItem.id, editData);
+    handleCloseEditModal();
+  };
+
   const handleStockObjetivoChange = (itemId, value) => {
     const newTarget = parseInt(value, 10);
     if (!isNaN(newTarget) && newTarget >= 0) {
@@ -108,187 +150,241 @@ const InventarioMain = () => {
         inventory={inventory}
         lowStockItems={lowStockItems}
       />
-    <section className="inventory-content">
+      <section className="inventory-content">
 
-        <InventoryHeader 
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        <InventoryHeader
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
 
         />
         {activeTab === 'inventory' && (
           <>
             <section className="controls-search">
-          <input
-            type="text"
-            placeholder="Buscar producto..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+              <input
+                type="text"
+                placeholder="Buscar producto..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
 
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-          >
-            <option value="all">Todas las categorías</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+              >
+                <option value="all">Todas las categorías</option>
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+
+            </section>
+
+
+            {lowStockItems.length > 0 && (
+              <div className="low-stock-alert">
+                <h4>⚠️ Productos con Bajo Stock</h4>
+                <div className="low-stock-items">
+                  {lowStockItems.map(item => (
+                    <span key={item.id} className="low-stock-badge">
+                      {item.nombre_producto} ({item.cantidad_disponible} {item.unidad})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {loading && <p>Cargando inventario...</p>}
+
+            {!loading && Object.keys(groupedInventory).map(category => (
+              <div key={category} className="inventory-category">
+                <h3>{category}
+                  <span className="category-count">
+                    ({groupedInventory[category].length} items)
+                  </span>
+                </h3>
+                <table className="inventory-table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Unidad</th>
+                      <th>Stock Disponible</th>
+                      <th>Stock Objetivo</th>
+                      <th>Prioridad</th>
+                      <th>Precio Aprox. USD</th>
+                      <th>Estado</th>
+                      <th>Última Actualización</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupedInventory[category].map(item => {
+                      const isLowStock = lowStockItems.some(lowItem => lowItem.id === item.id);
+                      const isOutOfStock = item.cantidad_disponible <= 0;
+                      return (
+                        <tr key={item.id} className={isLowStock ? 'low-stock-row' : ''}>
+                          <td>{item.nombre_producto}</td>
+                          <td>{item.unidad}</td>
+                          <td className={isLowStock ? 'low-stock' : ''}>
+                            {item.cantidad_disponible}
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              defaultValue={item.stock_objetivo || 0}
+                              onBlur={(e) => handleStockObjetivoChange(item.id, e.target.value)}
+                              min="0"
+                              className="stock-objetivo-input"
+                            />
+                          </td>
+                          <td>
+                            <select
+                              value={item.prioridad || 'Media'}
+                              onChange={(e) => updateInventoryItem(item.id, { prioridad: e.target.value })}
+                              className="prioridad-select"
+                            >
+                              <option value="Alta">Alta</option>
+                              <option value="Media">Media</option>
+                              <option value="Baja">Baja</option>
+                            </select>
+                          </td>
+                          <td>{`$${parseFloat(item.precio_unitario_usd_aprox || 0).toFixed(2)}`}</td>
+                          <td>
+                            {isOutOfStock ? (
+                              <span className="status-badge danger">Sin Stock</span>
+                            ) : isLowStock ? (
+                              <span className="status-badge warning">Bajo Stock</span>
+                            ) : (
+                              <span className="status-badge success">Disponible</span>
+                            )}
+                          </td>
+                          <td>{new Date(item.last_updated.replace(/-/g, '/')).toLocaleDateString()}</td>
+                          <td>
+                            <button
+                              onClick={() => handleOpenWithdrawModal(item)}
+                              className="btn-withdraw"
+                              disabled={isOutOfStock}
+                              title="Retirar del Inventario"
+                            >
+                              {isOutOfStock ? 'Sin Stock' : 'Retirar'}
+                            </button>
+                            <button
+                              onClick={() => handleOpenEditModal(item)}
+                              className="btn-edit-inventory"
+                              title="Editar Producto"
+                            >
+                              <EditIcon className="icon-sm" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             ))}
-          </select>
-       
-        </section>
-        
 
-      {lowStockItems.length > 0 && (
-        <div className="low-stock-alert">
-          <h4>⚠️ Productos con Bajo Stock</h4>
-          <div className="low-stock-items">
-            {lowStockItems.map(item => (
-              <span key={item.id} className="low-stock-badge">
-                {item.nombre_producto} ({item.cantidad_disponible} {item.unidad})
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {loading && <p>Cargando inventario...</p>}
-
-      {!loading && Object.keys(groupedInventory).map(category => (
-        <div key={category} className="inventory-category">
-          <h3>{category}
-            <span className="category-count">
-              ({groupedInventory[category].length} items)
-            </span>
-          </h3>
-          <table className="inventory-table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Unidad</th>
-                <th>Stock Disponible</th>
-                <th>Stock Objetivo</th>
-                <th>Prioridad</th>
-                <th>Precio Aprox. USD</th>
-                <th>Estado</th>
-                <th>Última Actualización</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groupedInventory[category].map(item => {
-                const isLowStock = lowStockItems.some(lowItem => lowItem.id === item.id);
-                const isOutOfStock = item.cantidad_disponible <= 0;
-                return (
-                  <tr key={item.id} className={isLowStock ? 'low-stock-row' : ''}>
-                    <td>{item.nombre_producto}</td>
-                    <td>{item.unidad}</td>
-                    <td className={isLowStock ? 'low-stock' : ''}>
-                      {item.cantidad_disponible}
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        defaultValue={item.stock_objetivo || 0}
-                        onBlur={(e) => handleStockObjetivoChange(item.id, e.target.value)}
-                        min="0"
-                        className="stock-objetivo-input"
-                      />
-                    </td>
-                    <td>
-                      <select
-                        value={item.prioridad || 'Media'}
-                        onChange={(e) => updateInventoryItem(item.id, { prioridad: e.target.value })}
-                        className="prioridad-select"
-                      >
-                        <option value="Alta">Alta</option>
-                        <option value="Media">Media</option>
-                        <option value="Baja">Baja</option>
-                      </select>
-                    </td>
-                    <td>{`$${parseFloat(item.precio_unitario_usd_aprox || 0).toFixed(2)}`}</td>
-                    <td>
-                      {isOutOfStock ? (
-                        <span className="status-badge danger">Sin Stock</span>
-                      ) : isLowStock ? (
-                        <span className="status-badge warning">Bajo Stock</span>
-                      ) : (
-                        <span className="status-badge success">Disponible</span>
-                      )}
-                    </td>
-                    <td>{new Date(item.last_updated.replace(/-/g, '/')).toLocaleDateString()}</td>
-                    <td>
-                      <button
-                        onClick={() => handleOpenWithdrawModal(item)}
-                        className="btn-withdraw"
-                        disabled={isOutOfStock}
-                      >
-                        {isOutOfStock ? 'Sin Stock' : 'Retirar'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ))}
-
-      {!loading && inventory.length === 0 && (
-        <div className="empty-state">
-          <p>No hay productos en el inventario para este proyecto.</p>
-        </div>
-      )}
+            {!loading && inventory.length === 0 && (
+              <div className="empty-state">
+                <p>No hay productos en el inventario para este proyecto.</p>
+              </div>
+            )}
           </>
         )}
 
-      {showWithdrawModal && (
-        <Modal isOpen={showWithdrawModal} title={`Retirar ${selectedItem?.nombre_producto}`} onClose={handleCloseWithdrawModal}>
-          <form onSubmit={handleWithdrawSubmit} className="withdraw-form">
-            <div className="form-group">
-              <label>Cantidad a Retirar (Disponible: {selectedItem?.cantidad_disponible})</label>
-              <input
-                type="number"
-                name="cantidad_retirada"
-                value={withdrawData.cantidad_retirada}
-                onChange={handleWithdrawChange}
-                required
-                min="1"
-                max={selectedItem?.cantidad_disponible}
-              />
-            </div>
-            <div className="form-group">
-              <label>Retirado Por</label>
-              <input
-                type="text"
-                name="retirado_por"
-                value={withdrawData.retirado_por}
-                onChange={handleWithdrawChange}
-                required
-                placeholder="Nombre de quien retira"
-              />
-            </div>
-            <div className="form-group">
-              <label>Observaciones</label>
-              <textarea
-                name="observaciones"
-                value={withdrawData.observaciones}
-                onChange={handleWithdrawChange}
-                placeholder="Motivo del retiro, área de uso, etc."
-                rows="3"
-              ></textarea>
-            </div>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Procesando...' : 'Confirmar Retiro'}
-            </button>
-          </form>
-        </Modal>
-      )}
+        {showWithdrawModal && (
+          <Modal isOpen={showWithdrawModal} title={`Retirar ${selectedItem?.nombre_producto}`} onClose={handleCloseWithdrawModal}>
+            <form onSubmit={handleWithdrawSubmit} className="withdraw-form">
+              <div className="form-group">
+                <label>Cantidad a Retirar (Disponible: {selectedItem?.cantidad_disponible})</label>
+                <input
+                  type="number"
+                  name="cantidad_retirada"
+                  value={withdrawData.cantidad_retirada}
+                  onChange={handleWithdrawChange}
+                  required
+                  min="1"
+                  max={selectedItem?.cantidad_disponible}
+                />
+              </div>
+              <div className="form-group">
+                <label>Retirado Por</label>
+                <input
+                  type="text"
+                  name="retirado_por"
+                  value={withdrawData.retirado_por}
+                  onChange={handleWithdrawChange}
+                  required
+                  placeholder="Nombre de quien retira"
+                />
+              </div>
+              <div className="form-group">
+                <label>Observaciones</label>
+                <textarea
+                  name="observaciones"
+                  value={withdrawData.observaciones}
+                  onChange={handleWithdrawChange}
+                  placeholder="Motivo del retiro, área de uso, etc."
+                  rows="3"
+                ></textarea>
+              </div>
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Procesando...' : 'Confirmar Retiro'}
+              </button>
+            </form>
+          </Modal>
+        )}
 
-      {activeTab === 'withdrawals' && (
-        <RetirosTable retiros={retiros} />
-      )}
-    </section>
+        {showEditModal && (
+          <Modal isOpen={showEditModal} title="Editar Producto" onClose={handleCloseEditModal}>
+            <form onSubmit={handleEditSubmit} className="edit-form">
+              <div className="form-group">
+                <label>Nombre del Producto</label>
+                <input
+                  type="text"
+                  name="nombre_producto"
+                  value={editData.nombre_producto}
+                  onChange={handleEditChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Unidad</label>
+                <input
+                  type="text"
+                  name="unidad"
+                  value={editData.unidad}
+                  onChange={handleEditChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Categoría</label>
+                <input
+                  type="text"
+                  name="categoria_producto"
+                  value={editData.categoria_producto}
+                  onChange={handleEditChange}
+                  list="categories-list"
+                  required
+                />
+                <datalist id="categories-list">
+                  {categories.map(cat => (
+                    <option key={cat} value={cat} />
+                  ))}
+                </datalist>
+              </div>
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </form>
+          </Modal>
+        )}
+
+        {activeTab === 'withdrawals' && (
+          <RetirosTable retiros={retiros} />
+        )}
+      </section>
     </main>
   );
 };
