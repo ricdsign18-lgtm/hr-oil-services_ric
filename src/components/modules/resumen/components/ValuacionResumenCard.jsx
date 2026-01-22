@@ -247,6 +247,10 @@ const ValuacionResumenCard = ({
   // State para el modal
   const [selectedCategory, setSelectedCategory] = useState(null);
 
+  // State variables for Payroll Modal Filters
+  const [payrollFilterDate, setPayrollFilterDate] = useState("");
+  const [payrollFilterEmployee, setPayrollFilterEmployee] = useState("");
+
   const handleCategoryClick = (categoria) => {
     setSelectedCategory(categoria);
   };
@@ -356,6 +360,33 @@ const ValuacionResumenCard = ({
     }
 
     return items.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  };
+
+  // Helper functions for Payroll Filtering
+  const getUniquePayrollDates = () => {
+    const items = getAllPayrollItems();
+    const dates = [...new Set(items.map(item => item.fecha))];
+    return dates.sort((a, b) => new Date(b) - new Date(a));
+  };
+
+  const getUniquePayrollEmployees = () => {
+    const items = getAllPayrollItems();
+    const employees = [...new Set(items.map(item => item.empleado))];
+    return employees.sort();
+  };
+
+  const getFilteredPayrollItems = () => {
+    let items = getAllPayrollItems();
+
+    if (payrollFilterDate) {
+      items = items.filter(item => item.fecha === payrollFilterDate);
+    }
+
+    if (payrollFilterEmployee) {
+      items = items.filter(item => item.empleado === payrollFilterEmployee);
+    }
+
+    return items;
   };
 
   return (
@@ -1005,6 +1036,33 @@ const ValuacionResumenCard = ({
                 </button>
               </div>
 
+              {/* Filters Bar */}
+              <div className="valuacion-modal-filters" style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', gap: '12px' }}>
+                <select
+                  className="form-select"
+                  value={payrollFilterDate}
+                  onChange={(e) => setPayrollFilterDate(e.target.value)}
+                  style={{ padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.9rem' }}
+                >
+                  <option value="">Todas las Fechas</option>
+                  {getUniquePayrollDates().map(date => (
+                    <option key={date} value={date}>{new Date(date).toLocaleDateString()}</option>
+                  ))}
+                </select>
+
+                <select
+                  className="form-select"
+                  value={payrollFilterEmployee}
+                  onChange={(e) => setPayrollFilterEmployee(e.target.value)}
+                  style={{ padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.9rem', minWidth: '200px' }}
+                >
+                  <option value="">Todos los Empleados</option>
+                  {getUniquePayrollEmployees().map(emp => (
+                    <option key={emp} value={emp}>{emp}</option>
+                  ))}
+                </select>
+              </div>
+
               <div className="valuacion-modal-content">
                 {/* Deskop View */}
                 <div className="valuacion-desktop-view">
@@ -1019,7 +1077,7 @@ const ValuacionResumenCard = ({
                         </tr>
                       </thead>
                       <tbody>
-                        {getAllPayrollItems().map((item, idx) => (
+                        {getFilteredPayrollItems().map((item, idx) => (
                           <tr key={idx}>
                             <td className="td-date">
                               {new Date(item.fecha).toLocaleDateString()}
@@ -1041,10 +1099,10 @@ const ValuacionResumenCard = ({
                             </td>
                           </tr>
                         ))}
-                        {getAllPayrollItems().length === 0 && (
+                        {getFilteredPayrollItems().length === 0 && (
                           <tr>
                             <td colSpan="4" className="text-center py-4 text-muted">
-                              No hay pagos registrados en este periodo
+                              No hay pagos registrados con estos filtros
                             </td>
                           </tr>
                         )}
@@ -1055,7 +1113,7 @@ const ValuacionResumenCard = ({
 
                 {/* Mobile View */}
                 <div className="mobile-view">
-                  {getAllPayrollItems().map((item, idx) => (
+                  {getFilteredPayrollItems().map((item, idx) => (
                     <div key={idx} className="mobile-card">
                       <div className="mobile-card-header">
                         <span className="mobile-date">
@@ -1082,7 +1140,7 @@ const ValuacionResumenCard = ({
                       </div>
                     </div>
                   ))}
-                  {getAllPayrollItems().length === 0 && (
+                  {getFilteredPayrollItems().length === 0 && (
                     <div className="text-center py-4 text-muted">
                       No hay pagos registrados
                     </div>
@@ -1090,10 +1148,23 @@ const ValuacionResumenCard = ({
                 </div>
               </div>
 
-              <div className="valuacion-modal-footer">
-                <div className="total-label">Total Nómina y Contrataciones</div>
-                <div className="total-amount">
-                  {formatCurrency(totalLaboralUSD, "USD")}
+              <div className="valuacion-modal-footer" style={{ flexDirection: 'column', gap: '8px' }}>
+                {(payrollFilterDate || payrollFilterEmployee) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', color: '#64748b', fontSize: '0.95rem' }}>
+                    <div className="total-label">Total Filtrado</div>
+                    <div className="total-amount">
+                      {formatCurrency(
+                        getFilteredPayrollItems().reduce((acc, item) => acc + item.monto, 0),
+                        "USD"
+                      )}
+                    </div>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <div className="total-label">Total Nómina y Contrataciones</div>
+                  <div className="total-amount">
+                    {formatCurrency(totalLaboralUSD, "USD")}
+                  </div>
                 </div>
               </div>
             </div>
