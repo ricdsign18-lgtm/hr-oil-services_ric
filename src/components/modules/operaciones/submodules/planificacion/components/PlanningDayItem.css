@@ -4,7 +4,6 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -13,13 +12,14 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   position: relative;
-}
 
-.planning-dia-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  border-color: var(--primary-color);
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: var(--primary-color);
+  }
 }
 
 .planning-dia-item.is-today {
@@ -27,25 +27,19 @@
   background-color: #f0f9ff;
 }
 
-.header-item-day {
-  display: flex;
-  flex-direction: column;
-  background-color: #8381df;
-}
-
 .planning-dia-header {
   display: flex;
   flex-direction: column;
-
+  background-color: #b1d0e9;
   align-items: center;
   border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 12px;
-  border-radius: 12px 12px 0 0; /* Ensure header rounds with card */
+  padding: 25px 15px;
+  border-radius: 12px 12px 0 0;
+  color: #6d6d6d;
 }
 
 .dia-name {
   font-size: 0.8rem;
-  color: #64748b;
   text-transform: uppercase;
   font-weight: 600;
   margin-bottom: 4px;
@@ -54,13 +48,12 @@
 .dia-number {
   font-size: 2rem;
   font-weight: 700;
-  color: #1e293b;
+
   line-height: 1;
 }
 
 .dia-month {
   font-size: 0.9rem;
-  color: #64748b;
   text-transform: uppercase;
   font-weight: 600;
 }
@@ -83,10 +76,17 @@
   justify-content: space-between;
   align-items: center;
   font-size: 0.9rem;
+  padding: 0px 15px;
 }
 
 .stat-icon {
   font-size: 1rem;
+
+  svg {
+    width: 30px;
+    fill: #334155;
+    stroke: #334155;
+  }
 }
 
 .stat-value {

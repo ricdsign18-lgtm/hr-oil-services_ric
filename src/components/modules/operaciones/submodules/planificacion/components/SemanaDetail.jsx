@@ -1,11 +1,11 @@
 // components/planificacion/SemanaDetail.jsx
-import { useState, useEffect, useCallback } from 'react';
-import supabase from '../../../../../../api/supaBase';
-import { usePlanning } from '../../../../../../contexts/PlanningContext';
-import { DiasList } from './DiasList';
-import { RequerimientosForm } from '../../requerimientos/RequerimientosForm'; // Use the shared component
-import RequerimientosGroupList from '../../requerimientos/RequerimientosGroupList';
-import Modal from '../../../../../common/Modal/Modal';
+import { useState, useEffect, useCallback } from "react";
+import supabase from "../../../../../../api/supaBase";
+import { usePlanning } from "../../../../../../contexts/PlanningContext";
+import { DiasList } from "./DiasList";
+import { RequerimientosForm } from "../../requerimientos/RequerimientosForm"; // Use the shared component
+import RequerimientosGroupList from "../../requerimientos/RequerimientosGroupList";
+import Modal from "../../../../../common/Modal/Modal";
 
 export const SemanaDetail = ({ semana, onBack }) => {
   const { getSemanaById, recalcularMontoRequerimientosSemana } = usePlanning();
@@ -19,16 +19,18 @@ export const SemanaDetail = ({ semana, onBack }) => {
     setLoadingReq(true);
     // Now querying the main 'requerimientos' table
     const { data, error } = await supabase
-      .from('requerimientos')
-      .select(`
+      .from("requerimientos")
+      .select(
+        `
         *,
         requerimiento_items (*)
-      `)
-      .eq('semana_id', semana.id)
-      .order('created_at', { ascending: false });
+      `,
+      )
+      .eq("semana_id", semana.id)
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching requerimientos:', error);
+      console.error("Error fetching requerimientos:", error);
     } else {
       setRequerimientos(data || []);
     }
@@ -59,10 +61,7 @@ export const SemanaDetail = ({ semana, onBack }) => {
       {/* Header */}
       <div className="planning-detail-header">
         <div className="header-top">
-          <button
-            onClick={onBack}
-            className="btn-back"
-          >
+          <button onClick={onBack} className="btn-back">
             ← Volver a Planificación
           </button>
           <div className="header-actions">
@@ -70,15 +69,18 @@ export const SemanaDetail = ({ semana, onBack }) => {
               <button
                 onClick={() => setShowReqForm(true)}
                 className="btn-primary"
-                style={{ marginRight: '10px' }}
+                style={{ marginRight: "10px" }}
               >
                 + Agregar Requerimiento
               </button>
             )}
             <button
               onClick={() => setShowRequerimientos(!showRequerimientos)}
-              className={`btn-toggle-view ${showRequerimientos ? 'active' : ''}`}>
-              {showRequerimientos ? '📅 Ver Calendario' : '📋 Ver Requerimientos'}
+              className={`btn-toggle-view ${showRequerimientos ? "active" : ""}`}
+            >
+              {showRequerimientos
+                ? "📅 Ver Calendario"
+                : "📋 Ver Requerimientos"}
             </button>
           </div>
         </div>
@@ -86,7 +88,8 @@ export const SemanaDetail = ({ semana, onBack }) => {
         <div className="header-info">
           <h2>Semana {semana.numero_semana}</h2>
           <div className="date-badge">
-            {new Date(semana.fecha_inicio).toLocaleDateString()} - {new Date(semana.fecha_fin).toLocaleDateString()}
+            {new Date(semana.fecha_inicio + "T00:00:00").toLocaleDateString()} -{" "}
+            {new Date(semana.fecha_fin + "T00:00:00").toLocaleDateString()}
           </div>
         </div>
       </div>

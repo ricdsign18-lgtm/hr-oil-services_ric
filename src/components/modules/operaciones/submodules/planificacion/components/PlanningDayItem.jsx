@@ -1,3 +1,7 @@
+import {
+  SackDollarIcon,
+  HammerIcon,
+} from "../../../../../../assets/icons/Icons";
 import "./PlanningDayItem.css";
 
 export const PlanningDayItem = ({ dia, onClick }) => {
@@ -24,11 +28,15 @@ export const PlanningDayItem = ({ dia, onClick }) => {
       <div className="dia-content">
         <div className="dia-stats">
           <div className="stat-row">
-            <span className="stat-icon">🔨</span>
+            <span className="stat-icon">
+              <HammerIcon />
+            </span>
             <span className="stat-value">{dia.cantidad_actividades || 0}</span>
           </div>
           <div className="stat-row">
-            <span className="stat-icon">💰</span>
+            <span className="stat-icon">
+              <SackDollarIcon />
+            </span>
             <span className="stat-value">
               ${(dia.monto_planificado || 0).toLocaleString()}
             </span>
