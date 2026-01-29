@@ -22,22 +22,27 @@ const ResumenMain = () => {
 
 
   const { compras, facturas, comprasSinFactura } = useOperaciones();
-  const { getPagosByProject } = usePersonal();
+  const { getPagosByProject, getPagosContratistasByProject } = usePersonal();
 
   const [allPagos, setAllPagos] = useState([]);
+  const [allPagosContratistas, setAllPagosContratistas] = useState([]);
   const [loadingAllPagos, setLoadingAllPagos] = useState(true);
 
   useEffect(() => {
     const fetchAllPagos = async () => {
       if (selectedProject?.id) {
         setLoadingAllPagos(true);
-        const fetchedPagos = await getPagosByProject(selectedProject.id);
+        const [fetchedPagos, fetchedPagosContratistas] = await Promise.all([
+          getPagosByProject(selectedProject.id),
+          getPagosContratistasByProject(selectedProject.id)
+        ]);
         setAllPagos(fetchedPagos);
+        setAllPagosContratistas(fetchedPagosContratistas);
         setLoadingAllPagos(false);
       }
     };
     fetchAllPagos();
-  }, [selectedProject?.id, getPagosByProject]);
+  }, [selectedProject?.id, getPagosByProject, getPagosContratistasByProject]);
 
   const mainCurrency = useMemo(() => getMainCurrency(budget), [budget]);
   const carouselRef = useRef(null);
@@ -157,7 +162,7 @@ const ResumenMain = () => {
       ? comprasSinFactura.reduce((acc, curr) => acc + parseFloat(curr.totalDolares || 0), 0)
       : 0;
 
-    const totalPagosNominaGlobal_USD = allPagos
+    const totalPagosNominaEmpleados_USD = allPagos
       ? allPagos.reduce((acc, curr) => {
         const totalPagoUSD = curr.pagos.reduce(
           (pagoAcc, pago) => pagoAcc + parseFloat(pago.montoTotalUSD || 0),
@@ -166,6 +171,20 @@ const ResumenMain = () => {
         return acc + totalPagoUSD;
       }, 0)
       : 0;
+
+    const totalPagosContratistas_USD = allPagosContratistas
+      ? allPagosContratistas.reduce((acc, curr) => {
+        // Check if 'pagos' is an array in the contractor record
+        const pagosArray = Array.isArray(curr.pagos) ? curr.pagos : [];
+        const totalPagoUSD = pagosArray.reduce(
+          (pagoAcc, pago) => pagoAcc + parseFloat(pago.monto_total_usd || 0),
+          0
+        );
+        return acc + totalPagoUSD;
+      }, 0)
+      : 0;
+
+    const totalPagosNominaGlobal_USD = totalPagosNominaEmpleados_USD + totalPagosContratistas_USD;
 
     totalGastosTodasValuaciones_USD =
       totalComprasConFacturaGlobal_USD +
@@ -235,6 +254,9 @@ const ResumenMain = () => {
     ];
 
 
+    const totalGastosOperativosYAdministrativos_USD =
+      totalComprasConFacturaGlobal_USD + totalComprasSinFacturaGlobal_USD;
+
     const presupuestoItems = [
       {
         label: "Subtotal Presupuesto",
@@ -262,7 +284,25 @@ const ResumenMain = () => {
         color: '#3b82f6' // Blue to match chart
       },
       {
-        label: "Total Gastos (incl. Nómina)",
+        label: "Total Gastos en Nómina",
+        value: formatCurrency(
+          convertFromUSD(totalPagosNominaGlobal_USD),
+          mainCurrency
+        ),
+        equivalentValue: generarConversiones(totalPagosNominaGlobal_USD),
+        color: '#ef4444'
+      },
+      {
+        label: "Total Gastos Operativos y Administrativos",
+        value: formatCurrency(
+          convertFromUSD(totalGastosOperativosYAdministrativos_USD),
+          mainCurrency
+        ),
+        equivalentValue: generarConversiones(totalGastosOperativosYAdministrativos_USD),
+        color: '#ef4444'
+      },
+      {
+        label: "Total Gastos",
         value: formatCurrency(
           convertFromUSD(totalGastosTodasValuaciones_USD),
           mainCurrency

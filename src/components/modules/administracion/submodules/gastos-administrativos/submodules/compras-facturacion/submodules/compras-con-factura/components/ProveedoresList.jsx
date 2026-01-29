@@ -309,7 +309,17 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
               <span className="card-label">TOTAL RET. POR COBRAR</span>
             </div>
             <strong className="card-value">
-              $ {proveedores.reduce((sum, p) => sum + (p.totalRetencionPorCobrar / 50), 0).toFixed(2)}
+              $ {proveedores.reduce((sum, p) => sum + (p.totalRetencionPorCobrar / 50), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </strong>
+          </div>
+
+          <div className="summary-card-proveedores">
+            <div className="card-icon-wrapper icon-money">
+              <SackDollarIcon />
+              <span className="card-label">TOTAL EN DÓLARES</span>
+            </div>
+            <strong className="card-value">
+              $ {proveedores.reduce((sum, p) => sum + (p.totalPagarDolares || 0), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </strong>
           </div>
         </div>
@@ -342,99 +352,107 @@ const ProveedoresList = ({ projectId, refreshTrigger }) => {
               <p><strong>Tipo:</strong> {proveedor.tipoRif === 'V-' || proveedor.tipoRif === 'E-' ? 'Persona Natural' : 'Persona Jurídica'}</p>
             </div>
 
-            <div className="proveedor-totales">
-              <h5>Totales en Bolívares</h5>
+            {proveedor.facturas && proveedor.facturas.length > 0 ? (
+              <>
+                <div className="proveedor-totales">
+                  <h5>Totales en Bolívares</h5>
 
-              <div className="total-item">
-                <span>Base Imponible:</span>
-                <span>Bs {(Number(proveedor.totalBaseImponible) || 0).toFixed(2)}</span>
-              </div>
+                  <div className="total-item">
+                    <span>Base Imponible:</span>
+                    <span>Bs {(Number(proveedor.totalBaseImponible) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
 
-              <div className="total-item">
-                <span>Excento:</span>
-                <span>Bs {(Number(proveedor.totalExcento) || 0).toFixed(2)}</span>
-              </div>
+                  <div className="total-item">
+                    <span>Excento:</span>
+                    <span>Bs {(Number(proveedor.totalExcento) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
 
-              <div className="total-item">
-                <span>IVA:</span>
-                <span>Bs {(Number(proveedor.totalIva) || 0).toFixed(2)}</span>
-              </div>
+                  <div className="total-item">
+                    <span>IVA:</span>
+                    <span>Bs {(Number(proveedor.totalIva) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
 
-              <div className="total-item">
-                <span>Total a Pagar:</span>
-                <span>Bs {(Number(proveedor.totalPagar) || 0).toFixed(2)}</span>
-              </div>
+                  <div className="total-item">
+                    <span>Total a Pagar:</span>
+                    <span>Bs {(Number(proveedor.totalPagar) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
 
-              <div className="total-item">
-                <span>Pagado:</span>
-                <span>Bs {(Number(proveedor.totalMontoPagado) || 0).toFixed(2)}</span>
-              </div>
-            </div>
-
-            <div className="proveedor-totales">
-              <h5>Totales en Dólares</h5>
-
-              <div className="total-item">
-                <span>Total a Pagar:</span>
-                <span>$ {(Number(proveedor.totalPagarDolares) || 0).toFixed(2)}</span>
-              </div>
-
-              <div className="total-item">
-                <span>Pagado:</span>
-                <span>$ {proveedor.totalPagadoDolares.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <div className="retenciones-detalle">
-              <h5>Detalle de Retenciones</h5>
-
-              <div className="retencion-tipo">
-                <h6>IVA</h6>
-                <div className="retencion-item">
-                  <span>Por Cobrar:</span>
-                  <span className="estado-pendiente">
-                    Bs {(Number(proveedor.retencionIvaPendiente) || 0).toFixed(2)}
-                  </span>
+                  <div className="total-item">
+                    <span>Pagado:</span>
+                    <span>Bs {(Number(proveedor.totalMontoPagado) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
                 </div>
-                <div className="retencion-item">
-                  <span>Cobrado:</span>
-                  <span className="estado-bueno">
-                    Bs {(Number(proveedor.retencionIvaCobrada) || 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
 
-              <div className="retencion-tipo">
-                <h6>ISLR</h6>
-                <div className="retencion-item">
-                  <span>Por Cobrar:</span>
-                  <span className="estado-pendiente">
-                    Bs {(Number(proveedor.retencionIslrPendiente) || 0).toFixed(2)}
-                  </span>
-                </div>
-                <div className="retencion-item">
-                  <span>Cobrado:</span>
-                  <span className="estado-bueno">
-                    Bs {(Number(proveedor.retencionIslrCobrada) || 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
+                <div className="proveedor-totales">
+                  <h5>Totales en Dólares</h5>
 
-              <div className="retencion-total">
-                <div className="total-item">
-                  <strong>Total por Cobrar:</strong>
-                  <strong className="estado-pendiente">
-                    Bs {(Number(proveedor.totalRetencionPorCobrar) || 0).toFixed(2)}
-                  </strong>
+                  <div className="total-item">
+                    <span>Total a Pagar:</span>
+                    <span>$ {(Number(proveedor.totalPagarDolares) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+
+                  <div className="total-item">
+                    <span>Pagado:</span>
+                    <span>$ {(Number(proveedor.totalPagadoDolares) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
                 </div>
-                <div className="total-item">
-                  <strong>Total Cobrado:</strong>
-                  <strong className="estado-bueno">
-                    Bs {(Number(proveedor.totalRetencionCobrada) || 0).toFixed(2)}
-                  </strong>
+
+                <div className="retenciones-detalle">
+                  <h5>Detalle de Retenciones</h5>
+
+                  <div className="retencion-tipo">
+                    <h6>IVA</h6>
+                    <div className="retencion-item">
+                      <span>Por Cobrar:</span>
+                      <span className="estado-pendiente">
+                        Bs {(Number(proveedor.retencionIvaPendiente) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="retencion-item">
+                      <span>Cobrado:</span>
+                      <span className="estado-bueno">
+                        Bs {(Number(proveedor.retencionIvaCobrada) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="retencion-tipo">
+                    <h6>ISLR</h6>
+                    <div className="retencion-item">
+                      <span>Por Cobrar:</span>
+                      <span className="estado-pendiente">
+                        Bs {(Number(proveedor.retencionIslrPendiente) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                    <div className="retencion-item">
+                      <span>Cobrado:</span>
+                      <span className="estado-bueno">
+                        Bs {(Number(proveedor.retencionIslrCobrada) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="retencion-total">
+                    <div className="total-item">
+                      <strong>Total por Cobrar:</strong>
+                      <strong className="estado-pendiente">
+                        Bs {(Number(proveedor.totalRetencionPorCobrar) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </strong>
+                    </div>
+                    <div className="total-item">
+                      <strong>Total Cobrado:</strong>
+                      <strong className="estado-bueno">
+                        Bs {(Number(proveedor.totalRetencionCobrada) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </strong>
+                    </div>
+                  </div>
                 </div>
+              </>
+            ) : (
+              <div className="proveedor-info" style={{ textAlign: 'center', padding: '20px', fontStyle: 'italic', color: '#6b7280' }}>
+                Sin movimientos registrados
               </div>
-            </div>
+            )}
           </div>
         ))}
       </div>

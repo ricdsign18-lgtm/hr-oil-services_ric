@@ -13,7 +13,8 @@
 .compras-header-container {
   display: flex;
   flex-direction: column;
-  gap: 0; /* Removed gap to connect tabs to content/filters */
+  gap: 0;
+  /* Removed gap to connect tabs to content/filters */
   margin-bottom: 2rem;
 }
 
@@ -24,7 +25,8 @@
   align-items: flex-end;
   flex-wrap: wrap;
   padding: 0 0.5rem;
-  border-bottom: 1px solid #374151; /* Line under tabs */
+  border-bottom: 1px solid #374151;
+  /* Line under tabs */
   margin-bottom: 1rem;
 }
 
@@ -40,9 +42,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 0.5rem 0.5rem 0 0; /* Tab shape */
+  border-radius: 0.5rem 0.5rem 0 0;
+  /* Tab shape */
   font-weight: 500;
-  margin-bottom: -1px; /* Overlap border */
+  margin-bottom: -1px;
+  /* Overlap border */
 }
 
 .submodule-nav-btn:hover {
@@ -51,11 +55,14 @@
 }
 
 .submodule-nav-btn.active {
-  background-color: #3b82f6; /* Blue active tab */
+  background-color: #3b82f6;
+  /* Blue active tab */
   color: white;
   font-weight: 600;
-  border-color: #374151; /* Border to match container */
-  border-bottom-color: #1f2937; /* Match background of content below if any, or transparent */
+  border-color: #374151;
+  /* Border to match container */
+  border-bottom-color: #1f2937;
+  /* Match background of content below if any, or transparent */
 }
 
 /* Filters Row (Bottom Row) */
@@ -90,7 +97,8 @@
 /* Search Group */
 .search-filter-group {
   display: flex;
-  flex: 1; /* Takes available space */
+  flex: 1;
+  /* Takes available space */
   min-width: 250px;
 }
 
@@ -140,7 +148,8 @@
 }
 
 .date-input-wrapper label {
-  color: #ef4444; /* Red color for "Desde"/"Hasta" labels as seen in some designs or just contrast */
+  color: #ef4444;
+  /* Red color for "Desde"/"Hasta" labels as seen in some designs or just contrast */
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -204,11 +213,9 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--primary-color, #007bff),
-    var(--secondary-color, #6c757d)
-  );
+  background: linear-gradient(90deg,
+      var(--primary-color, #007bff),
+      var(--secondary-color, #6c757d));
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -363,17 +370,18 @@
     border-radius: 0.5rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .compras-filters-row {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-filter-group {
     flex-direction: column;
   }
-  
-  .search-container-dark, .category-select-dark {
+
+  .search-container-dark,
+  .category-select-dark {
     max-width: none;
     width: 100%;
   }
@@ -438,6 +446,7 @@
 
 /* Modo oscuro */
 @media (prefers-color-scheme: dark) {
+
   .compras-facturacion-card,
   .info-card {
     background: var(--surface-color, #2d3748);
@@ -461,7 +470,7 @@
     border-top-color: var(--border-light, #4a5568);
     border-bottom-color: var(--border-light, #4a5568);
   }
-  
+
   /* Note: Header styles are already dark by default, so no overrides needed here for them */
 }
 
@@ -504,4 +513,99 @@
 .modal-info-content li {
   margin-bottom: 0.5rem;
   line-height: 1.5;
+}
+
+/* List Summary Card (Shared) */
+.list-summary-card {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  border-radius: 12px !important;
+  padding: 15px 20px !important;
+  gap: 15px !important;
+  width: fit-content !important;
+  min-width: 280px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.list-card-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.list-card-icon-wrapper svg {
+  width: 24px;
+  height: 24px;
+  fill: #fff;
+  color: #94a3b8;
+}
+
+.list-card-label {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.list-card-value {
+  color: #f8fafc;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+/* Financial Summary Styles */
+.stat-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.stat-subvalue {
+  display: block;
+  font-size: 0.95rem;
+  color: #10b981;
+  /* Green color for money */
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.total-highlight {
+  border-top: 1px solid #e2e8f0;
+  margin-top: 10px;
+  padding-top: 15px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.big-total {
+  font-size: 1.8rem;
+  color: #059669;
+  /* Darker green */
+  font-weight: 800;
+  display: block;
+  text-align: right;
+}
+
+/* Dark mode adjustments for new styles */
+@media (prefers-color-scheme: dark) {
+  .total-highlight {
+    border-top-color: var(--border-light, #4a5568);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .stat-subvalue {
+    color: #34d399;
+  }
+
+  .big-total {
+    color: #10b981;
+  }
 }

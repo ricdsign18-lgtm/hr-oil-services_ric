@@ -135,6 +135,10 @@ const ComprasFacturacionMain = ({ projectId }) => {
         const facturasProvFinal = facturasProv || facturasProvAlt
         const sinFacturaProvFinal = sinFacturaProv || sinFacturaProvAlt
 
+        // Calcular totales financieros
+        const totalFacturasUSD = facturasFinal?.reduce((sum, item) => sum + (Number(item.totalPagarDolares) || 0), 0) || 0;
+        const totalSinFacturaUSD = sinFacturaFinal?.reduce((sum, item) => sum + (Number(item.totalDolares) || 0), 0) || 0;
+
         const proveedores = new Set([
           ...(facturasProvFinal || []).map(f => `${f.tipoRif || f.tipoRif}${f.rif}`),
           ...(sinFacturaProvFinal || []).map(c => `${c.tipoRif || c.tipoRif}${c.rif}`)
@@ -143,7 +147,9 @@ const ComprasFacturacionMain = ({ projectId }) => {
         setSummaryData({
           countFacturas: facturasFinal?.length || 0,
           countSinFactura: sinFacturaFinal?.length || 0,
-          countProveedores: proveedores.size
+          countProveedores: proveedores.size,
+          totalFacturasUSD,
+          totalSinFacturaUSD
         })
 
       } catch (error) {
@@ -152,7 +158,9 @@ const ComprasFacturacionMain = ({ projectId }) => {
         setSummaryData({
           countFacturas: 0,
           countSinFactura: 0,
-          countProveedores: 0
+          countProveedores: 0,
+          totalFacturasUSD: 0,
+          totalSinFacturaUSD: 0
         })
       } finally {
         setLoading(false)
@@ -259,15 +267,25 @@ const ComprasFacturacionMain = ({ projectId }) => {
           <div className="info-stats">
             <div className="stat-item">
               <span className="stat-label">Compras con Factura:</span>
-              <span className="stat-value">{summaryData.countFacturas}</span>
+              <div className="stat-content-wrapper">
+                <span className="stat-value">{summaryData.countFacturas}</span>
+                <span className="stat-subvalue">Total: $ {(summaryData.totalFacturasUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
             </div>
             <div className="stat-item">
               <span className="stat-label">Compras sin Factura:</span>
-              <span className="stat-value">{summaryData.countSinFactura}</span>
+              <div className="stat-content-wrapper">
+                <span className="stat-value">{summaryData.countSinFactura}</span>
+                <span className="stat-subvalue">Total: $ {(summaryData.totalSinFacturaUSD || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
             </div>
             <div className="stat-item">
               <span className="stat-label">Proveedores Registrados:</span>
               <span className="stat-value">{summaryData.countProveedores}</span>
+            </div>
+            <div className="stat-item total-highlight">
+              <span className="stat-label">Gran Total:</span>
+              <span className="stat-value big-total">$ {((summaryData.totalFacturasUSD || 0) + (summaryData.totalSinFacturaUSD || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>

@@ -3,18 +3,18 @@ import { useState, useEffect } from 'react'
 import supabase from '../../../../../../../../../../api/supaBase'
 import { useNotification } from '../../../../../../../../../../contexts/NotificationContext'
 import FeedbackModal from '../../../../../../../../../common/FeedbackModal/FeedbackModal'
-import { ClipBoardIcon } from '../../../../../../../../../../assets/icons/Icons'
+import { ClipBoardIcon, SackDollarIcon } from '../../../../../../../../../../assets/icons/Icons'
 
 const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger, parentFilters, onCategoriesLoaded }) => {
   const { showToast } = useNotification();
   const [compras, setCompras] = useState([])
-  
+
   // Destructure parent filters with default values to avoid crashes
-  const { 
-    filtroCategoria = '', 
-    filtroProveedor = '', 
-    fechaInicio = '', 
-    fechaFin = '' 
+  const {
+    filtroCategoria = '',
+    filtroProveedor = '',
+    fechaInicio = '',
+    fechaFin = ''
   } = parentFilters || {};
 
   const [feedback, setFeedback] = useState({
@@ -55,10 +55,10 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger, parent
     const cumpleProveedor = !filtroProveedor ||
       (compra.proveedor && compra.proveedor.toLowerCase().includes(filtroProveedor.toLowerCase())) ||
       (compra.rif && compra.rif.includes(filtroProveedor))
-    
+
     // Exact match for category unless it's empty ("Todas")
     const cumpleCategoria = !filtroCategoria || compra.categoria === filtroCategoria
-    
+
     const cumpleFechaInicio = !fechaInicio || compra.fechaCompra >= fechaInicio
     const cumpleFechaFin = !fechaFin || compra.fechaCompra <= fechaFin
 
@@ -109,7 +109,17 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger, parent
   return (
     <div className="compras-sin-factura-list">
       {/* Removed local section header with filters */}
-      
+
+      <div className="list-summary-card">
+        <div className="list-card-icon-wrapper">
+          <SackDollarIcon />
+          <span className="list-card-label">TOTAL DÓLARES</span>
+        </div>
+        <strong className="list-card-value">
+          $ {comprasFiltrados.reduce((sum, item) => sum + (item.totalDolares || 0), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </strong>
+      </div>
+
       <div className="facturas-table"> {/* Updated class to match new CSS */}
         <table>
           <thead>
@@ -150,9 +160,9 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger, parent
                   <td>{compra.descripcion || '-'}</td>
                   <td>{compra.categoria}</td>
                   <td>{formatSubcategorias(compra)}</td>
-                  <td className="total-importante">$ {compra.totalDolares?.toFixed(2) || '0.00'}</td>
-                  <td>Bs {compra.tasaPago?.toFixed(2) || '0.00'}</td>
-                  <td>Bs {compra.pagoBolivares?.toFixed(2) || '0.00'}</td>
+                  <td className="total-importante">$ {compra.totalDolares?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</td>
+                  <td>Bs {compra.tasaPago?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</td>
+                  <td>Bs {compra.pagoBolivares?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</td>
                   <td>{compra.modoPago || '-'}</td>
                   <td>{compra.contrato || '-'}</td>
                   <td>{compra.valuacion || '-'}</td>
@@ -170,18 +180,18 @@ const ComprasSinFacturaList = ({ projectId, onEditCompra, refreshTrigger, parent
                   </td>
                   <td>
                     <div style={{ display: 'flex' }}>
-                        <button
+                      <button
                         className="btn-edit"
                         onClick={() => onEditCompra(compra)}
-                        >
+                      >
                         Editar
-                        </button>
-                        <button
+                      </button>
+                      <button
                         className="btn-delete"
                         onClick={() => handleDelete(compra.id)}
-                        >
+                      >
                         Eliminar
-                        </button>
+                      </button>
                     </div>
                   </td>
                 </tr>

@@ -37,7 +37,8 @@
   padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
-  background-color: transparent; /* Transparent to blend with app background */
+  background-color: transparent;
+  /* Transparent to blend with app background */
   min-height: 100vh;
 }
 
@@ -67,8 +68,10 @@
   border: 1px solid var(--gray-700);
   gap: 4px;
   margin-bottom: 24px;
-  position: relative; /* Ensure stacking context */
-  z-index: 10; /* Ensure clear of accidental overlays */
+  position: relative;
+  /* Ensure stacking context */
+  z-index: 10;
+  /* Ensure clear of accidental overlays */
 }
 
 /* Mobile Dropdown styles */
@@ -163,7 +166,8 @@
   gap: 16px;
   margin-bottom: 32px;
   flex-wrap: wrap;
-  justify-content: flex-start; /* Align to left as per image */
+  justify-content: flex-start;
+  /* Align to left as per image */
 }
 
 .csf-search-wrapper {
@@ -183,11 +187,13 @@
 
 .csf-search-input {
   width: 100%;
-  padding: 10px 12px 10px 40px; /* Space for icon */
+  padding: 10px 12px 10px 40px;
+  /* Space for icon */
   border: 1px solid var(--gray-700);
   border-radius: 8px;
   font-size: 0.9rem;
-  background-color: var(--gray-900); /* Dark background */
+  background-color: var(--gray-900);
+  /* Dark background */
   color: var(--gray-200);
   height: 42px;
   box-sizing: border-box;
@@ -223,7 +229,8 @@
   display: flex;
   gap: 16px;
   align-items: center;
-  margin-left: auto; /* Push dates to the right */
+  margin-left: auto;
+  /* Push dates to the right */
 }
 
 .csf-date-field {
@@ -233,7 +240,8 @@
 }
 
 .csf-date-field label {
-  color: var(--danger-color); /* Red color for "Desde"/"Hasta" */
+  color: var(--danger-color);
+  /* Red color for "Desde"/"Hasta" */
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -390,7 +398,8 @@
   background-color: var(--gray-900);
   color: var(--gray-200);
   width: 100%;
-  box-sizing: border-box; /* Keep this for safety */
+  box-sizing: border-box;
+  /* Keep this for safety */
 }
 
 /* Focus states */
@@ -410,7 +419,8 @@
 .csf-input-with-button input,
 .csf-input-with-button select {
   /* Retain layout properties */
-  flex: 1; /* Match previous flex behavior */
+  flex: 1;
+  /* Match previous flex behavior */
   min-width: 0 !important;
   /* Override colors only */
   background-color: var(--gray-900) !important;
@@ -420,8 +430,10 @@
 
 /* Adjust readonly value for light theme */
 .csf-readonly-value {
-  background-color: #e5e7eb !important; /* Gray 200 */
-  color: #374151 !important; /* Gray 700 */
+  background-color: #e5e7eb !important;
+  /* Gray 200 */
+  color: #374151 !important;
+  /* Gray 700 */
   border: 1px solid #d1d5db !important;
   box-sizing: border-box !important;
 }
@@ -663,7 +675,8 @@
 .section-title {
   margin: 0 0 20px 0;
   font-size: 1.25rem;
-  color: var(--gray-800); /* Dark text */
+  color: var(--gray-800);
+  /* Dark text */
   font-weight: 600;
   border-bottom: 1px solid var(--gray-200);
   padding-bottom: 12px;
@@ -697,10 +710,13 @@
   gap: 16px;
   box-shadow: var(--shadow);
   transition: transform 0.2s ease, border-color 0.2s ease;
-  height: 100%; /* Ensure full height in grid */
-  min-height: 110px; /* Force minimum height for uniformity */
+  height: 100%;
+  /* Ensure full height in grid */
+  min-height: 110px;
+  /* Force minimum height for uniformity */
   box-sizing: border-box;
-  width: 100%; /* Ensure full width in grid cell */
+  width: 100%;
+  /* Ensure full width in grid cell */
 }
 
 .resumen-card-item:hover {
@@ -766,7 +782,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  overflow: hidden; /* Prevent content from overflowing card */
+  overflow: hidden;
+  /* Prevent content from overflowing card */
 }
 
 /* ... existing hover styles ... */
@@ -827,7 +844,8 @@
 .proveedor-categorias {
   margin-top: 8px;
   padding: 16px;
-  background-color: #111827 !important; /* Hardcoded gray-900 */
+  background-color: #111827 !important;
+  /* Hardcoded gray-900 */
   border-radius: var(--border-radius);
   border: 1px solid var(--gray-700) !important;
   color: var(--gray-200);
@@ -1036,7 +1054,8 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  flex-wrap: nowrap; /* Prevent wrapping */
+  flex-wrap: nowrap;
+  /* Prevent wrapping */
 }
 
 /* Ensure inputs inside these groups take available space but don't force full width */
@@ -1045,26 +1064,33 @@
 .csf-input-group input,
 .csf-input-group select {
   flex: 1;
-  width: auto !important; /* Override the 100% from .csf-form-group */
-  min-width: 0; /* Allow shrinking if needed */
+  width: auto !important;
+  /* Override the 100% from .csf-form-group */
+  min-width: 0;
+  /* Allow shrinking if needed */
 }
 
 .csf-input-group button,
 .csf-input-with-button button {
-  flex-shrink: 0; /* Prevent button from squishing */
+  flex-shrink: 0;
+  /* Prevent button from squishing */
 }
 
 .btn-add-inline {
-  padding: 8px 10px; /* Reduced padding */
+  padding: 8px 10px;
+  /* Reduced padding */
   background: var(--primary-color);
   color: white;
   border: none;
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   font-weight: bold;
-  min-width: 36px; /* Reduced min-width */
-  height: 38px; /* Match standard input height usually */
-  font-size: 1rem; /* Reduced font size */
+  min-width: 36px;
+  /* Reduced min-width */
+  height: 38px;
+  /* Match standard input height usually */
+  font-size: 1rem;
+  /* Reduced font size */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1163,11 +1189,13 @@
 /* Mobile-specific adjustments for joined input groups */
 @media (max-width: 640px) {
   .csf-main-container {
-    padding: 12px; /* Reduce container padding */
+    padding: 12px;
+    /* Reduce container padding */
   }
 
   .csf-form-grid {
-    grid-template-columns: 1fr; /* Force single column that fits container */
+    grid-template-columns: 1fr;
+    /* Force single column that fits container */
     gap: 16px;
   }
 
@@ -1180,17 +1208,22 @@
   .csf-rif-input,
   .csf-input-with-button {
     display: flex !important;
-    gap: 8px !important; /* Restore gap */
-    width: 100% !important; /* Ensure full width */
-    flex-direction: column !important; /* Stack vertically */
-    align-items: stretch !important; /* Match heights */
+    gap: 8px !important;
+    /* Restore gap */
+    width: 100% !important;
+    /* Ensure full width */
+    flex-direction: column !important;
+    /* Stack vertically */
+    align-items: stretch !important;
+    /* Match heights */
   }
 
   /* Input styling in joined groups AND standard inputs */
   .csf-form-group input,
   .csf-form-group select,
   .csf-form-group textarea {
-    width: 100%; /* Default for standalone inputs */
+    width: 100%;
+    /* Default for standalone inputs */
     box-sizing: border-box !important;
   }
 
@@ -1201,9 +1234,12 @@
   .csf-rif-input input,
   .csf-input-with-button input,
   .csf-input-with-button select {
-    flex: none !important; /* Don't rely on flex grow */
-    width: 100% !important; /* Force full width */
-    min-width: 0 !important; /* Allow shrinking */
+    flex: none !important;
+    /* Don't rely on flex grow */
+    width: 100% !important;
+    /* Force full width */
+    min-width: 0 !important;
+    /* Allow shrinking */
     max-width: 100%;
     border-radius: var(--border-radius-sm) !important;
     height: 38px !important;
@@ -1214,7 +1250,8 @@
     border-top-left-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
     border-left-width: 0 !important;
-    border-right-width: 1px !important; /* Restore right border */
+    border-right-width: 1px !important;
+    /* Restore right border */
     border-top-right-radius: var(--border-radius-sm) !important;
     border-bottom-right-radius: var(--border-radius-sm) !important;
   }
@@ -1232,20 +1269,24 @@
   .csf-input-with-button button.btn-add-inline {
     /* Radius overrides removed */
     margin: 0 !important;
-    flex-shrink: 0 !important; /* Prevent button from shrinking */
+    flex-shrink: 0 !important;
+    /* Prevent button from shrinking */
     height: 38px !important;
-    width: 100% !important; /* Full width for stacked button */
-    box-sizing: border-box !important; /* Ensure padding doesn't cause overflow */
+    width: 100% !important;
+    /* Full width for stacked button */
+    box-sizing: border-box !important;
+    /* Ensure padding doesn't cause overflow */
   }
 
   /* Special handling for subcategory remove button (middle element potential) */
   .csf-input-group .btn-remove-subcategory {
-    border-radius: 0 !important; /* No radius if it's in middle */
+    border-radius: 0 !important;
+    /* No radius if it's in middle */
     border-left: 1px solid var(--danger-color);
   }
 
   /* If add button follows remove button */
-  .csf-input-group .btn-remove-subcategory + .btn-add-inline {
+  .csf-input-group .btn-remove-subcategory+.btn-add-inline {
     border-top-left-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
   }

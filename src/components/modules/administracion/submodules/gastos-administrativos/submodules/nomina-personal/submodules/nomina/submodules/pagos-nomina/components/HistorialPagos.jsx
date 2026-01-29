@@ -15,6 +15,10 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
   const [paymentToDelete, setPaymentToDelete] = useState(null);
 
   // --- Helper Functions ---
+  const formatCurrency = (amount) => {
+    return (amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
   const calcularPeriodoPago = (empleado, fechaPago) => {
     const fecha = new Date(fechaPago.replace(/-/g, '\/'));
 
@@ -81,14 +85,14 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
         Cargo: pagoEmp.empleado.cargo,
         "Tipo Nómina": pagoEmp.empleado.tipoNomina,
         "Días Trab.": pagoEmp.diasTrabajados,
-        "Monto Diario ($)": pagoEmp.montoDiarioCalculado?.toFixed(2) || "0.00",
+        "Monto Diario ($)": formatCurrency(pagoEmp.montoDiarioCalculado),
         "H. Extra D.": pagoEmp.horasExtras.diurna,
         "H. Extra N.": pagoEmp.horasExtras.nocturna,
-        "Monto H. Extra Total ($)": pagoEmp.totalHorasExtrasUSD.toFixed(2),
-        "Deducciones ($)": pagoEmp.deduccionesManualesUSD.toFixed(2),
-        "Total a Pagar ($)": pagoEmp.subtotalUSD.toFixed(2),
+        "Monto H. Extra Total ($)": formatCurrency(pagoEmp.totalHorasExtrasUSD),
+        "Deducciones ($)": formatCurrency(pagoEmp.deduccionesManualesUSD),
+        "Total a Pagar ($)": formatCurrency(pagoEmp.subtotalUSD),
         "Tasa del Día": parseFloat(pago.tasaCambio).toFixed(4),
-        "Total Pagar (Bs)": pagoEmp.totalPagarBs.toFixed(2),
+        "Total Pagar (Bs)": formatCurrency(pagoEmp.totalPagarBs),
         "Pagado por": pagoEmp.bancoPago || "No especificado",
         "Periodo de Pago": periodoPago,
         "Nombre del Contrato": selectedProject?.name || "No especificado",
@@ -98,11 +102,11 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
       if (includeLegalDeductions) {
         const esAdministrativo = ["Administrativa", "Ejecucion"].includes(pagoEmp.empleado.tipoNomina);
         datos["Porcentaje ISLR Individual (%)"] = esAdministrativo ? (pagoEmp.empleado.porcentajeIslr || "0") : "";
-        datos["Deducciones Ley IVSS (Bs)"] = esAdministrativo ? (pagoEmp.desgloseDeduccionesLey?.ivss?.toFixed(2) || "0.00") : "";
-        datos["Deducciones Ley Paro Forzoso (Bs)"] = esAdministrativo ? (pagoEmp.desgloseDeduccionesLey?.paroForzoso?.toFixed(2) || "0.00") : "";
-        datos["Deducciones Ley FAOV (Bs)"] = esAdministrativo ? (pagoEmp.desgloseDeduccionesLey?.faov?.toFixed(2) || "0.00") : "";
-        datos["Deducciones Ley ISLR (Bs)"] = esAdministrativo ? (pagoEmp.desgloseDeduccionesLey?.islr?.toFixed(2) || "0.00") : "";
-        datos["Total Deducciones Ley (Bs)"] = esAdministrativo ? (pagoEmp.deduccionesLeyBs?.toFixed(2) || "0.00") : "";
+        datos["Deducciones Ley IVSS (Bs)"] = esAdministrativo ? formatCurrency(pagoEmp.desgloseDeduccionesLey?.ivss) : "";
+        datos["Deducciones Ley Paro Forzoso (Bs)"] = esAdministrativo ? formatCurrency(pagoEmp.desgloseDeduccionesLey?.paroForzoso) : "";
+        datos["Deducciones Ley FAOV (Bs)"] = esAdministrativo ? formatCurrency(pagoEmp.desgloseDeduccionesLey?.faov) : "";
+        datos["Deducciones Ley ISLR (Bs)"] = esAdministrativo ? formatCurrency(pagoEmp.desgloseDeduccionesLey?.islr) : "";
+        datos["Total Deducciones Ley (Bs)"] = esAdministrativo ? formatCurrency(pagoEmp.deduccionesLeyBs) : "";
       }
 
       return datos;
@@ -138,10 +142,10 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
       "Contratista": c.nombre_contratista,
       "Descripción": c.descripcion_trabajo || "",
       "Total Días": c.total_personal_dias,
-      "Monto Diario ($)": parseFloat(c.monto_diario).toFixed(2),
-      "Total ($)": parseFloat(c.monto_total_usd).toFixed(2),
+      "Monto Diario ($)": formatCurrency(parseFloat(c.monto_diario)),
+      "Total ($)": formatCurrency(parseFloat(c.monto_total_usd)),
       "Tasa Cambio": parseFloat(pago.tasa_cambio).toFixed(4),
-      "Total (Bs)": parseFloat(c.monto_total_bs).toFixed(2),
+      "Total (Bs)": formatCurrency(parseFloat(c.monto_total_bs)),
       "Banco": c.banco_pago || "",
       "Observaciones": c.observaciones || ""
     });
@@ -278,6 +282,25 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
 
   const groupedPayments = groupPaymentsByDate();
 
+  const totalPagosGeneralesUSD = groupedPayments.reduce((acc, group) => {
+    const { employeeData, contractorData } = group;
+    const empTotals = employeeData ? calcularTotalesPago(employeeData) : { totalUSD: 0 };
+    const contTotals = contractorData ? calculateContractorTotals(contractorData) : { totalUSD: 0 };
+    return acc + empTotals.totalUSD + contTotals.totalUSD;
+  }, 0);
+
+  // Calculate All-Time Total
+  const totalHistoricoUSD = React.useMemo(() => {
+    let total = 0;
+    (pagosGuardados || []).forEach(pago => {
+      total += calcularTotalesPago(pago).totalUSD;
+    });
+    (pagosContratistas || []).forEach(pago => {
+      total += calculateContractorTotals(pago).totalUSD;
+    });
+    return total;
+  }, [pagosGuardados, pagosContratistas]);
+
   return (
     <div className="historial-pagos">
       <div className="historial-header">
@@ -289,6 +312,23 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
             value={filterMonth}
             onChange={(e) => setFilterMonth(e.target.value)}
           />
+        </div>
+      </div>
+
+      <div className="resumen-totales-container" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="historial-summary-card" style={{ borderColor: '#60a5fa', marginBottom: 0 }}>
+          <span className="summary-label" style={{ color: '#93c5fd' }}>Total Histórico Global:</span>
+          <span className="summary-amount" style={{ color: '#60a5fa' }}>$ {formatCurrency(totalHistoricoUSD)}</span>
+        </div>
+
+        <div className="historial-summary-card">
+          <span className="summary-label">
+            Total Pagado ({(() => {
+              const [y, m] = filterMonth.split("-");
+              return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+            })()}):
+          </span>
+          <span className="summary-amount">$ {formatCurrency(totalPagosGeneralesUSD)}</span>
         </div>
       </div>
 
@@ -319,7 +359,7 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
                           <div style={{ display: "flex", gap: "1rem", width: "100%", alignItems: "center" }}>
                             <span className="detail-label">Personal:</span>
                             <span className="detail-value">{employeeData.pagos.length} trab.</span>
-                            <span className="detail-amount">$ {empTotals.totalUSD.toFixed(2)}</span>
+                            <span className="detail-amount">$ {formatCurrency(empTotals.totalUSD)}</span>
                             <span className="detail-rate">(Tasa: {parseFloat(employeeData.tasaCambio).toFixed(2)})</span>
                           </div>
                           {(employeeData.timestamp || employeeData.created_at) && (
@@ -334,7 +374,7 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
                           <div style={{ display: "flex", gap: "1rem", width: "100%", alignItems: "center" }}>
                             <span className="detail-label">Contratistas:</span>
                             <span className="detail-value">{(contractorData.pagos || []).length} cont.</span>
-                            <span className="detail-amount">$ {contTotals.totalUSD.toFixed(2)}</span>
+                            <span className="detail-amount">$ {formatCurrency(contTotals.totalUSD)}</span>
                             <span className="detail-rate">(Tasa: {parseFloat(contractorData.tasa_cambio).toFixed(2)})</span>
                           </div>
                           {(contractorData.timestamp || contractorData.created_at) && (
@@ -347,7 +387,7 @@ const HistorialPagos = ({ pagosGuardados, pagosContratistas, employees, onVerDet
                     </div>
                   </div>
                   <div className="pago-totales">
-                    <div className="pago-total highlight"><span className="label">Total Global USD</span><span className="value">$ {grandTotalUSD.toFixed(2)}</span></div>
+                    <div className="pago-total highlight"><span className="label">Total Global USD</span><span className="value">$ {formatCurrency(grandTotalUSD)}</span></div>
                   </div>
                 </div>
 

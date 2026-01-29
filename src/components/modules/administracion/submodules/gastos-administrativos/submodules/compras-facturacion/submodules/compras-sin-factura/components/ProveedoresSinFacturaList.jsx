@@ -6,7 +6,7 @@ import { MultiUsersIcon, ClipBoardIcon, SackDollarIcon } from '../../../../../..
 const ProveedoresSinFacturaList = ({ projectId, refreshTrigger, parentFilters }) => {
   const [compras, setCompras] = useState([])
   const [proveedores, setProveedores] = useState([])
-  
+
   const { filtroProveedor = '' } = parentFilters || {};
 
   useEffect(() => {
@@ -77,7 +77,7 @@ const ProveedoresSinFacturaList = ({ projectId, refreshTrigger, parentFilters })
 
   return (
     <div className="proveedores-sin-factura-list"> {/* Keeps generic wrapper */}
-       {/* Removed internal header with search */}
+      {/* Removed internal header with search */}
 
       <div className="resumen-totales">
         <h3 className="section-title">Resumen General</h3>
@@ -93,29 +93,29 @@ const ProveedoresSinFacturaList = ({ projectId, refreshTrigger, parentFilters })
           </div>
           <div className="resumen-card-item">
             <div className="card-icon">
-               <ClipBoardIcon />
+              <ClipBoardIcon />
             </div>
-             <div className="card-content">
+            <div className="card-content">
               <span className="card-label">Total Compras</span>
               <strong className="card-value">{compras.length}</strong>
             </div>
           </div>
           <div className="resumen-card-item">
-             <div className="card-icon">
-               <SackDollarIcon />
+            <div className="card-icon">
+              <SackDollarIcon />
             </div>
             <div className="card-content">
               <span className="card-label">Total en Dólares</span>
-              <strong className="card-value">$ {proveedores.reduce((sum, p) => sum + p.totalDolares, 0).toFixed(2)}</strong>
+              <strong className="card-value">$ {proveedores.reduce((sum, p) => sum + p.totalDolares, 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
             </div>
           </div>
           <div className="resumen-card-item">
-             <div className="card-icon">
-               <SackDollarIcon />
+            <div className="card-icon">
+              <SackDollarIcon />
             </div>
             <div className="card-content">
               <span className="card-label">Total en Bolívares</span>
-              <strong className="card-value">Bs {proveedores.reduce((sum, p) => sum + p.totalBolivares, 0).toFixed(2)}</strong>
+              <strong className="card-value">Bs {proveedores.reduce((sum, p) => sum + p.totalBolivares, 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
             </div>
           </div>
         </div>
@@ -141,50 +141,58 @@ const ProveedoresSinFacturaList = ({ projectId, refreshTrigger, parentFilters })
               <p><strong>Tipo:</strong> {proveedor.tipoRif === 'V-' || proveedor.tipoRif === 'E-' ? 'Persona Natural' : 'Persona Jurídica'}</p>
             </div>
 
-            <div className="proveedor-totales">
-              <h5>Totales del Proveedor</h5>
+            {proveedor.totalCompras > 0 ? (
+              <>
+                <div className="proveedor-totales">
+                  <h5>Totales del Proveedor</h5>
 
-              <div className="proveedor-totales-grid">
-                <div className="total-item-card">
-                  <span>Total Compras</span>
-                  <span>{proveedor.totalCompras}</span>
-                </div>
-
-                <div className="total-item-card">
-                  <span>Total en Dólares</span>
-                  <span>$ {proveedor.totalDolares.toFixed(2)}</span>
-                </div>
-
-                <div className="total-item-card">
-                  <span>Total en Bolívares</span>
-                  <span>Bs {proveedor.totalBolivares.toFixed(2)}</span>
-                </div>
-
-                <div className="total-item-card">
-                  <span>Promedio ($)</span>
-                  <span>$ {(proveedor.totalDolares / proveedor.totalCompras).toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="proveedor-categorias">
-              <h5>Categorías Principales</h5>
-              {(() => {
-                const categoriasCount = {}
-                proveedor.compras.forEach(compra => {
-                  categoriasCount[compra.categoria] = (categoriasCount[compra.categoria] || 0) + 1
-                })
-                return Object.entries(categoriasCount)
-                  .sort((a, b) => b[1] - a[1])
-                  .slice(0, 3)
-                  .map(([categoria, count]) => (
-                    <div key={categoria} className="categoria-item">
-                      <span>{categoria}:</span>
-                      <span>{count} compras</span>
+                  <div className="proveedor-totales-grid">
+                    <div className="total-item-card">
+                      <span>Total Compras</span>
+                      <span>{proveedor.totalCompras}</span>
                     </div>
-                  ))
-              })()}
-            </div>
+
+                    <div className="total-item-card">
+                      <span>Total en Dólares</span>
+                      <span>$ {proveedor.totalDolares.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+
+                    <div className="total-item-card">
+                      <span>Total en Bolívares</span>
+                      <span>Bs {proveedor.totalBolivares.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+
+                    <div className="total-item-card">
+                      <span>Promedio ($)</span>
+                      <span>$ {(proveedor.totalDolares / proveedor.totalCompras).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="proveedor-categorias">
+                  <h5>Categorías Principales</h5>
+                  {(() => {
+                    const categoriasCount = {}
+                    proveedor.compras.forEach(compra => {
+                      categoriasCount[compra.categoria] = (categoriasCount[compra.categoria] || 0) + 1
+                    })
+                    return Object.entries(categoriasCount)
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 3)
+                      .map(([categoria, count]) => (
+                        <div key={categoria} className="categoria-item">
+                          <span>{categoria}:</span>
+                          <span>{count} compras</span>
+                        </div>
+                      ))
+                  })()}
+                </div>
+              </>
+            ) : (
+              <div className="proveedor-info" style={{ textAlign: 'center', padding: '20px', fontStyle: 'italic', color: '#6b7280' }}>
+                Sin movimientos registrados
+              </div>
+            )}
           </div>
         ))}
       </div>

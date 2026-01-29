@@ -19,7 +19,7 @@ const ValuacionResumenCard = ({
   budgetTotalUSD,
   cumulativeProgressUSD,
 }) => {
-  const { formatCurrency, convertToUSD } = useCurrency();
+  const { formatCurrency, convertToUSD, customRates } = useCurrency();
   const { facturas, comprasSinFactura } = useOperaciones();
   const { getPagosByProject, getPagosContratistasByProject } = usePersonal();
 
@@ -171,7 +171,7 @@ const ValuacionResumenCard = ({
   // Procesar facturas (compras con factura)
   facturasValuacion.forEach((factura) => {
     const categoria = factura.categoria || "Sin Categoría";
-    const monto = parseFloat(factura.pagadoDolares || 0);
+    const monto = Number(factura.totalPagarDolares) || 0;
 
     if (!gastosPorCategoria[categoria]) {
       gastosPorCategoria[categoria] = {
@@ -188,7 +188,7 @@ const ValuacionResumenCard = ({
   // Procesar compras sin factura
   comprasSinFacturaValuacion.forEach((compra) => {
     const categoria = compra.categoria || "Sin Categoría";
-    const monto = parseFloat(compra.totalDolares || 0);
+    const monto = Number(compra.totalDolares) || 0;
 
     if (!gastosPorCategoria[categoria]) {
       gastosPorCategoria[categoria] = {
@@ -202,14 +202,14 @@ const ValuacionResumenCard = ({
     gastosPorCategoria[categoria].total += monto;
   });
 
-  // Calcular totales
+  // Calculate totals
   const totalComprasConFacturaUSD = facturasValuacion.reduce(
-    (acc, curr) => acc + parseFloat(curr.pagadoDolares || 0),
+    (acc, curr) => acc + (Number(curr.totalPagarDolares) || 0),
     0
   );
 
   const totalComprasSinFacturaUSD = comprasSinFacturaValuacion.reduce(
-    (acc, curr) => acc + parseFloat(curr.totalDolares || 0),
+    (acc, curr) => acc + (Number(curr.totalDolares) || 0),
     0
   );
 
@@ -243,6 +243,12 @@ const ValuacionResumenCard = ({
   );
 
   const utilidadNeta = subtotalValuacionUSD - totalGastosUSD - seniatAmount;
+
+  const convertFromUSD = (amount) => {
+    const rate =
+      mainCurrency === "USD" ? 1 : customRates?.[mainCurrency] || 1;
+    return amount * rate;
+  };
 
   // State para el modal
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -293,7 +299,7 @@ const ValuacionResumenCard = ({
         subcategoria: Array.isArray(f.subcategorias)
           ? f.subcategorias.join(", ")
           : f.subcategoria,
-        monto: parseFloat(f.pagadoDolares || 0),
+        monto: parseFloat(f.totalPagarDolares || 0),
         tipo: "Factura",
       }));
 

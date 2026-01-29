@@ -359,3 +359,28 @@
   border: 2px dashed #374151;
   flex: 1;
 }
+
+/* Summary Card */
+.historial-summary-card {
+  background-color: #374151;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #4b5563;
+  margin-bottom: 0.5rem;
+}
+
+.summary-label {
+  color: #d1d5db;
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.summary-amount {
+  color: #4ade80;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
