@@ -1,10 +1,11 @@
 import {
   SackDollarIcon,
   HammerIcon,
+  MultiUsersIcon
 } from "../../../../../../assets/icons/Icons";
 import "./PlanningDayItem.css";
 
-export const PlanningDayItem = ({ dia, onClick }) => {
+export const PlanningDayItem = ({ dia, onClick, payrollEstimated }) => {
   const dateObj = new Date(dia.fecha + "T00:00:00");
   const isToday = new Date().toDateString() === dateObj.toDateString();
 
@@ -41,6 +42,16 @@ export const PlanningDayItem = ({ dia, onClick }) => {
               ${(dia.monto_planificado || 0).toLocaleString()}
             </span>
           </div>
+          {dia.cantidad_actividades > 0 && payrollEstimated > 0 && (
+            <div className="stat-row" title="Nómina Estimada del Día">
+              <span className="stat-icon" style={{ color: '#1976D2' }}>
+                <MultiUsersIcon />
+              </span>
+              <span className="stat-value" style={{ color: '#1976D2' }}>
+                ${payrollEstimated.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

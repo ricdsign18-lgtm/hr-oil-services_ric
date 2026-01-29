@@ -58,7 +58,8 @@ export const PlanningProvider = ({ children }) => {
             semana_id,
             fecha,
             plan_semanas!inner(project_id)
-        )
+        ),
+        plan_actividad_personal (*)
       `)
       .eq('plan_dias.plan_semanas.project_id', selectedProject.id);
 

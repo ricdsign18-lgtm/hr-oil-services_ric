@@ -194,6 +194,7 @@ export const DiaPlanning = ({ dia, onBack, allDias, onNavigate }) => {
             >
                 <ActividadForm
                     diaId={currentDia.id}
+                    diaFecha={currentDia.fecha}
                     actividadAEditar={actividadParaEditar}
                     onClose={() => { setShowActividadForm(false); setActividadParaEditar(null); }}
                     onSuccess={handleSuccess}

@@ -5,8 +5,9 @@ import { useBudget } from '../../../../../../contexts/BudgetContext';
 import { useCurrency } from '../../../../../../contexts/CurrencyContext';
 import { usePersonal } from '../../../../../../contexts/PersonalContext';
 import { useProjects } from '../../../../../../contexts/ProjectContext';
+import { calculateDailyLaborCost } from '../../../../../../utils/payrollCalculator';
 
-export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) => {
+export const ActividadForm = ({ diaId, diaFecha, actividadAEditar, onClose, onSuccess }) => {
   const { crearActividadPlanificada, updateActividad, getDisponibilidadPartida } = usePlanning();
   const { budget } = useBudget();
   const { convertToUSD, formatCurrency } = useCurrency();
@@ -29,6 +30,8 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
   const [loading, setLoading] = useState(false);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [errores, setErrores] = useState({});
+  const [basePrice, setBasePrice] = useState(0);
+  const [includeLaborCost, setIncludeLaborCost] = useState(false);
 
   const isEditMode = !!actividadAEditar;
 
@@ -63,6 +66,10 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
         subactividades: actividadAEditar.subactividades?.map(s => s.descripcion) || [''],
         personal_ids: actividadAEditar.personal?.map(p => p.personal_id) || []
       });
+      // Set base price from current or try to find it? 
+      // Safe to assume current price is base if we don't know better? 
+      // Actually getting it from partida again is safer if we want to "reset" it, but for edit mode let's trust existing.
+      setBasePrice(actividadAEditar.precio_unitario || 0);
 
       // Cargar disponibilidad inicial para validación visual (sumando lo propio para no marcar error)
       if (actividadAEditar.partida_id) {
@@ -92,6 +99,7 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
         precio_unitario: priceUSD,
         // Mantener nombre_partida para optimización si se desea
       }));
+      setBasePrice(priceUSD);
 
       await checkAvailability(itemId, isEditMode ? parseFloat(actividadAEditar.cantidad_programada) : 0);
     } else {
@@ -113,6 +121,35 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
   const cantidad = parseFloat(formData.cantidad_programada) || 0;
   const precio = parseFloat(formData.precio_unitario) || 0;
   const montoTotal = cantidad * precio;
+
+  // Calculo Costo Mano Obra
+  const laborCostTotal = useMemo(() => {
+    if (!employees.length || !formData.personal_ids.length) return 0;
+
+    // Si no hay fecha, usar fecha actual como fallback para cálculo mensual
+    const dateToUse = diaFecha ? String(diaFecha).split('T')[0] : new Date().toISOString().split('T')[0];
+
+    return formData.personal_ids.reduce((sum, pid) => {
+      const emp = employees.find(e => e.id === pid);
+      if (!emp) return sum;
+      return sum + calculateDailyLaborCost(emp, dateToUse);
+    }, 0);
+  }, [employees, formData.personal_ids, diaFecha]);
+
+  // Effect to update unit price if labor included
+  useEffect(() => {
+    if (includeLaborCost) {
+      if (cantidad > 0) {
+        const laborPerUnit = laborCostTotal / cantidad;
+        const newPrice = basePrice + laborPerUnit;
+        setFormData(prev => ({ ...prev, precio_unitario: parseFloat(newPrice.toFixed(4)) }));
+      }
+    } else {
+      // Revert to base price if unchecked
+      // Only if we haven't manually changed partida (basePrice tracks that)
+      setFormData(prev => ({ ...prev, precio_unitario: basePrice }));
+    }
+  }, [includeLaborCost, laborCostTotal, cantidad, basePrice]);
 
   // Subactividades
   const handleSubactividadChange = (index, value) => {
@@ -311,6 +348,27 @@ export const ActividadForm = ({ diaId, actividadAEditar, onClose, onSuccess }) =
               ))}
             </div>
           )}
+
+          <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#e3f2fd', borderRadius: '4px', fontSize: '0.9rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <strong>Costo Estimado de Nómina (Diario):</strong>
+              <span>{formatCurrency(laborCostTotal, 'USD')}</span>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={includeLaborCost}
+                onChange={e => setIncludeLaborCost(e.target.checked)}
+                disabled={laborCostTotal === 0 || cantidad <= 0}
+              />
+              <span>Incluir costo de nómina en el precio unitario de la actividad</span>
+            </label>
+            {includeLaborCost && (
+              <div style={{ marginTop: '5px', fontSize: '0.85rem', color: '#666' }}>
+                <em>(+ {formatCurrency(cantidad > 0 ? laborCostTotal / cantidad : 0, 'USD')} por unidad)</em>
+              </div>
+            )}
+          </div>
         </div>
 
         {errores.submit && <div className="form-error global">{errores.submit}</div>}

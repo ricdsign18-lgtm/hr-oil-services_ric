@@ -1,6 +1,61 @@
 // components/planificacion/SemanasList.jsx
 
+import { usePersonal } from "../../../../../../contexts/PersonalContext";
+import { useProjects } from "../../../../../../contexts/ProjectContext";
+import { calculateDailyLaborCost } from "../../../../../../utils/payrollCalculator";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { MultiUsersIcon } from "../../../../../../assets/icons/Icons";
+import { usePlanning } from "../../../../../../contexts/PlanningContext";
+
 export const SemanasList = ({ semanas, onSelectSemana }) => {
+  const { getEmployeesByProject } = usePersonal();
+  const { selectedProject } = useProjects();
+  const { actividades } = usePlanning();
+  const [employees, setEmployees] = useState([]);
+
+  // Memoize active dates to avoid recalculating inside the loop
+  const activeDates = useMemo(() => {
+    if (!actividades) return new Set();
+    const dates = new Set();
+    actividades.forEach(a => {
+      if (a.plan_dias && a.plan_dias.fecha) {
+        dates.add(a.plan_dias.fecha.split('T')[0]);
+      }
+    });
+    return dates;
+  }, [actividades]);
+
+  useEffect(() => {
+    const loadEmps = async () => {
+      if (selectedProject?.id) {
+        const data = await getEmployeesByProject(selectedProject.id);
+        setEmployees(data || []);
+      }
+    };
+    loadEmps();
+  }, [selectedProject, getEmployeesByProject]);
+
+  const calculateWeeklyPayroll = useCallback((semana) => {
+    if (!employees.length || !semana.fecha_inicio || !semana.fecha_fin) return 0;
+
+    let total = 0;
+    const startDate = new Date(semana.fecha_inicio + 'T12:00:00');
+    const endDate = new Date(semana.fecha_fin + 'T12:00:00');
+
+    // Iterate through each day of the week
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      // Only include in payroll if the day has activities
+      if (activeDates.has(dateStr)) {
+        employees.forEach(emp => {
+          if (emp.estado === 'Activo' || emp.estado === 'Vacaciones' || emp.estado === 'Reposo') {
+            total += calculateDailyLaborCost(emp, dateStr);
+          }
+        });
+      }
+    }
+    return total;
+  }, [employees, activeDates]);
   return (
     <div className="planning-semanas-container">
       {semanas.map((semana) => {
@@ -9,7 +64,8 @@ export const SemanasList = ({ semanas, onSelectSemana }) => {
         const requerimientos = semana.monto_requerimientos || 0;
         const porcentajeEjecucion =
           planificado > 0 ? (ejecutado / planificado) * 100 : 0;
-        const disponible = planificado - ejecutado;
+        const disponible = planificado - requerimientos;
+        const payrollTotal = calculateWeeklyPayroll(semana);
 
         return (
           <div
@@ -67,7 +123,7 @@ export const SemanasList = ({ semanas, onSelectSemana }) => {
                   <span className="icon">📋</span>
                   <span>Req: ${requerimientos.toLocaleString()}</span>
                 </div>
-                <div className="detail-item" title="Disponible por ejecutar">
+                <div className="detail-item" title="Disponible para requerir">
                   <span className="icon">💰</span>
                   <span
                     style={{ color: disponible < 0 ? "#d32f2f" : "#388e3c" }}
@@ -75,6 +131,12 @@ export const SemanasList = ({ semanas, onSelectSemana }) => {
                     Disp: ${disponible.toLocaleString()}
                   </span>
                 </div>
+                {payrollTotal > 0 && (
+                  <div className="detail-item" title="Nómina Estimada Semanal" style={{ flexBasis: '100%', marginTop: '5px' }}>
+                    <span className="icon" style={{ color: '#1976D2' }}><MultiUsersIcon /></span>
+                    <span style={{ color: '#1976D2' }}>Nomina: ${payrollTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
