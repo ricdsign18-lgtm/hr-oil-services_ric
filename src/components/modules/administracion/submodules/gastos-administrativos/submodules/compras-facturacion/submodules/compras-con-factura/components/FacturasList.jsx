@@ -1,10 +1,15 @@
-
 import React, { useState, useEffect } from "react";
 import supabase from "../../../../../../../../../../api/supaBase";
 import { useNotification } from "../../../../../../../../../../contexts/NotificationContext";
 import FeedbackModal from "../../../../../../../../../common/FeedbackModal/FeedbackModal";
+import FacturaDetailsModal from "./FacturaDetailsModal";
 
-const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoaded }) => {
+const FacturasList = ({
+  projectId,
+  onEditFactura,
+  parentFilters,
+  onCategoriesLoaded,
+}) => {
   const { showToast } = useNotification();
   const [facturas, setFacturas] = useState([]);
   const [filtroProveedor, setFiltroProveedor] = useState("");
@@ -13,10 +18,12 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
   const [fechaFin, setFechaFin] = useState("");
   const [feedback, setFeedback] = useState({
     isOpen: false,
-    type: 'success',
-    title: '',
-    message: ''
+    type: "success",
+    title: "",
+    message: "",
   });
+
+  const [viewFactura, setViewFactura] = useState(null);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -41,7 +48,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
         .neq("status", "deleted");
       if (error) throw error;
       setFacturas(data || []);
-      
+
       // Populate parent categories if callback provided
       if (data && onCategoriesLoaded) {
         const uniqueCats = [...new Set(data.map((f) => f.categoria))];
@@ -64,21 +71,23 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
       filtroCategoria,
       filtroProveedor,
       fechaInicio,
-      fechaFin
+      fechaFin,
     };
 
-    const { filtroCategoria: cat, filtroProveedor: prov, fechaInicio: start, fechaFin: end } = activeFilters;
+    const {
+      filtroCategoria: cat,
+      filtroProveedor: prov,
+      fechaInicio: start,
+      fechaFin: end,
+    } = activeFilters;
 
     const cumpleProveedor =
       !prov ||
       factura.proveedor.toLowerCase().includes(prov.toLowerCase()) ||
       factura.rif.includes(prov);
-    const cumpleCategoria =
-      !cat || factura.categoria === cat;
-    const cumpleFechaInicio =
-      !start || factura.fechaFactura >= start;
-    const cumpleFechaFin =
-      !end || factura.fechaFactura <= end;
+    const cumpleCategoria = !cat || factura.categoria === cat;
+    const cumpleFechaInicio = !start || factura.fechaFactura >= start;
+    const cumpleFechaFin = !end || factura.fechaFactura <= end;
 
     return (
       cumpleProveedor && cumpleCategoria && cumpleFechaInicio && cumpleFechaFin
@@ -88,7 +97,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
   const categoriasUnicas = [...new Set(facturas.map((f) => f.categoria))];
 
   const handleCloseFeedback = () => {
-    setFeedback(prev => ({ ...prev, isOpen: false }));
+    setFeedback((prev) => ({ ...prev, isOpen: false }));
   };
 
   const handleDelete = async (facturaId) => {
@@ -102,17 +111,17 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
         cargarFacturas(); // Recargar la lista
         setFeedback({
           isOpen: true,
-          type: 'success',
-          title: 'Factura Eliminada',
-          message: 'La factura ha sido eliminada exitosamente.'
+          type: "success",
+          title: "Factura Eliminada",
+          message: "La factura ha sido eliminada exitosamente.",
         });
       } catch (error) {
         console.error("Error al eliminar factura:", error);
         setFeedback({
           isOpen: true,
-          type: 'error',
-          title: 'Error',
-          message: 'Error al eliminar la factura.'
+          type: "error",
+          title: "Error",
+          message: "Error al eliminar la factura.",
         });
       }
     }
@@ -122,7 +131,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
   const formatSubcategorias = (factura) => {
     if (Array.isArray(factura.subcategorias)) {
       const subcategoriasFiltradas = factura.subcategorias.filter(
-        (sub) => sub && sub.trim() !== ""
+        (sub) => sub && sub.trim() !== "",
       );
       return subcategoriasFiltradas.length > 0
         ? subcategoriasFiltradas.join(", ")
@@ -152,7 +161,7 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
   const getEstadoRetenciones = (factura) => {
     const retenciones = calcularRetenciones(factura);
 
-      if (retenciones.totalPendiente === 0) {
+    if (retenciones.totalPendiente === 0) {
       return (
         <div className="ccf-retenciones-detalle">
           <div className="ccf-retencion-item">
@@ -160,23 +169,23 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
           </div>
           {(retenciones.retencionIvaCobrada > 0 ||
             retenciones.retencionIslrCobrada > 0) && (
-              <>
-                {retenciones.retencionIvaCobrada > 0 && (
-                  <div className="ccf-retencion-item">
-                    <small className="ccf-estado-bueno">
-                      IVA: Bs {retenciones.retencionIvaCobrada.toFixed(2)}
-                    </small>
-                  </div>
-                )}
-                {retenciones.retencionIslrCobrada > 0 && (
-                  <div className="ccf-retencion-item">
-                    <small className="ccf-estado-bueno">
-                      ISLR: Bs {retenciones.retencionIslrCobrada.toFixed(2)}
-                    </small>
-                  </div>
-                )}
-              </>
-            )}
+            <>
+              {retenciones.retencionIvaCobrada > 0 && (
+                <div className="ccf-retencion-item">
+                  <small className="ccf-estado-bueno">
+                    IVA: Bs {retenciones.retencionIvaCobrada.toFixed(2)}
+                  </small>
+                </div>
+              )}
+              {retenciones.retencionIslrCobrada > 0 && (
+                <div className="ccf-retencion-item">
+                  <small className="ccf-estado-bueno">
+                    ISLR: Bs {retenciones.retencionIslrCobrada.toFixed(2)}
+                  </small>
+                </div>
+              )}
+            </>
+          )}
         </div>
       );
     } else {
@@ -205,26 +214,26 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
           {/* Mostrar retenciones ya cobradas (si las hay) */}
           {(retenciones.retencionIvaCobrada > 0 ||
             retenciones.retencionIslrCobrada > 0) && (
-              <>
-                <div className="ccf-retencion-item ccf-separador">
-                  <small className="ccf-estado-bueno">Pagado:</small>
+            <>
+              <div className="ccf-retencion-item ccf-separador">
+                <small className="ccf-estado-bueno">Pagado:</small>
+              </div>
+              {retenciones.retencionIvaCobrada > 0 && (
+                <div className="retencion-item">
+                  <small className="estado-bueno">
+                    IVA: Bs {retenciones.retencionIvaCobrada.toFixed(2)}
+                  </small>
                 </div>
-                {retenciones.retencionIvaCobrada > 0 && (
-                  <div className="retencion-item">
-                    <small className="estado-bueno">
-                      IVA: Bs {retenciones.retencionIvaCobrada.toFixed(2)}
-                    </small>
-                  </div>
-                )}
-                {retenciones.retencionIslrCobrada > 0 && (
-                  <div className="retencion-item">
-                    <small className="estado-bueno">
-                      ISLR: Bs {retenciones.retencionIslrCobrada.toFixed(2)}
-                    </small>
-                  </div>
-                )}
-              </>
-            )}
+              )}
+              {retenciones.retencionIslrCobrada > 0 && (
+                <div className="retencion-item">
+                  <small className="estado-bueno">
+                    ISLR: Bs {retenciones.retencionIslrCobrada.toFixed(2)}
+                  </small>
+                </div>
+              )}
+            </>
+          )}
         </div>
       );
     }
@@ -257,7 +266,9 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
               onChange={(e) => setFiltroProveedor(e.target.value)}
               className="ccf-search-input"
             />
-            <label htmlFor="fechaInicio" style={{ color: 'red' }}>Desde</label>
+            <label htmlFor="fechaInicio" style={{ color: "red" }}>
+              Desde
+            </label>
             <input
               type="date"
               placeholder="Fecha inicio"
@@ -265,7 +276,9 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
               onChange={(e) => setFechaInicio(e.target.value)}
               className="ccf-date-input"
             />
-            <label htmlFor="fechaFin" style={{ color: 'red' }}>Hasta</label>
+            <label htmlFor="fechaFin" style={{ color: "red" }}>
+              Hasta
+            </label>
             <input
               type="date"
               placeholder="Fecha fin"
@@ -283,163 +296,207 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
         </div>
       ) : (
         <div className="ccf-facturas-table">
-            {/* Mobile View - Cards */}
-            <div className="mobile-facturas-list">
-              {facturasFiltradas.map((factura) => {
-                const initials = factura.proveedor
-                  ? factura.proveedor.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase()
-                  : "?";
-                
-                return (
-                  <div className="mobile-factura-card" key={factura.id}>
-                    {/* Header */}
-                    <div className="card-header-dark">
-                      <div className="provider-avatar">
-                        <span>{initials}</span>
+          {/* Mobile View - Cards */}
+          <div className="mobile-facturas-list">
+            {facturasFiltradas.map((factura) => {
+              const initials = factura.proveedor
+                ? factura.proveedor
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .substring(0, 2)
+                    .toUpperCase()
+                : "?";
+
+              return (
+                <div className="mobile-factura-card" key={factura.id}>
+                  {/* Header */}
+                  <div className="card-header-dark">
+                    <div className="provider-avatar">
+                      <span>{initials}</span>
+                    </div>
+                    <div className="provider-info">
+                      <h4>{factura.proveedor}</h4>
+                      <span className="provider-rif">
+                        <i className="fa-regular fa-user"></i> {factura.tipoRif}
+                        {factura.rif}
+                      </span>
+                    </div>
+                    <div className="valuacion-tag">
+                      {factura.valuacion || "SIN VALUACIÓN"}
+                    </div>
+                  </div>
+
+                  {/* Body */}
+                  <div className="card-body-white">
+                    <div className="status-row">
+                      <div className="date-info">
+                        <i className="fa-regular fa-calendar"></i>
+                        <div className="date-text">
+                          <span className="label">FECHA</span>
+                          <span className="value">{factura.fechaFactura}</span>
+                        </div>
                       </div>
-                      <div className="provider-info">
-                        <h4>{factura.proveedor}</h4>
-                        <span className="provider-rif">
-                          <i className="fa-regular fa-user"></i> {factura.tipoRif}{factura.rif}
-                        </span>
+                      <span className="category-pill">
+                        <i className="fa-solid fa-truck-fast"></i>{" "}
+                        {factura.categoria}
+                      </span>
+                    </div>
+
+                    <div className="details-box">
+                      <div className="details-header">
+                        <i className="fa-regular fa-file-lines"></i> DETALLE DEL
+                        SERVICIO
                       </div>
-                      <div className="valuacion-tag">
-                        {factura.valuacion || 'SIN VALUACIÓN'}
+                      <p className="details-text">
+                        {factura.descripcion || "Sin descripción"}
+                      </p>
+                      <div className="subcategory-text">
+                        Subcategoría:{" "}
+                        <strong>{formatSubcategorias(factura)}</strong>
                       </div>
                     </div>
 
-                    {/* Body */}
-                    <div className="card-body-white">
-                      <div className="status-row">
-                        <div className="date-info">
-                          <i className="fa-regular fa-calendar"></i>
-                          <div className="date-text">
-                            <span className="label">FECHA</span>
-                            <span className="value">{factura.fechaFactura}</span>
-                          </div>
-                        </div>
-                        <span className="category-pill">
-                          <i className="fa-solid fa-truck-fast"></i> {factura.categoria}
+                    <div className="card-footer-row">
+                      <div className="rate-info">
+                        <span className="label">TASA</span>
+                        <span className="value">
+                          Bs. {factura.tasaPago?.toFixed(2) || "0.00"}
                         </span>
                       </div>
-
-                      <div className="details-box">
-                        <div className="details-header">
-                          <i className="fa-regular fa-file-lines"></i> DETALLE DEL SERVICIO
-                        </div>
-                        <p className="details-text">
-                          {factura.descripcion || "Sin descripción"}
-                        </p>
-                        <div className="subcategory-text">
-                           Subcategoría: <strong>{formatSubcategorias(factura)}</strong>
-                        </div>
-                      </div>
-
-                      <div className="card-footer-row">
-                        <div className="rate-info">
-                          <span className="label">TARIFA / UNITARIO</span>
-                          <span className="value">Bs. {factura.tasaPago?.toFixed(2) || "0.00"}</span>
-                        </div>
-                        <div className="total-box-green">
-                          <span className="label">TOTAL A PAGAR</span>
-                          <span className="value">
-                            Bs. {factura.totalPagar?.toLocaleString('es-VE', { minimumFractionDigits: 2 }) || "0.00"}
+                      <div className="total-box-green">
+                        <span className="label">TOTAL A PAGAR</span>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-end",
+                            gap: "0",
+                          }}
+                        >
+                          <span className="value" style={{ lineHeight: "1.2" }}>
+                            ${" "}
+                            {factura.totalPagarDolares?.toLocaleString(
+                              "en-US",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              },
+                            ) || "0.00"}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              color: "#166534",
+                              fontWeight: "500",
+                            }}
+                          >
+                            ~ Bs.{" "}
+                            {factura.totalPagar?.toLocaleString("es-VE", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
                           </span>
                         </div>
                       </div>
-                      
-                      <div className="card-actions-bottom">
-                         <button className="btn-details-link" onClick={() => onEditFactura(factura)}>
-                           Ver detalles completos <i className="fa-solid fa-chevron-right"></i>
-                         </button>
-                      </div>
+                    </div>
+
+                    <div className="card-actions-bottom">
+                      <button
+                        className="btn-details-link"
+                        onClick={() => setViewFactura(factura)}
+                      >
+                        Ver detalles completos{" "}
+                        <i className="fa-solid fa-chevron-right"></i>
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
+          </div>
 
-            {/* Desktop View - Table */}
-            <div className="desktop-facturas-table">
+          {/* Desktop View - Table */}
+          <div className="desktop-facturas-table">
             <table>
-            <thead>
-              <tr>
-                <th>Fecha Factura</th>
-                <th>Fecha Recibida</th>
-                <th>Proveedor</th>
-                <th>RIF</th>
-                <th>N° Factura</th>
-                <th>N° Control</th>
-                <th>Descripción</th>
-                <th>Categoría</th>
-                <th>Tasa de Pago (Bs/$)</th>
-                <th>Subcategorías</th>
-                <th>Total a Pagar (Bs)</th>
-                <th>Total a Pagar ($)</th>
-                <th>Pagado (Bs)</th>
-                <th>Pagado ($)</th>
-                <th>Método Pago</th>
-                <th>Retenciones</th>
-                <th>Observaciones</th>
-                <th>Valuación</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {facturasFiltradas.map((factura, index) => (
-                <tr key={factura.id}>
-                  <td>{factura.fechaFactura}</td>
-                  <td>{factura.fechaRecibida || "-"}</td>
-                  <td>{factura.proveedor}</td>
-                  <td>
-                    {factura.tipoRif}
-                    {factura.rif}
-                  </td>
-                  <td>{factura.numeroFactura}</td>
-                  <td>{factura.numeroControl || "-"}</td>
-                  <td>{factura.descripcion || "-"}</td>
-                  <td>{factura.categoria}</td>
-                  <td>{factura.tasaPago?.toFixed(2) || "0.00"}</td>
-                  <td>{formatSubcategorias(factura)}</td>
-                  <td>Bs {factura.totalPagar?.toFixed(2) || "0.00"}</td>
-                  <td>$ {factura.totalPagarDolares?.toFixed(2) || "0.00"}</td>
-                  <td>Bs {factura.montoPagado?.toFixed(2) || "0.00"}</td>
-                  <td>$ {factura.pagadoDolares?.toFixed(2) || "0.00"}</td>
-                  <td>{factura.modoPago || "-"}</td>
-                  <td className="ccf-retenciones-cell">
-                    {getEstadoRetenciones(factura)}
-                  </td>
-                  <td className="ccf-observaciones-cell">
-                    {factura.observaciones ? (
-                      <div className="ccf-observaciones-tooltip">
-                        <span className="ccf-observaciones-icon">📝</span>
-                        <div className="ccf-observaciones-content">
-                          {factura.observaciones}
-                        </div>
-                      </div>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td>{factura.valuacion || '-'}</td>
-                  <td>
-                    <button
-                      className="ccf-btn-edit"
-                      onClick={() => onEditFactura(factura)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="ccf-btn-delete"
-                      onClick={() => handleDelete(factura.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </td>
+              <thead>
+                <tr>
+                  <th>Fecha Factura</th>
+                  <th>Fecha Recibida</th>
+                  <th>Proveedor</th>
+                  <th>RIF</th>
+                  <th>N° Factura</th>
+                  <th>N° Control</th>
+                  <th>Descripción</th>
+                  <th>Categoría</th>
+                  <th>Tasa de Pago (Bs/$)</th>
+                  <th>Subcategorías</th>
+                  <th>Total a Pagar (Bs)</th>
+                  <th>Total a Pagar ($)</th>
+                  <th>Pagado (Bs)</th>
+                  <th>Pagado ($)</th>
+                  <th>Método Pago</th>
+                  <th>Retenciones</th>
+                  <th>Observaciones</th>
+                  <th>Valuación</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {facturasFiltradas.map((factura, index) => (
+                  <tr key={factura.id}>
+                    <td>{factura.fechaFactura}</td>
+                    <td>{factura.fechaRecibida || "-"}</td>
+                    <td>{factura.proveedor}</td>
+                    <td>
+                      {factura.tipoRif}
+                      {factura.rif}
+                    </td>
+                    <td>{factura.numeroFactura}</td>
+                    <td>{factura.numeroControl || "-"}</td>
+                    <td>{factura.descripcion || "-"}</td>
+                    <td>{factura.categoria}</td>
+                    <td>{factura.tasaPago?.toFixed(2) || "0.00"}</td>
+                    <td>{formatSubcategorias(factura)}</td>
+                    <td>Bs {factura.totalPagar?.toFixed(2) || "0.00"}</td>
+                    <td>$ {factura.totalPagarDolares?.toFixed(2) || "0.00"}</td>
+                    <td>Bs {factura.montoPagado?.toFixed(2) || "0.00"}</td>
+                    <td>$ {factura.pagadoDolares?.toFixed(2) || "0.00"}</td>
+                    <td>{factura.modoPago || "-"}</td>
+                    <td className="ccf-retenciones-cell">
+                      {getEstadoRetenciones(factura)}
+                    </td>
+                    <td className="ccf-observaciones-cell">
+                      {factura.observaciones ? (
+                        <div className="ccf-observaciones-tooltip">
+                          <span className="ccf-observaciones-icon">📝</span>
+                          <div className="ccf-observaciones-content">
+                            {factura.observaciones}
+                          </div>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                    <td>{factura.valuacion || "-"}</td>
+                    <td>
+                      <button
+                        className="ccf-btn-edit"
+                        onClick={() => onEditFactura(factura)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="ccf-btn-delete"
+                        onClick={() => handleDelete(factura.id)}
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -450,6 +507,13 @@ const FacturasList = ({ projectId, onEditFactura, parentFilters, onCategoriesLoa
         type={feedback.type}
         title={feedback.title}
         message={feedback.message}
+      />
+
+      <FacturaDetailsModal
+        isOpen={!!viewFactura}
+        onClose={() => setViewFactura(null)}
+        factura={viewFactura}
+        onEdit={onEditFactura}
       />
     </div>
   );

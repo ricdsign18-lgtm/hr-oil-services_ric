@@ -59,7 +59,7 @@ export const SemanaDetail = ({ semana, onBack }) => {
   return (
     <div className="planning-detail-container">
       {/* Header */}
-      <div className="planning-detail-header">
+      {/* <div className="planning-detail-header">
         <div className="header-top">
           <button onClick={onBack} className="btn-back">
             ← Volver a Planificación
@@ -69,7 +69,6 @@ export const SemanaDetail = ({ semana, onBack }) => {
               <button
                 onClick={() => setShowReqForm(true)}
                 className="btn-primary"
-                style={{ marginRight: "10px" }}
               >
                 + Agregar Requerimiento
               </button>
@@ -92,7 +91,7 @@ export const SemanaDetail = ({ semana, onBack }) => {
             {new Date(semana.fecha_fin + "T00:00:00").toLocaleDateString()}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Contenido */}
       <div className="planning-detail-content">
