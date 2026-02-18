@@ -30,6 +30,7 @@ const ValuacionResumenCard = ({
   const [showAllCategoriesModal, setShowAllCategoriesModal] = useState(false);
   const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [seniatAmount, setSeniatAmount] = useState(0);
+  const [includeCommissions, setIncludeCommissions] = useState(false);
 
   useEffect(() => {
     const fetchPagos = async () => {
@@ -594,6 +595,7 @@ const ValuacionResumenCard = ({
             {/* Calculations Constants */}
             {(() => {
               const montoBanco = subtotalValuacionUSD * (1 - 0.081);
+
               const dedAlcaldia = montoBanco * 0.03;
               const dedISLR = montoBanco * 0.01;
               const dedSENIAT = montoBanco * 0.1;
@@ -612,50 +614,16 @@ const ValuacionResumenCard = ({
               const totalComisiones =
                 comisionCobro + d25 + comisionP + comisionR + comisionL;
 
-              // Utilidad final = Banco - Gov - Comisiones - Gastos - SeniatAnual
-              const utilidadFinal =
-                montoBanco -
-                totalDedGov -
-                totalComisiones -
-                totalGastosUSD -
-                seniatAmount;
+              // FINAL UTILITY with Toggle
+              const utilidadFinal = montoBanco - totalGastosUSD - (includeCommissions ? totalComisiones : 0);
+
+              const toggleCommissions = () => {
+                setIncludeCommissions(!includeCommissions);
+              };
 
               return (
                 <>
                   <div className="valuacion-totales-grid">
-                    {/* Deducciones Gubernamentales Card */}
-                    <div className="valuacion-total-card red">
-                      <div className="valuacion-card-icon">
-                        <BankIcon width={32} height={32} fill="#ef4444" />
-                      </div>
-                      <div className="valuacion-card-content">
-                        <span className="valuacion-card-label">
-                          Deducciones Gov.
-                        </span>
-                        <span className="valuacion-card-value-main text-red-700">
-                          - {formatCurrency(totalDedGov, "USD")}
-                        </span>
-                        <span className="valuacion-card-value-secondary">
-                          Alcaldía, ISLR, SENIAT(10%)
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Comisiones Card */}
-                    <div className="valuacion-total-card orange">
-                      <div className="valuacion-card-icon">
-                        <MultiUsersIcon width={32} height={32} fill="#ea580c" />
-                      </div>
-                      <div className="valuacion-card-content">
-                        <span className="valuacion-card-label">
-                          Total Comisiones
-                        </span>
-                        <span className="valuacion-card-value-main text-orange-700">
-                          - {formatCurrency(totalComisiones, "USD")}
-                        </span>
-                      </div>
-                    </div>
-
                     {/* Gastos Operativos Card */}
                     <div className="valuacion-total-card red">
                       <div className="valuacion-card-icon">
@@ -674,29 +642,71 @@ const ValuacionResumenCard = ({
                         </span>
                       </div>
                     </div>
-                  </div>
 
-                  {/* SENIAT Anual Card (if needed separately, or included in deductions? usually separate as per prev design) */}
-                  <div
-                    className="valuacion-totales-grid seniat-grid"
-                    style={{ marginBottom: "1.5rem", marginTop: "0.5rem" }}
-                  >
-                    <div className="valuacion-total-card gray seniat-card-dashed">
-                      <div className="valuacion-card-content seniat-content-row">
-                        <div className="seniat-icon-wrapper">
-                          <BankIcon width={28} height={28} fill="#4b5563" />
-                        </div>
-                        <div>
-                          <span className="valuacion-card-label seniat-label-block">
-                            SENIAT (Cuota Anual)
-                          </span>
-                          <span className="valuacion-card-value-main text-lg text-gray-600">
-                            - {formatCurrency(seniatAmount, "USD")}
+                    {/* Commissions Toggle Card */}
+                    <div className="valuacion-total-card orange" style={{ gridColumn: includeCommissions ? 'auto' : 'span 2' }}>
+                      <div className="valuacion-card-content" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span className="valuacion-card-label">Comisiones y Deducciones</span>
+                          <span className="valuacion-card-value-secondary">
+                            {includeCommissions ? 'Incluidas' : 'Excluidas'}
                           </span>
                         </div>
+
+                        {/* Custom Toggle Switch */}
+                        <label className="switch-container-custom">
+                          <input
+                            type="checkbox"
+                            checked={includeCommissions}
+                            onChange={toggleCommissions}
+                          />
+                          <span className="slider-custom"></span>
+                        </label>
                       </div>
                     </div>
+
+                    {/* Commissions Value Card (Only if enabled) */}
+                    {includeCommissions && (
+                      <div className="valuacion-total-card orange">
+                        <div className="valuacion-card-icon">
+                          <MultiUsersIcon width={32} height={32} fill="#ea580c" />
+                        </div>
+                        <div className="valuacion-card-content">
+                          <span className="valuacion-card-label">
+                            Total Comisiones
+                          </span>
+                          <span className="valuacion-card-value-main text-orange-700">
+                            - {formatCurrency(totalComisiones, "USD")}
+                          </span>
+
+                          {/* Commission Breakdown */}
+                          <div className="mt-3 pt-2 border-t border-orange-200 text-xs text-slate-600 flex flex-col gap-1">
+                            <div className="flex justify-between items-center">
+                              <span>Cobro (15%):</span>
+                              <span className="font-medium">{formatCurrency(comisionCobro, "USD")}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span>D25 (25%):</span>
+                              <span className="font-medium">{formatCurrency(d25, "USD")}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span>Comisión P (8%):</span>
+                              <span className="font-medium">{formatCurrency(comisionP, "USD")}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span>Comisión R (2%):</span>
+                              <span className="font-medium">{formatCurrency(comisionR, "USD")}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span>Comisión L (2%):</span>
+                              <span className="font-medium">{formatCurrency(comisionL, "USD")}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
 
                   {/* Utilidad Final Dashboard */}
                   <div className="profit-dashboard">
@@ -772,7 +782,7 @@ const ValuacionResumenCard = ({
         </div>
       </div>
 
-      {/* Modal de Detalle */}
+
       {/* Modal de Detalle */}
       {selectedCategory &&
         createPortal(
