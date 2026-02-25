@@ -163,7 +163,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
     // Allow empty string for number inputs to show placeholder
     let newValue = value
     if (type === 'number') {
-        newValue = value === '' ? '' : parseFloat(value)
+      newValue = value === '' ? '' : parseFloat(value)
     }
 
     setFormData(prev => ({
@@ -296,6 +296,17 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Validación de Tasa de Pago
+    if (!formData.tasaPago || formData.tasaPago <= 0) {
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Tasa de Pago Requerida',
+        message: 'Debe ingresar una Tasa de Pago válida mayor a cero (0) para poder procesar la compra.'
+      });
+      return;
+    }
 
     try {
       // 1. Guardar nuevas subcategorías si existen
@@ -589,7 +600,7 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
                   className="btn-add-inline"
                   title="Agregar nuevo proveedor"
                 >
-                   <AddIcon fill="white" style={{ width: '20px', height: '20px' }} />
+                  <AddIcon fill="white" style={{ width: '20px', height: '20px' }} />
                 </button>
               </div>
               <datalist id="proveedores-list">
@@ -697,14 +708,16 @@ const ComprasSinFacturaForm = ({ projectId, onCompraSaved, compraEdit, onCancelE
           <h3>Valores de la Compra</h3>
           <div className="csf-form-grid">
             <div className="csf-form-group">
-              <label>TASA DE PAGO (Bs/$)</label>
+              <label>TASA DE PAGO (Bs/$) *</label>
               <input
                 type="number"
                 step="0.01"
+                min="0.01"
                 name="tasaPago"
                 value={formData.tasaPago}
                 onChange={handleInputChange}
                 placeholder="0.00"
+                required
               />
             </div>
 

@@ -321,6 +321,18 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Validación de Tasa de Pago
+    if (!formData.tasaPago || formData.tasaPago <= 0) {
+      setFeedback({
+        isOpen: true,
+        type: 'error',
+        title: 'Tasa de Pago Requerida',
+        message: 'Debe ingresar una Tasa de Pago válida mayor a cero (0) para poder procesar la factura.'
+      });
+      return;
+    }
+
     if (!projectId) {
       setFeedback({
         isOpen: true,
@@ -775,13 +787,15 @@ const FacturaForm = ({ projectId, onFacturaSaved, facturaEdit, onCancelEdit }) =
             </div>
 
             <div className="ccf-form-group">
-              <label>TASA DE PAGO (Bs/$)</label>
+              <label>TASA DE PAGO (Bs/$) *</label>
               <input
                 type="number"
                 step="0.01"
+                min="0.01"
                 name="tasaPago"
                 value={formData.tasaPago}
                 onChange={handleInputChange}
+                required
               />
             </div>
 

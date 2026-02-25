@@ -190,20 +190,21 @@ const RetencionesCalculator = ({ formData, onRetencionesChange }) => {
   }, [formData?.id])
 
   // Efecto para calcular retenciones cuando cambien los datos del formulario
-  // SOLO si NO estamos en modo edición (no hay ID)
   useEffect(() => {
-    // Solo calcular si tenemos datos válidos Y no estamos cargando datos de edición
-    if (!formData?.id && (formData?.subTotalPagar > 0 || formData?.iva > 0)) {
+    // Calcular si tenemos datos válidos (sea edición o creación)
+    // El problema previo era que formData?.id bloqueaba el recálculo al editar la tasa de pago
+    if (formData?.subTotalPagar > 0 || formData?.iva > 0 || formData?.tasaPago > 0) {
       const nuevasRetenciones = calcularRetenciones(retenciones)
-      setRetenciones(nuevasRetenciones)
 
-      // Verificar que onRetencionesChange sea una función antes de llamarla
-      if (typeof onRetencionesChange === 'function') {
-        onRetencionesChange(nuevasRetenciones)
+      // Comparamos el objeto completo para evitar omitir algún campo como montoPagado
+      if (JSON.stringify(nuevasRetenciones) !== JSON.stringify(retenciones)) {
+        setRetenciones(nuevasRetenciones)
+        if (typeof onRetencionesChange === 'function') {
+          onRetencionesChange(nuevasRetenciones)
+        }
       }
     }
   }, [
-    formData?.id,
     formData?.iva,
     formData?.subTotalPagar,
     formData?.tasaPago,
