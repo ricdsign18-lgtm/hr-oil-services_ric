@@ -3,7 +3,8 @@ import { useCurrency } from "../../../../contexts/CurrencyContext";
 import { useOperaciones } from "../../../../contexts/OperacionesContext";
 import { usePersonal } from "../../../../contexts/PersonalContext";
 import supabase from "../../../../api/supaBase";
-import { createPortal } from "react-dom";
+import ValuacionCategoriasModal from "./ValuacionCategoriasModal";
+import ValuacionPayrollModal from "./ValuacionPayrollModal";
 import {
   CartShoppingIcon,
   MultiUsersIcon,
@@ -113,13 +114,16 @@ const ValuacionResumenCard = ({
   // 2. Valuation ID (Correct Link)
   // 3. Date Range (Fallback for items not explicitly linked but within period)
 
-  const isItemInValuation = (item, dateField) => {
+  const isItemInValuation = (item, dateField, toleranceDays = 5) => {
     // Check explicit link
-    if (
-      String(item.valuacion) === String(numero_valuacion) ||
-      String(item.valuacion) === String(valuacion.id)
-    ) {
-      return true;
+    if (item.valuacion) {
+      if (
+        String(item.valuacion) === String(numero_valuacion) ||
+        String(item.valuacion) === String(valuacion.id)
+      ) {
+        return true;
+      }
+      return false;
     }
 
     // Check date range if valuation has dates
@@ -132,6 +136,10 @@ const ValuacionResumenCard = ({
       start.setHours(0, 0, 0, 0);
       end.setHours(23, 59, 59, 999);
 
+      if (toleranceDays > 0) {
+        end.setDate(end.getDate() + toleranceDays);
+      }
+
       return itemDate >= start && itemDate <= end;
     }
 
@@ -139,13 +147,13 @@ const ValuacionResumenCard = ({
   };
 
   const facturasValuacion = facturas
-    ? facturas.filter((item) => isItemInValuation(item, "fechaFactura"))
+    ? facturas.filter((item) => isItemInValuation(item, "fechaFactura", 5))
     : [];
   const comprasSinFacturaValuacion = comprasSinFactura
-    ? comprasSinFactura.filter((item) => isItemInValuation(item, "fechaCompra"))
+    ? comprasSinFactura.filter((item) => isItemInValuation(item, "fechaCompra", 5))
     : [];
 
-  const filterDataByPeriod = (data, dateField, toleranceDays = 0) => {
+  const filterDataByPeriod = (data, dateField, toleranceDays = 5) => {
     if (!data) return [];
     const startDate = new Date(periodo_inicio);
     startDate.setHours(0, 0, 0, 0);
@@ -163,8 +171,8 @@ const ValuacionResumenCard = ({
     });
   };
 
-  const pagosPeriodo = filterDataByPeriod(pagos, "fechaPago", 3);
-  const pagosContratistasPeriodo = filterDataByPeriod(pagosContratistas, "fechaPago", 3);
+  const pagosPeriodo = filterDataByPeriod(pagos, "fechaPago", 5);
+  const pagosContratistasPeriodo = filterDataByPeriod(pagosContratistas, "fechaPago", 5);
 
   // Agrupar gastos por categoría
   const gastosPorCategoria = {};
@@ -251,150 +259,7 @@ const ValuacionResumenCard = ({
     return amount * rate;
   };
 
-  // State para el modal
-  const [selectedCategory, setSelectedCategory] = useState(null);
-
-  // State variables for Payroll Modal Filters
-  const [payrollFilterDate, setPayrollFilterDate] = useState("");
-  const [payrollFilterEmployee, setPayrollFilterEmployee] = useState("");
-
-  const handleCategoryClick = (categoria) => {
-    setSelectedCategory(categoria);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedCategory(null);
-  };
-
-  const handlePrevCategory = () => {
-    if (!selectedCategory) return;
-    const currentIndex = categoriasOrdenadas.findIndex(
-      ([cat]) => cat === selectedCategory
-    );
-    if (currentIndex > 0) {
-      setSelectedCategory(categoriasOrdenadas[currentIndex - 1][0]);
-    }
-  };
-
-  const handleNextCategory = () => {
-    if (!selectedCategory) return;
-    const currentIndex = categoriasOrdenadas.findIndex(
-      ([cat]) => cat === selectedCategory
-    );
-    if (currentIndex < categoriasOrdenadas.length - 1) {
-      setSelectedCategory(categoriasOrdenadas[currentIndex + 1][0]);
-    }
-  };
-
-  // Filtrar items para el modal
-  const getCategoryItems = () => {
-    if (!selectedCategory) return [];
-
-    const facturas = facturasValuacion
-      .filter((f) => (f.categoria || "Sin Categoría") === selectedCategory)
-      .map((f) => ({
-        id: f.id,
-        fecha: f.fechaFactura,
-        proveedor: f.proveedor,
-        descripcion: f.descripcion,
-        subcategoria: Array.isArray(f.subcategorias)
-          ? f.subcategorias.join(", ")
-          : f.subcategoria,
-        monto: parseFloat(f.totalPagarDolares || 0),
-        tipo: "Factura",
-      }));
-
-    const compras = comprasSinFacturaValuacion
-      .filter((c) => (c.categoria || "Sin Categoría") === selectedCategory)
-      .map((c) => ({
-        id: c.id,
-        fecha: c.fechaCompra,
-        proveedor: c.proveedor,
-        descripcion: c.descripcion,
-        subcategoria: Array.isArray(c.subcategorias)
-          ? c.subcategorias.join(", ")
-          : c.subcategoria,
-        monto: parseFloat(c.totalDolares || 0),
-        tipo: "Sin Factura",
-      }));
-
-    return [...facturas, ...compras].sort(
-      (a, b) => new Date(b.fecha) - new Date(a.fecha)
-    );
-  };
-
-  // Helper to flatten payroll items for the modal
-  const getAllPayrollItems = () => {
-    const items = [];
-
-    // Regular Payroll
-    if (pagosPeriodo) {
-      pagosPeriodo.forEach(batch => {
-        batch.pagos.forEach(pago => {
-          items.push({
-            id: pago.id,
-            fecha: batch.fechaPago,
-            createdAt: batch.timestamp,
-            empleado: `${pago.empleado.nombre} ${pago.empleado.apellido}`,
-            cedula: pago.empleado.cedula,
-            cargo: pago.empleado.cargo,
-            monto: parseFloat(pago.montoTotalUSD || 0),
-            tipo: "Nómina"
-          });
-        });
-      });
-    }
-
-    // Contractor Payments
-    if (pagosContratistasPeriodo) {
-      pagosContratistasPeriodo.forEach(batch => {
-        if (batch.pagos && Array.isArray(batch.pagos)) {
-          batch.pagos.forEach(pago => {
-            const nombre = pago.nombre_contratista || pago.nombre || "Contratista";
-            items.push({
-              id: pago.id || `contr-${batch.id}-${Math.random()}`,
-              fecha: batch.fechaPago,
-              createdAt: batch.timestamp,
-              empleado: nombre,
-              cedula: pago.cedula || "N/A",
-              cargo: pago.cargo || "Servicios Profesionales",
-              monto: parseFloat(pago.monto_total_usd || 0),
-              tipo: "Contratista"
-            });
-          });
-        }
-      });
-    }
-
-    return items.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  };
-
-  // Helper functions for Payroll Filtering
-  const getUniquePayrollDates = () => {
-    const items = getAllPayrollItems();
-    const dates = [...new Set(items.map(item => item.fecha))];
-    return dates.sort((a, b) => new Date(b) - new Date(a));
-  };
-
-  const getUniquePayrollEmployees = () => {
-    const items = getAllPayrollItems();
-    const employees = [...new Set(items.map(item => item.empleado))];
-    return employees.sort();
-  };
-
-  const getFilteredPayrollItems = () => {
-    let items = getAllPayrollItems();
-
-    if (payrollFilterDate) {
-      items = items.filter(item => item.fecha === payrollFilterDate);
-    }
-
-    if (payrollFilterEmployee) {
-      items = items.filter(item => item.empleado === payrollFilterEmployee);
-    }
-
-    return items;
-  };
+  // Helper states have been removed and moved to the modal components
 
   return (
     <div className="valuacion-resumen-card">
@@ -783,410 +648,26 @@ const ValuacionResumenCard = ({
       </div>
 
 
-      {/* Modal de Detalle */}
-      {selectedCategory &&
-        createPortal(
-          <div
-            className="category-detail-modal-overlay"
-            onClick={handleCloseModal}
-          >
-            <div
-              className="category-detail-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="valuacion-modal-header">
-                <div className="nav-controls">
-                  <button
-                    onClick={handlePrevCategory}
-                    disabled={
-                      categoriasOrdenadas.findIndex(
-                        ([cat]) => cat === selectedCategory
-                      ) === 0
-                    }
-                    className="nav-btn"
-                    title="Categoría anterior"
-                  >
-                    <span className="arrow">←</span>
-                  </button>
-                  <button
-                    onClick={handleNextCategory}
-                    disabled={
-                      categoriasOrdenadas.findIndex(
-                        ([cat]) => cat === selectedCategory
-                      ) ===
-                      categoriasOrdenadas.length - 1
-                    }
-                    className="nav-btn"
-                    title="Categoría siguiente"
-                  >
-                    <span className="arrow">→</span>
-                  </button>
-                </div>
-                <h3 className="modal-title">{selectedCategory}</h3>
-                <button
-                  onClick={handleCloseModal}
-                  className="close-btn"
-                  title="Cerrar"
-                >
-                  ×
-                </button>
-              </div>
+      <ValuacionCategoriasModal
+        showModal={showAllCategoriesModal}
+        onClose={() => setShowAllCategoriesModal(false)}
+        categoriasOrdenadas={categoriasOrdenadas}
+        gastosPorCategoria={gastosPorCategoria}
+        facturasValuacion={facturasValuacion}
+        comprasSinFacturaValuacion={comprasSinFacturaValuacion}
+        subtotalValuacionUSD={subtotalValuacionUSD}
+        totalGastosComprasUSD={totalGastosComprasUSD}
+        formatCurrency={formatCurrency}
+      />
 
-              <div className="valuacion-modal-content">
-                {/* Vista de Tabla (Desktop) */}
-                <div className="valuacion-desktop-view">
-                  <div className="valuacion-table-wrapper">
-                    <table className="valuacion-detail-table">
-                      <thead>
-                        <tr>
-                          <th className="th-date">Fecha</th>
-                          <th className="th-provider">Proveedor</th>
-                          <th className="th-desc">Descripción</th>
-                          <th className="th-subcat">Subcategoría</th>
-                          <th className="th-amount">Monto ($)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {getCategoryItems().map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="td-date">
-                              {item.fecha
-                                ? new Date(item.fecha).toLocaleDateString()
-                                : "N/A"}
-                            </td>
-                            <td className="td-provider font-medium">
-                              {item.proveedor}
-                            </td>
-                            <td className="td-desc text-muted">
-                              {item.descripcion}
-                            </td>
-                            <td className="td-subcat">
-                              <span className="valuacion-badge">
-                                {item.subcategoria || "General"}
-                              </span>
-                            </td>
-                            <td className="td-amount text-right font-bold">
-                              {new Intl.NumberFormat("de-DE", {
-                                minimumFractionDigits: 2,
-                              }).format(item.monto)}
-                            </td>
-                          </tr>
-                        ))}
-                        {getCategoryItems().length === 0 && (
-                          <tr>
-                            <td
-                              colSpan="5"
-                              className="text-center py-4 text-muted"
-                            >
-                              No hay items registrados
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Vista de Tarjetas (Mobile) */}
-                <div className="mobile-view">
-                  {getCategoryItems().map((item, idx) => (
-                    <div key={idx} className="mobile-card">
-                      <div className="mobile-card-header">
-                        <span className="mobile-date">
-                          {item.fecha
-                            ? new Date(item.fecha).toLocaleDateString()
-                            : "N/A"}
-                        </span>
-                        <span className="mobile-amount">
-                          $
-                          {new Intl.NumberFormat("de-DE", {
-                            minimumFractionDigits: 2,
-                          }).format(item.monto)}
-                        </span>
-                      </div>
-                      <div className="mobile-card-body">
-                        <div className="mobile-row">
-                          <span className="label">Proveedor:</span>
-                          <span className="value font-medium">
-                            {item.proveedor}
-                          </span>
-                        </div>
-                        <div className="mobile-row">
-                          <span className="label">Subcategoría:</span>
-                          <span className="value">
-                            <span className="valuacion-badge small">
-                              {item.subcategoria || "General"}
-                            </span>
-                          </span>
-                        </div>
-                        {item.descripcion && (
-                          <div className="mobile-row column">
-                            <span className="label">Descripción:</span>
-                            <span className="value text-muted">
-                              {item.descripcion}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {getCategoryItems().length === 0 && (
-                    <div className="text-center py-4 text-muted">
-                      No hay items registrados
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="valuacion-modal-footer">
-                <div className="total-label">Total Categoría</div>
-                <div className="total-amount">
-                  ${" "}
-                  {new Intl.NumberFormat("de-DE", {
-                    minimumFractionDigits: 2,
-                  }).format(gastosPorCategoria[selectedCategory]?.total || 0)}
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
-
-      {/* Modal de Todas las Categorías */}
-      {showAllCategoriesModal &&
-        createPortal(
-          <div
-            className="category-detail-modal-overlay"
-            onClick={() => setShowAllCategoriesModal(false)}
-          >
-            <div
-              className="category-detail-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="valuacion-modal-header">
-                <h3 className="modal-title">Gastos Administrativos y Operativos</h3>
-                <button
-                  onClick={() => setShowAllCategoriesModal(false)}
-                  className="close-btn"
-                  title="Cerrar"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="valuacion-modal-content">
-                <div className="categorias-grid-modal">
-                  {categoriasOrdenadas.length > 0 ? (
-                    <div className="categorias-grid">
-                      {categoriasOrdenadas.map(([categoria, montos]) => {
-                        const porcentaje =
-                          subtotalValuacionUSD > 0
-                            ? (montos.total / subtotalValuacionUSD) * 100
-                            : 0;
-
-                        return (
-                          <div
-                            key={categoria}
-                            className="categoria-item clickable"
-                            onClick={() => {
-                              handleCategoryClick(categoria);
-                              // Optional: keep main modal open or close it? 
-                              // Current logic opens a SECOND modal on top, which is fine for drilling down
-                            }}
-                            style={{ cursor: "pointer" }}
-                            title="Ver detalle"
-                          >
-                            <div className="categoria-header-simple">
-                              <span className="categoria-nombre">{categoria}</span>
-                              <div className="categoria-stats">
-                                <span className="categoria-total">
-                                  {formatCurrency(montos.total, "USD")}
-                                </span>
-                                <span className="categoria-porcentaje">
-                                  {porcentaje.toFixed(2)}%
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="empty-message-modal">
-                      <span>Sin gastos por categoría registrados</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="valuacion-modal-footer">
-                <div className="total-label">Total Gastos</div>
-                <div className="total-amount">
-                  {formatCurrency(totalGastosComprasUSD, "USD")}
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
-
-      {/* Modal de Nómina */}
-      {showPayrollModal &&
-        createPortal(
-          <div
-            className="category-detail-modal-overlay"
-            onClick={() => setShowPayrollModal(false)}
-          >
-            <div
-              className="category-detail-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="valuacion-modal-header">
-                <h3 className="modal-title">Detalle de Nómina</h3>
-                <button
-                  onClick={() => setShowPayrollModal(false)}
-                  className="close-btn"
-                  title="Cerrar"
-                >
-                  ×
-                </button>
-              </div>
-
-              {/* Filters Bar */}
-              <div className="valuacion-modal-filters" style={{ padding: '0 24px', marginBottom: '16px', display: 'flex', gap: '12px' }}>
-                <select
-                  className="form-select"
-                  value={payrollFilterDate}
-                  onChange={(e) => setPayrollFilterDate(e.target.value)}
-                  style={{ padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.9rem' }}
-                >
-                  <option value="">Todas las Fechas</option>
-                  {getUniquePayrollDates().map(date => (
-                    <option key={date} value={date}>{new Date(date).toLocaleDateString()}</option>
-                  ))}
-                </select>
-
-                <select
-                  className="form-select"
-                  value={payrollFilterEmployee}
-                  onChange={(e) => setPayrollFilterEmployee(e.target.value)}
-                  style={{ padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.9rem', minWidth: '200px' }}
-                >
-                  <option value="">Todos los Empleados</option>
-                  {getUniquePayrollEmployees().map(emp => (
-                    <option key={emp} value={emp}>{emp}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="valuacion-modal-content">
-                {/* Deskop View */}
-                <div className="valuacion-desktop-view">
-                  <div className="valuacion-table-wrapper">
-                    <table className="valuacion-detail-table">
-                      <thead>
-                        <tr>
-                          <th className="th-date">Fecha Pago</th>
-                          <th className="th-provider">Empleado</th>
-                          <th className="th-desc">Cargo</th>
-                          <th className="th-amount">Monto ($)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {getFilteredPayrollItems().map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="td-date">
-                              {new Date(item.fecha).toLocaleDateString()}
-                              {item.createdAt && (
-                                <div className="text-xs text-muted" style={{ fontSize: '0.7rem', marginTop: '2px' }}>
-                                  Creado: {new Date(item.createdAt).toLocaleString()}
-                                </div>
-                              )}
-                            </td>
-                            <td className="td-provider font-medium">
-                              {item.empleado}
-                              <div className="text-xs text-muted">{item.cedula}</div>
-                            </td>
-                            <td className="td-desc text-muted">
-                              {item.cargo}
-                            </td>
-                            <td className="td-amount text-right font-bold">
-                              {formatCurrency(item.monto, "USD")}
-                            </td>
-                          </tr>
-                        ))}
-                        {getFilteredPayrollItems().length === 0 && (
-                          <tr>
-                            <td colSpan="4" className="text-center py-4 text-muted">
-                              No hay pagos registrados con estos filtros
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Mobile View */}
-                <div className="mobile-view">
-                  {getFilteredPayrollItems().map((item, idx) => (
-                    <div key={idx} className="mobile-card">
-                      <div className="mobile-card-header">
-                        <span className="mobile-date">
-                          {new Date(item.fecha).toLocaleDateString()}
-                          {item.createdAt && (
-                            <div className="text-muted" style={{ fontSize: '0.7rem', fontWeight: 'normal' }}>
-                              Creado: {new Date(item.createdAt).toLocaleString()}
-                            </div>
-                          )}
-                        </span>
-                        <span className="mobile-amount">
-                          {formatCurrency(item.monto, "USD")}
-                        </span>
-                      </div>
-                      <div className="mobile-card-body">
-                        <div className="mobile-row">
-                          <span className="label">Empleado:</span>
-                          <span className="value font-medium">{item.empleado}</span>
-                        </div>
-                        <div className="mobile-row">
-                          <span className="label">Cargo:</span>
-                          <span className="value text-muted">{item.cargo}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {getFilteredPayrollItems().length === 0 && (
-                    <div className="text-center py-4 text-muted">
-                      No hay pagos registrados
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="valuacion-modal-footer" style={{ flexDirection: 'column', gap: '8px' }}>
-                {(payrollFilterDate || payrollFilterEmployee) && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', color: '#64748b', fontSize: '0.95rem' }}>
-                    <div className="total-label">Total Filtrado</div>
-                    <div className="total-amount">
-                      {formatCurrency(
-                        getFilteredPayrollItems().reduce((acc, item) => acc + item.monto, 0),
-                        "USD"
-                      )}
-                    </div>
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                  <div className="total-label">Total Nómina y Contrataciones</div>
-                  <div className="total-amount">
-                    {formatCurrency(totalLaboralUSD, "USD")}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <ValuacionPayrollModal
+        showModal={showPayrollModal}
+        onClose={() => setShowPayrollModal(false)}
+        pagosPeriodo={pagosPeriodo}
+        pagosContratistasPeriodo={pagosContratistasPeriodo}
+        totalLaboralUSD={totalLaboralUSD}
+        formatCurrency={formatCurrency}
+      />
     </div>
   );
 };

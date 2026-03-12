@@ -138,14 +138,18 @@ export const ResumeCard = ({ title, items, icon, chartData, chartConfig, chartTy
                     {Array.isArray(items) &&
                         items.filter(item => item.progress === undefined).map((item, index) => (
                             <div
-                                className={`detail-row ${item.highlight ? "highlight" : ""} ${item.isNegative ? "negative" : ""}`}
+                                className={`detail-row ${item.highlight ? "highlight" : ""} ${item.isNegative ? "negative" : ""} ${item.clickable ? "is-clickable" : ""}`}
                                 key={index}
+                                onClick={item.onClick ? item.onClick : undefined}
                             >
                                 <div className="detail-info">
                                     <span className="label">
                                         {item.color && <span className="legend-dot" style={{ backgroundColor: item.color }}></span>}
                                         {item.label}
                                     </span>
+                                    {item.subtitle && (
+                                        <span className="sub-value" style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>{item.subtitle}</span>
+                                    )}
                                     {item.equivalentValue && (
                                         <span className="sub-value">{item.equivalentValue}</span>
                                     )}
