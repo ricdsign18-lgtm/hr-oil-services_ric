@@ -125,6 +125,18 @@
   /* Accent border */
 }
 
+.detail-row.is-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.detail-row.is-clickable:hover {
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding-left: 12px;
+  border-left: 3px solid #3b82f6;
+}
+
 .detail-info {
   display: flex;
   flex-direction: column;

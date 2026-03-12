@@ -9,7 +9,8 @@ import { usePersonal } from "../../../contexts/PersonalContext";
 import { getMainCurrency } from "../../../utils/mainCurrency";
 import { ResumeCard } from "../../resume/ResumeCard";
 import ValuacionResumenCard from "./components/ValuacionResumenCard";
-
+import ValuacionCategoriasModal from "./components/ValuacionCategoriasModal";
+import ValuacionPayrollModal from "./components/ValuacionPayrollModal";
 import { DashboarddIcon, SackDollarIcon } from "../../../assets/icons/Icons";
 import "./ResumenMain.css";
 
@@ -27,6 +28,10 @@ const ResumenMain = () => {
   const [allPagos, setAllPagos] = useState([]);
   const [allPagosContratistas, setAllPagosContratistas] = useState([]);
   const [loadingAllPagos, setLoadingAllPagos] = useState(true);
+
+  // States for Modals
+  const [showGastosGlobalesModal, setShowGastosGlobalesModal] = useState(false);
+  const [showNominaGlobalModal, setShowNominaGlobalModal] = useState(false);
 
   useEffect(() => {
     const fetchAllPagos = async () => {
@@ -93,6 +98,10 @@ const ResumenMain = () => {
     budgetChartData,
     valuationsChartData,
     subtotalConIVA_USD,
+    totalGastosOperativosYAdministrativos_USD,
+    totalPagosNominaGlobal_USD,
+    categoriasGlobalesOrdenadas,
+    gastosPublicPorCategoria
   } = useMemo(() => {
     const subtotales = {
       USD: { conIVA: 0, sinIVA: 0 },
@@ -257,6 +266,35 @@ const ResumenMain = () => {
     const totalGastosOperativosYAdministrativos_USD =
       totalComprasConFacturaGlobal_USD + totalComprasSinFacturaGlobal_USD;
 
+    // Agrupar gastos globales por categoría
+    const gastosPublicPorCategoria = {};
+
+    facturas?.forEach((factura) => {
+      const categoria = factura.categoria || "Sin Categoría";
+      const monto = Number(factura.pagadoDolares || 0);
+
+      if (!gastosPublicPorCategoria[categoria]) {
+        gastosPublicPorCategoria[categoria] = { conFactura: 0, sinFactura: 0, total: 0 };
+      }
+      gastosPublicPorCategoria[categoria].conFactura += monto;
+      gastosPublicPorCategoria[categoria].total += monto;
+    });
+
+    comprasSinFactura?.forEach((compra) => {
+      const categoria = compra.categoria || "Sin Categoría";
+      const monto = Number(compra.totalDolares || 0);
+
+      if (!gastosPublicPorCategoria[categoria]) {
+        gastosPublicPorCategoria[categoria] = { conFactura: 0, sinFactura: 0, total: 0 };
+      }
+      gastosPublicPorCategoria[categoria].sinFactura += monto;
+      gastosPublicPorCategoria[categoria].total += monto;
+    });
+
+    const categoriasGlobalesOrdenadas = Object.entries(gastosPublicPorCategoria).sort(
+      (a, b) => b[1].total - a[1].total
+    );
+
     const presupuestoItems = [
       {
         label: "Subtotal Presupuesto",
@@ -321,7 +359,11 @@ const ResumenMain = () => {
       totalUtilidadProyectadaGlobal_USD,
       totalComisionesYDeduccionesGlobal_USD,
       budgetChartData,
-      subtotalConIVA_USD
+      subtotalConIVA_USD,
+      totalGastosOperativosYAdministrativos_USD,
+      totalPagosNominaGlobal_USD,
+      categoriasGlobalesOrdenadas,
+      gastosPublicPorCategoria
     };
   }, [
     budget,
@@ -367,7 +409,15 @@ const ResumenMain = () => {
         <aside className="resume-cards-container">
           <ResumeCard
             title="Resumen de Presupuesto"
-            items={presupuestoItems}
+            items={presupuestoItems.map(item => {
+              if (item.label === "Total Gastos en Nómina") {
+                return { ...item, onClick: () => setShowNominaGlobalModal(true), clickable: true, subtitle: "Ver detalles de pagos globales" };
+              }
+              if (item.label === "Total Gastos Operativos y Administrativos") {
+                return { ...item, onClick: () => setShowGastosGlobalesModal(true), clickable: true, subtitle: "Ver detalles por categorías globales" };
+              }
+              return item;
+            })}
             icon={<SackDollarIcon />}
             chartData={budgetChartData.map(d => ({ ...d, formattedValue: `${((d.value / totalPresupuesto_USD) * 100).toFixed(1)}%` }))}
             chartConfig={{ centerLabel: `${porcentajeTotalEjecutado.toFixed(0)}%` }}
@@ -480,6 +530,28 @@ const ResumenMain = () => {
             </div>
           )}
         </section>
+
+        {/* Global Modals */}
+        <ValuacionCategoriasModal
+          showModal={showGastosGlobalesModal}
+          onClose={() => setShowGastosGlobalesModal(false)}
+          categoriasOrdenadas={categoriasGlobalesOrdenadas}
+          gastosPorCategoria={gastosPublicPorCategoria}
+          facturasValuacion={facturas || []}
+          comprasSinFacturaValuacion={comprasSinFactura || []}
+          subtotalValuacionUSD={subtotalConIVA_USD}
+          totalGastosComprasUSD={totalGastosOperativosYAdministrativos_USD}
+          formatCurrency={formatCurrency}
+        />
+
+        <ValuacionPayrollModal
+          showModal={showNominaGlobalModal}
+          onClose={() => setShowNominaGlobalModal(false)}
+          pagosPeriodo={allPagos || []}
+          pagosContratistasPeriodo={allPagosContratistas || []}
+          totalLaboralUSD={totalPagosNominaGlobal_USD}
+          formatCurrency={formatCurrency}
+        />
       </main>
     </>
   );
