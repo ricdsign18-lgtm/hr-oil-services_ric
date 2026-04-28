@@ -254,6 +254,13 @@ export const RequerimientosForm = ({ onSuccess, onCancel, semanaId = null, prefi
             </div>
              {/* Aqui va un componente y ver lo de no hay items agregados */}
             <div className='preview-item'>
+                {itemsList.length > 0 && (
+                    <div className="total-requerimiento-summary" style={{ marginBottom: '1rem', padding: '1rem', background: '#f5f5f5', borderRadius: '8px', textAlign: 'right', border: '1px solid #ddd' }}>
+                        <h3 style={{ margin: 0, color: '#333' }}>
+                            Total del Requerimiento: <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>${itemsList.reduce((sum, item) => sum + (parseFloat(item.monto_dolares_aprox) || 0), 0).toFixed(2)}</span>
+                        </h3>
+                    </div>
+                )}
 
                 {!itemsList.length > 0 ?
 

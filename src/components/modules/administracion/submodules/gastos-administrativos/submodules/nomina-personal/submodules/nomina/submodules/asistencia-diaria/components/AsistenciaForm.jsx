@@ -170,6 +170,39 @@ const AsistenciaForm = ({
     setAsistencias(resetAsistencias);
   };
 
+  const handleSyncEmployees = () => {
+    if (readOnly) return;
+
+    const activeEmployees = employees.filter(
+      (emp) => emp.estado !== "Inactivo",
+    );
+
+    setAsistencias((prevAsistencias) => {
+      const existingIds = new Set(prevAsistencias.map((r) => r.empleadoId));
+      const newEmployees = activeEmployees.filter(
+        (emp) => !existingIds.has(emp.id),
+      );
+
+      if (newEmployees.length === 0) {
+        showToast("Todo el personal activo ya se encuentra en la lista", "info");
+        return prevAsistencias;
+      }
+
+      const newRegistros = newEmployees.map((emp) => ({
+        empleadoId: emp.id,
+        nombre: `${emp.nombre} ${emp.apellido}`,
+        cedula: emp.cedula,
+        cargo: emp.cargo,
+        asistio: true,
+        horasTrabajadas: 8,
+        observaciones: "",
+      }));
+
+      showToast(`${newEmployees.length} empleado(s) agregado(s) a la lista`, "success");
+      return [...prevAsistencias, ...newRegistros];
+    });
+  };
+
   const estadisticas = {
     total: asistencias.length,
     presentes: asistencias.filter((r) => r.asistio).length,
@@ -210,6 +243,16 @@ const AsistenciaForm = ({
         </div>
         {!readOnly && (
           <div className="quick-actions">
+            {isEditing && (
+              <button
+                className="btn-asistencia-form-repeat"
+                onClick={handleSyncEmployees}
+                disabled={isFutureDate}
+                title="Sincronizar empleados recientemente agregados sin reiniciar la asistencia actual"
+              >
+                🔄 Añadir Nuevos
+              </button>
+            )}
             <button
               className="btn-asistencia-form-check"
               onClick={() => handleToggleAll(true)}
